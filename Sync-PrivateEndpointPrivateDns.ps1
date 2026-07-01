@@ -9,17 +9,21 @@ destination subscription.
 
 The script is scoped to Azure China. Private DNS zone names are discovered from
 the source subscription and matched by exact zone name in the destination
-subscription. Only Azure China PaaS Private Link private DNS zones from the
-built-in allow-list are scanned; custom private DNS zones and non-PaaS zones are
-ignored even if their names start with "privatelink.".
+subscription. Only supported Azure China private DNS zones from the built-in
+allow-list are scanned; custom private DNS zones are ignored even if their names
+start with "privatelink.".
 
-By default, the script scans supported Azure PaaS Private Link zones and links
+By default, the script scans supported Azure China private DNS zones and links
 matching source private endpoints to destination private DNS zones by updating
 privateDnsZoneGroups. Azure then manages the destination A records. If no source
 private endpoint can be matched, the script falls back to writing the destination
 A record directly. Use -SkipSourcePrivateEndpointLink to always sync DNS records
 directly, and use -ReplaceExisting when manually synced destination record sets
 should exactly match the source.
+
+AKS private DNS zones ending in cx.prod.service.azk8s.cn are synced directly
+because they do not follow the normal private endpoint privateDnsZoneGroups
+model.
 
 By default, the script also finds the source private endpoints that correspond
 to the synced A records and adds the destination private DNS zones to those
@@ -58,7 +62,7 @@ Required permissions:
         -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -WhatIf
 
-Preview all changes for supported source Azure PaaS Private Link zones.
+Preview all changes for supported source Azure China private DNS zones.
 
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
@@ -66,7 +70,7 @@ Preview all changes for supported source Azure PaaS Private Link zones.
         -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -ReplaceExisting
 
-Sync all supported source Azure PaaS Private Link A records and replace matching
+Sync all supported source Azure China private DNS A records and replace matching
 destination record sets.
 
 .EXAMPLE
@@ -75,8 +79,8 @@ destination record sets.
         -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -ZoneName "privatelink.blob.core.chinacloudapi.cn", "privatelink.vaultcore.azure.cn"
 
-Sync only selected Azure PaaS Private Link private DNS zones. The selected zone
-names must be present in the built-in Azure China PaaS allow-list.
+Sync only selected Azure China private DNS zones. The selected zone names must be
+present in the built-in Azure China allow-list.
 
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
@@ -194,7 +198,7 @@ if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and $SourceTenantId -an
 }
 
 if ($IncludeAllPrivateDnsZones) {
-    Write-Warning '-IncludeAllPrivateDnsZones is kept for backward compatibility but is ignored. This script only syncs supported Azure PaaS Private Link private DNS zones.'
+    Write-Warning '-IncludeAllPrivateDnsZones is kept for backward compatibility but is ignored. This script only syncs supported Azure China private DNS zones.'
 }
 
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
@@ -224,6 +228,7 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink-global\.wvd\.azure\.cn$',
     '^privatelink\.wvd\.azure\.cn$'
 )
+$AzureChinaAksPrivateDnsZoneSuffix = '.cx.prod.service.azk8s.cn'
 
 function Import-AzAccountsModule {
     if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
@@ -495,6 +500,15 @@ function Get-PrivateDnsZonesInSubscription {
     return $results
 }
 
+function Test-AzureChinaAksPrivateDnsZoneName {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    return $Name.Trim().EndsWith($AzureChinaAksPrivateDnsZoneSuffix, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 function Test-AzurePaaSPrivateDnsZoneName {
     param(
         [Parameter(Mandatory = $true)]
@@ -502,6 +516,10 @@ function Test-AzurePaaSPrivateDnsZoneName {
     )
 
     $normalizedName = $Name.Trim().ToLowerInvariant()
+
+    if (Test-AzureChinaAksPrivateDnsZoneName -Name $normalizedName) {
+        return $true
+    }
 
     foreach ($pattern in $AzureChinaPaaSPrivateDnsZonePatterns) {
         if ($normalizedName -match $pattern) {
@@ -529,7 +547,7 @@ function Select-ZonesForSync {
 
         $normalizedRequestedZoneName = $requestedZoneName.Trim().ToLowerInvariant()
         if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $normalizedRequestedZoneName)) {
-            throw "ZoneName '$requestedZoneName' is not a supported Azure China PaaS Private Link private DNS zone."
+            throw "ZoneName '$requestedZoneName' is not a supported Azure China private DNS zone."
         }
 
         $requestedZoneLookup[$normalizedRequestedZoneName] = $true
@@ -1610,7 +1628,7 @@ $sourceZonesToSync = @(Select-ZonesForSync `
     -RequestedZoneNames $ZoneName)
 
 if ($sourceZonesToSync.Count -eq 0) {
-    throw 'No supported source Azure PaaS Private Link private DNS zones matched the scan criteria.'
+    throw 'No supported source Azure China private DNS zones matched the scan criteria.'
 }
 
 $sourceRows = @(Get-PrivateDnsARecordRows `
@@ -1623,11 +1641,12 @@ $validatedRows = @(ConvertTo-ValidatedRecordRows `
     -OverrideTtl $Ttl)
 
 if ($validatedRows.Count -eq 0) {
-    throw 'No source Azure PaaS Private Link private DNS A records matched the scan criteria.'
+    throw 'No source Azure China private DNS A records matched the scan criteria.'
 }
 
 $sourcePrivateEndpoints = @()
-if ($ShouldLinkSourcePrivateEndpointsToDestinationZones) {
+$sourceZonesRequiringPrivateEndpointLink = @($sourceZonesToSync | Where-Object { -not (Test-AzureChinaAksPrivateDnsZoneName -Name ([string]$_.Name)) })
+if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and $sourceZonesRequiringPrivateEndpointLink.Count -gt 0) {
     Write-Host 'Reading source private endpoints to match DNS records...'
     $sourcePrivateEndpoints = @(Get-PrivateEndpointDnsDetailsInSubscription -SubscriptionId $SourceSubscriptionId)
     if ($sourcePrivateEndpoints.Count -eq 0) {
@@ -1659,6 +1678,7 @@ $recordGroups = $validatedRows | Group-Object ZoneName, RecordName
 foreach ($recordGroup in $recordGroups) {
     $firstRow = $recordGroup.Group[0]
     $zoneKey = ([string]$firstRow.ZoneName).ToLowerInvariant()
+    $isAksPrivateDnsZone = Test-AzureChinaAksPrivateDnsZoneName -Name $firstRow.ZoneName
 
     if (-not $destinationZoneLookup.ContainsKey($zoneKey)) {
         if (-not $skippedZones.Contains($firstRow.ZoneName)) {
@@ -1697,7 +1717,7 @@ foreach ($recordGroup in $recordGroups) {
     $privateDnsZoneGroupChanged = $false
     $linkableMatches = @()
 
-    if ($ShouldLinkSourcePrivateEndpointsToDestinationZones) {
+    if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and -not $isAksPrivateDnsZone) {
         $sourcePrivateEndpointMatchLookup = @{}
 
         foreach ($row in @($recordGroup.Group)) {

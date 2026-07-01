@@ -4,7 +4,7 @@ PowerShell utilities for testing and syncing Azure China Private Endpoint privat
 
 ## Scripts
 
-- `Sync-PrivateEndpointPrivateDns.ps1` syncs Azure China PaaS Private Link DNS from a source subscription to a destination subscription. By default it links matching source private endpoints to destination private DNS zones; it can fall back to direct A/TXT record sync.
+- `Sync-PrivateEndpointPrivateDns.ps1` syncs supported Azure China private DNS from a source subscription to a destination subscription. By default it links matching source private endpoints to destination private DNS zones; it can fall back to direct A/TXT record sync.
 - `Deploy-ChinaPrivateEndpointTest.ps1` deploys an Azure China test environment with Storage Blob, Storage File, and Key Vault private endpoints.
 
 ## Requirements
@@ -39,4 +39,5 @@ Deploy Azure China test private endpoints:
 
 - Use `-SkipSourcePrivateEndpointLink` to sync DNS records directly instead of updating private endpoint DNS zone groups.
 - Missing destination private DNS zones are created by default; use `-SkipCreateMissingDestinationZones` to require them to already exist.
+- AKS private DNS zones ending in `cx.prod.service.azk8s.cn` are included and synced directly.
 - Test deployment details, including cleanup command, are written to `china-private-endpoint-test-deployment.json`.
