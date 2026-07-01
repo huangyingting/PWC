@@ -618,23 +618,30 @@ function Confirm-DestinationPrivateDnsZones {
     )
 
     $results = New-Object System.Collections.Generic.List[object]
-    foreach ($destinationZone in @($DestinationZones)) {
-        $results.Add($destinationZone)
-    }
-
-    if ($SkipCreate) {
-        return $results
-    }
-
-    $destinationZoneLookup = New-ZoneLookup -Zones @($results.ToArray())
+    $destinationZoneLookup = New-ZoneLookup -Zones @($DestinationZones)
     $sourceZoneGroups = @($SourceZones | Group-Object { ([string]$_.Name).ToLowerInvariant() })
 
     foreach ($sourceZoneGroup in $sourceZoneGroups) {
         $sourceZone = $sourceZoneGroup.Group[0]
         $zoneName = [string]$sourceZone.Name
         $zoneKey = $zoneName.ToLowerInvariant()
+        $matchingDestinationZones = @()
 
         if ($destinationZoneLookup.ContainsKey($zoneKey)) {
+            $matchingDestinationZones = @($destinationZoneLookup[$zoneKey].ToArray())
+        }
+
+        if ($ResourceGroupNameOverride -and $matchingDestinationZones.Count -gt 0) {
+            $matchingDestinationZones = @($matchingDestinationZones | Where-Object { $_.ResourceGroupName -ieq $ResourceGroupNameOverride })
+        }
+
+        if ($matchingDestinationZones.Count -gt 0) {
+            $selectedDestinationZone = @($matchingDestinationZones | Sort-Object ResourceGroupName, Id)[0]
+            $results.Add($selectedDestinationZone)
+            continue
+        }
+
+        if ($SkipCreate) {
             continue
         }
 
@@ -691,8 +698,6 @@ function Confirm-DestinationPrivateDnsZones {
             Id                = $zoneId
         }
         $results.Add($createdZone)
-        $destinationZoneLookup[$zoneKey] = New-Object System.Collections.Generic.List[object]
-        $destinationZoneLookup[$zoneKey].Add($createdZone)
     }
 
     return $results
@@ -1081,7 +1086,13 @@ function Get-PrivateEndpointDnsDetailsInSubscription {
     $results = New-Object System.Collections.Generic.List[object]
 
     foreach ($privateEndpoint in @($privateEndpoints)) {
-        $results.Add((Get-PrivateEndpointDnsDetails -PrivateEndpoint $privateEndpoint))
+        $privateEndpointDnsDetails = Get-PrivateEndpointDnsDetails -PrivateEndpoint $privateEndpoint
+        if (@($privateEndpointDnsDetails.PrivateIpAddresses).Count -eq 0) {
+            Write-Warning "Skipped source private endpoint '$($privateEndpointDnsDetails.Name)' because it has no private IP address. Private endpoint ID: $($privateEndpointDnsDetails.Id)"
+            continue
+        }
+
+        $results.Add($privateEndpointDnsDetails)
     }
 
     return $results
@@ -1232,7 +1243,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
     $existingConfigNames = New-Object System.Collections.Generic.List[string]
     $destinationPrivateDnsZoneIdKey = $DestinationPrivateDnsZoneId.ToLowerInvariant()
     $currentZoneNameKey = $CurrentZoneName.ToLowerInvariant()
-    $sameZoneConfigFound = $false
+    $replacedSameZoneConfig = $false
     $destinationConfigFound = $false
     $destinationConfigName = $null
 
@@ -1267,7 +1278,8 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                 if ($existingPrivateDnsZoneId -match '/privateDnsZones/([^/]+)$') {
                     $existingZoneName = [System.Uri]::UnescapeDataString($Matches[1])
                     if ($existingZoneName.ToLowerInvariant() -eq $currentZoneNameKey) {
-                        $sameZoneConfigFound = $true
+                        $replacedSameZoneConfig = $true
+                        continue
                     }
                 }
 
@@ -1281,7 +1293,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
     }
 
-    if ($destinationConfigFound) {
+    if ($destinationConfigFound -and -not $replacedSameZoneConfig) {
         return [pscustomobject]@{
             PrivateEndpointName        = $PrivateEndpoint.Name
             PrivateEndpointId          = $PrivateEndpoint.Id
@@ -1294,10 +1306,15 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
     }
 
-    $newConfigName = New-PrivateDnsZoneConfigName `
-        -CurrentZoneName $CurrentZoneName `
-        -PrivateDnsZoneId $DestinationPrivateDnsZoneId `
-        -ExistingConfigNames @($existingConfigNames.ToArray())
+    if ($destinationConfigFound) {
+        $newConfigName = $destinationConfigName
+    }
+    else {
+        $newConfigName = New-PrivateDnsZoneConfigName `
+            -CurrentZoneName $CurrentZoneName `
+            -PrivateDnsZoneId $DestinationPrivateDnsZoneId `
+            -ExistingConfigNames @($existingConfigNames.ToArray())
+    }
 
     if (-not $destinationConfigFound) {
         $existingConfigs.Add(@{
@@ -1309,7 +1326,8 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
     }
 
     $operation = if ($existingGroup) {
-        if ($sameZoneConfigFound) { 'ZoneGroupAddConfigSameZoneName' }
+        if ($destinationConfigFound -and $replacedSameZoneConfig) { 'ZoneGroupRemoveDuplicateConfig' }
+        elseif ($replacedSameZoneConfig) { 'ZoneGroupReplaceConfig' }
         else { 'ZoneGroupAddConfig' }
     }
     else {
@@ -1679,10 +1697,10 @@ foreach ($recordGroup in $recordGroups) {
     $matchingDestinationZones = @($destinationZoneLookup[$zoneKey].ToArray())
     if ($matchingDestinationZones.Count -gt 1) {
         $resourceGroups = @($matchingDestinationZones | ForEach-Object { $_.ResourceGroupName }) -join ', '
-        throw "Destination subscription has multiple private DNS zones named '$($firstRow.ZoneName)' in resource groups: $resourceGroups. Subscription IDs alone are ambiguous."
+        Write-Warning "Destination subscription has multiple private DNS zones named '$($firstRow.ZoneName)' in resource groups: $resourceGroups. Using the first match by resource group name."
     }
 
-    $destinationZone = $matchingDestinationZones[0]
+    $destinationZone = @($matchingDestinationZones | Sort-Object ResourceGroupName, Id)[0]
     $groupTtls = @($recordGroup.Group | ForEach-Object { [int]$_.TTL } | Sort-Object -Unique)
     if ($groupTtls.Count -gt 1 -and -not $UseTtlOverride) {
         Write-Warning "Multiple TTL values found for $($firstRow.ZoneName)/$($firstRow.RecordName). Using $($groupTtls[0])."

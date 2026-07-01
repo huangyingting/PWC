@@ -38,6 +38,6 @@ Deploy Azure China test private endpoints:
 ## Notes
 
 - Use `-SkipSourcePrivateEndpointLink` to sync DNS records directly instead of updating private endpoint DNS zone groups.
-- Missing destination private DNS zones are created by default; use `-SkipCreateMissingDestinationZones` to require them to already exist.
+- Existing same-name destination private DNS zones are reused. Missing zones are created by default using the source zone resource group name; use `-SkipCreateMissingDestinationZones` to require them to already exist.
 - AKS private DNS zones ending in `cx.prod.service.azk8s.cn` are included and synced directly.
 - Test deployment details, including cleanup command, are written to `china-private-endpoint-test-deployment.json`.

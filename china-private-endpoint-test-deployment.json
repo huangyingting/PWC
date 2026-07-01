@@ -1,0 +1,32 @@
+{
+  "SubscriptionId": "4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56",
+  "Environment": "AzureChinaCloud",
+  "TenantId": "e8c0f7f4-ac60-41d9-84e5-947027d21034",
+  "ResourceGroupName": "rg-pe-cn-test-xky1zwax",
+  "Location": "chinaeast2",
+  "StorageAccountName": "stpecnxky1zwax",
+  "KeyVaultName": "kvpecnxky1zwax",
+  "VNetName": "vnet-pe-cn-test",
+  "SubnetName": "snet-private-endpoints",
+  "PrivateEndpoints": [
+    {
+      "Name": "pe-storage-blob-test",
+      "GroupId": "blob",
+      "PrivateIp": "10.83.1.5",
+      "PrivateDnsZone": "privatelink.blob.core.chinacloudapi.cn"
+    },
+    {
+      "Name": "pe-storage-file-test",
+      "GroupId": "file",
+      "PrivateIp": "10.83.1.6",
+      "PrivateDnsZone": "privatelink.file.core.chinacloudapi.cn"
+    },
+    {
+      "Name": "pe-keyvault-test",
+      "GroupId": "vault",
+      "PrivateIp": "10.83.1.4",
+      "PrivateDnsZone": "privatelink.vaultcore.azure.cn"
+    }
+  ],
+  "CleanupCommand": "Remove-AzResourceGroup -Name 'rg-pe-cn-test-xky1zwax' -Force"
+}
