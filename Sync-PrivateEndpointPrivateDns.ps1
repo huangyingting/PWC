@@ -772,6 +772,7 @@ function Assert-IPv4Address {
 function ConvertTo-ValidatedRecordRows {
     param(
         [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
         [object[]]$Rows,
 
         [bool]$UseOverrideTtl,
@@ -1244,6 +1245,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
     $destinationPrivateDnsZoneIdKey = $DestinationPrivateDnsZoneId.ToLowerInvariant()
     $currentZoneNameKey = $CurrentZoneName.ToLowerInvariant()
     $replacedSameZoneConfig = $false
+    $sameZoneConfigName = $null
     $destinationConfigFound = $false
     $destinationConfigName = $null
 
@@ -1279,6 +1281,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                     $existingZoneName = [System.Uri]::UnescapeDataString($Matches[1])
                     if ($existingZoneName.ToLowerInvariant() -eq $currentZoneNameKey) {
                         $replacedSameZoneConfig = $true
+                        $sameZoneConfigName = $existingConfigName
                         continue
                     }
                 }
@@ -1306,7 +1309,10 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
     }
 
-    if ($destinationConfigFound) {
+    if ($replacedSameZoneConfig -and -not [string]::IsNullOrWhiteSpace($sameZoneConfigName)) {
+        $newConfigName = $sameZoneConfigName
+    }
+    elseif ($destinationConfigFound) {
         $newConfigName = $destinationConfigName
     }
     else {
@@ -1316,32 +1322,78 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
             -ExistingConfigNames @($existingConfigNames.ToArray())
     }
 
-    if (-not $destinationConfigFound) {
-        $existingConfigs.Add(@{
-            name       = $newConfigName
-            properties = @{
-                privateDnsZoneId = $DestinationPrivateDnsZoneId
-            }
-        })
-    }
-
-    $operation = if ($existingGroup) {
-        if ($destinationConfigFound -and $replacedSameZoneConfig) { 'ZoneGroupRemoveDuplicateConfig' }
-        elseif ($replacedSameZoneConfig) { 'ZoneGroupReplaceConfig' }
-        else { 'ZoneGroupAddConfig' }
-    }
-    else {
-        'ZoneGroupCreate'
-    }
-    $body = @{
-        properties = @{
-            privateDnsZoneConfigs = @($existingConfigs.ToArray())
-        }
-    }
     $target = "$($PrivateEndpoint.Id)/privateDnsZoneGroups/$ZoneGroupName -> $DestinationPrivateDnsZoneId"
 
-    if ($ScriptCommand.ShouldProcess($target, 'Link source private endpoint to destination private DNS zone')) {
-        Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+    if ($replacedSameZoneConfig) {
+        $configsAfterRemove = New-Object System.Collections.Generic.List[object]
+        $destinationConfigAlreadyKept = $false
+
+        foreach ($existingConfig in @($existingConfigs.ToArray())) {
+            $existingConfigName = [string]$existingConfig['name']
+            $existingConfigProperties = $existingConfig['properties']
+            $existingPrivateDnsZoneId = [string]$existingConfigProperties['privateDnsZoneId']
+
+            if ($existingPrivateDnsZoneId.ToLowerInvariant() -eq $destinationPrivateDnsZoneIdKey -and $existingConfigName -ne $newConfigName) {
+                continue
+            }
+
+            if ($existingPrivateDnsZoneId.ToLowerInvariant() -eq $destinationPrivateDnsZoneIdKey -and $existingConfigName -eq $newConfigName) {
+                $destinationConfigAlreadyKept = $true
+            }
+
+            $configsAfterRemove.Add($existingConfig)
+        }
+
+        $removeBody = @{
+            properties = @{
+                privateDnsZoneConfigs = @($configsAfterRemove.ToArray())
+            }
+        }
+
+        if ($ScriptCommand.ShouldProcess($target, 'Remove source private DNS zone config from private endpoint zone group')) {
+            Invoke-ArmJson -Method PUT -Path $path -Body $removeBody -ExpectedStatusCode @(200, 201) | Out-Null
+        }
+
+        if (-not $destinationConfigAlreadyKept) {
+            $configsAfterRemove.Add(@{
+                name       = $newConfigName
+                properties = @{
+                    privateDnsZoneId = $DestinationPrivateDnsZoneId
+                }
+            })
+        }
+
+        $body = @{
+            properties = @{
+                privateDnsZoneConfigs = @($configsAfterRemove.ToArray())
+            }
+        }
+        $operation = if ($destinationConfigFound) { 'ZoneGroupTwoPutRemoveDuplicateConfig' } else { 'ZoneGroupTwoPutMoveToDestinationConfig' }
+
+        if ($ScriptCommand.ShouldProcess($target, 'Add destination private DNS zone config to private endpoint zone group')) {
+            Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+        }
+    }
+    else {
+        if (-not $destinationConfigFound) {
+            $existingConfigs.Add(@{
+                name       = $newConfigName
+                properties = @{
+                    privateDnsZoneId = $DestinationPrivateDnsZoneId
+                }
+            })
+        }
+
+        $operation = if ($existingGroup) { 'ZoneGroupAddConfig' } else { 'ZoneGroupCreate' }
+        $body = @{
+            properties = @{
+                privateDnsZoneConfigs = @($existingConfigs.ToArray())
+            }
+        }
+
+        if ($ScriptCommand.ShouldProcess($target, 'Link source private endpoint to destination private DNS zone')) {
+            Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+        }
     }
 
     return [pscustomobject]@{
@@ -1641,6 +1693,13 @@ $sourceRows = @(Get-PrivateDnsARecordRows `
     -SubscriptionId $SourceSubscriptionId `
     -Zones $sourceZonesToSync `
     -AllowApex:$IncludeApex)
+
+if ($sourceRows.Count -eq 0) {
+    $zoneNames = @($sourceZonesToSync | ForEach-Object { [string]$_.Name } | Sort-Object -Unique) -join ', '
+    Write-Warning "No source Azure China private DNS A records were found in supported source zones: $zoneNames. This can be expected after source private endpoints are already associated to destination private DNS zones. Nothing to sync."
+    return
+}
+
 $validatedRows = @(ConvertTo-ValidatedRecordRows `
     -Rows $sourceRows `
     -UseOverrideTtl $UseTtlOverride `
