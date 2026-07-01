@@ -173,7 +173,6 @@ $ErrorActionPreference = 'Stop'
 
 $PrivateDnsApiVersion = '2018-09-01'
 $NetworkApiVersion = '2023-09-01'
-$AzureChinaEnvironmentName = 'AzureChinaCloud'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
 $UseTtlOverride = $PSBoundParameters.ContainsKey('Ttl')
 $ScriptCommand = $PSCmdlet
@@ -198,35 +197,33 @@ if ($IncludeAllPrivateDnsZones) {
     Write-Warning '-IncludeAllPrivateDnsZones is kept for backward compatibility but is ignored. This script only syncs supported Azure PaaS Private Link private DNS zones.'
 }
 
-$AzurePaaSPrivateDnsZonePatterns = @{
-    AzureChinaCloud = @(
-        # Keep this list aligned with the official China table:
-        # https://docs.azure.cn/en-us/private-link/private-endpoint-dns
-        '^privatelink\.api\.ml\.azure\.cn$',
-        '^privatelink\.notebooks\.chinacloudapi\.cn$',
-        '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
-        '^privatelink\.afs\.azure\.cn$',
-        '^privatelink\.database\.chinacloudapi\.cn$',
-        '^privatelink\.(mysql|postgres|mariadb)\.database\.chinacloudapi\.cn$',
-        '^privatelink\.documents\.azure\.cn$',
-        '^privatelink\.(mongo|cassandra|gremlin|table)\.cosmos\.azure\.cn$',
-        '^privatelink\.vaultcore\.azure\.cn$',
-        '^privatelink\.servicebus\.chinacloudapi\.cn$',
-        '^privatelink\.redis\.cache\.chinacloudapi\.cn$',
-        '^privatelink\.chinacloudsites\.cn$',
-        '^privatelink\.datafactory\.azure\.cn$',
-        '^privatelink\.adf\.azure\.cn$',
-        '^privatelink\.azure-automation\.cn$',
-        '^privatelink\.signalr\.azure\.cn$',
-        '^privatelink\.azure-devices\.cn$',
-        '^privatelink\.azure-devices-provisioning\.cn$',
-        '^privatelink\.azurehdinsight\.cn$',
-        '^privatelink\.[a-z0-9-]+\.kusto\.windows\.cn$',
-        '^privatelink\.batch\.chinacloudapi\.cn$',
-        '^privatelink-global\.wvd\.azure\.cn$',
-        '^privatelink\.wvd\.azure\.cn$'
-    )
-}
+$AzureChinaPaaSPrivateDnsZonePatterns = @(
+    # Keep this list aligned with the official China table:
+    # https://docs.azure.cn/en-us/private-link/private-endpoint-dns
+    '^privatelink\.api\.ml\.azure\.cn$',
+    '^privatelink\.notebooks\.chinacloudapi\.cn$',
+    '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
+    '^privatelink\.afs\.azure\.cn$',
+    '^privatelink\.database\.chinacloudapi\.cn$',
+    '^privatelink\.(mysql|postgres|mariadb)\.database\.chinacloudapi\.cn$',
+    '^privatelink\.documents\.azure\.cn$',
+    '^privatelink\.(mongo|cassandra|gremlin|table)\.cosmos\.azure\.cn$',
+    '^privatelink\.vaultcore\.azure\.cn$',
+    '^privatelink\.servicebus\.chinacloudapi\.cn$',
+    '^privatelink\.redis\.cache\.chinacloudapi\.cn$',
+    '^privatelink\.chinacloudsites\.cn$',
+    '^privatelink\.datafactory\.azure\.cn$',
+    '^privatelink\.adf\.azure\.cn$',
+    '^privatelink\.azure-automation\.cn$',
+    '^privatelink\.signalr\.azure\.cn$',
+    '^privatelink\.azure-devices\.cn$',
+    '^privatelink\.azure-devices-provisioning\.cn$',
+    '^privatelink\.azurehdinsight\.cn$',
+    '^privatelink\.[a-z0-9-]+\.kusto\.windows\.cn$',
+    '^privatelink\.batch\.chinacloudapi\.cn$',
+    '^privatelink-global\.wvd\.azure\.cn$',
+    '^privatelink\.wvd\.azure\.cn$'
+)
 
 function Import-AzAccountsModule {
     if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
@@ -236,13 +233,10 @@ function Import-AzAccountsModule {
     Import-Module Az.Accounts -ErrorAction Stop
 }
 
-function Select-AzureSubscription {
+function Select-AzureChinaSubscription {
     param(
         [Parameter(Mandatory = $true)]
         [string]$SubscriptionId,
-
-        [Parameter(Mandatory = $true)]
-        [string]$EnvironmentName,
 
         [string]$TenantId
     )
@@ -250,15 +244,13 @@ function Select-AzureSubscription {
     Import-AzAccountsModule
 
 
-    $connectParameters = @{}
+    $connectParameters = @{
+        Environment = 'AzureChinaCloud'
+    }
     $contextParameters = @{
         SubscriptionId = $SubscriptionId
         ErrorAction    = 'Stop'
         WhatIf         = $false
-    }
-
-    if ($EnvironmentName) {
-        $connectParameters['Environment'] = $EnvironmentName
     }
 
     if ($TenantId) {
@@ -506,17 +498,12 @@ function Get-PrivateDnsZonesInSubscription {
 function Test-AzurePaaSPrivateDnsZoneName {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Name,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateSet('AzureChinaCloud')]
-        [string]$EnvironmentName
+        [string]$Name
     )
 
     $normalizedName = $Name.Trim().ToLowerInvariant()
-    $patterns = @($AzurePaaSPrivateDnsZonePatterns[$EnvironmentName])
 
-    foreach ($pattern in $patterns) {
+    foreach ($pattern in $AzureChinaPaaSPrivateDnsZonePatterns) {
         if ($normalizedName -match $pattern) {
             return $true
         }
@@ -531,11 +518,7 @@ function Select-ZonesForSync {
         [AllowEmptyCollection()]
         [object[]]$Zones,
 
-        [string[]]$RequestedZoneNames,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateSet('AzureChinaCloud')]
-        [string]$EnvironmentName
+        [string[]]$RequestedZoneNames
     )
 
     $requestedZoneLookup = @{}
@@ -545,8 +528,8 @@ function Select-ZonesForSync {
         }
 
         $normalizedRequestedZoneName = $requestedZoneName.Trim().ToLowerInvariant()
-        if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $normalizedRequestedZoneName -EnvironmentName $EnvironmentName)) {
-            throw "ZoneName '$requestedZoneName' is not a supported Azure PaaS Private Link private DNS zone for '$EnvironmentName'."
+        if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $normalizedRequestedZoneName)) {
+            throw "ZoneName '$requestedZoneName' is not a supported Azure China PaaS Private Link private DNS zone."
         }
 
         $requestedZoneLookup[$normalizedRequestedZoneName] = $true
@@ -556,7 +539,7 @@ function Select-ZonesForSync {
     foreach ($currentZone in @($Zones)) {
         $currentZoneName = ([string]$currentZone.Name).Trim()
 
-        if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $currentZoneName -EnvironmentName $EnvironmentName)) {
+        if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $currentZoneName)) {
             continue
         }
 
@@ -1618,15 +1601,13 @@ function New-ZoneLookup {
     return $lookup
 }
 
-Select-AzureSubscription `
+Select-AzureChinaSubscription `
     -SubscriptionId $SourceSubscriptionId `
-    -EnvironmentName $AzureChinaEnvironmentName `
     -TenantId $SourceTenantId
 $sourceZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $SourceSubscriptionId)
 $sourceZonesToSync = @(Select-ZonesForSync `
     -Zones $sourceZones `
-    -RequestedZoneNames $ZoneName `
-    -EnvironmentName $AzureChinaEnvironmentName)
+    -RequestedZoneNames $ZoneName)
 
 if ($sourceZonesToSync.Count -eq 0) {
     throw 'No supported source Azure PaaS Private Link private DNS zones matched the scan criteria.'
@@ -1654,15 +1635,13 @@ if ($ShouldLinkSourcePrivateEndpointsToDestinationZones) {
     }
 }
 
-Select-AzureSubscription `
+Select-AzureChinaSubscription `
     -SubscriptionId $DestinationSubscriptionId `
-    -EnvironmentName $AzureChinaEnvironmentName `
     -TenantId $DestinationTenantId
 $destinationZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $DestinationSubscriptionId)
 $destinationZonesToSync = @(Select-ZonesForSync `
     -Zones $destinationZones `
-    -RequestedZoneNames $ZoneName `
-    -EnvironmentName $AzureChinaEnvironmentName)
+    -RequestedZoneNames $ZoneName)
 $destinationZonesToSync = @(Confirm-DestinationPrivateDnsZones `
     -DestinationSubscriptionId $DestinationSubscriptionId `
     -SourceZones $sourceZonesToSync `
@@ -1750,9 +1729,8 @@ foreach ($recordGroup in $recordGroups) {
 
             $linkableMatches = @($sourcePrivateEndpointMatches | Where-Object { -not $_.IsAmbiguous })
             if ($linkableMatches.Count -gt 0) {
-                Select-AzureSubscription `
+                Select-AzureChinaSubscription `
                     -SubscriptionId $SourceSubscriptionId `
-                    -EnvironmentName $AzureChinaEnvironmentName `
                     -TenantId $SourceTenantId
 
                 foreach ($linkableMatch in $linkableMatches) {
@@ -1768,9 +1746,8 @@ foreach ($recordGroup in $recordGroups) {
                     }
                 }
 
-                Select-AzureSubscription `
+                Select-AzureChinaSubscription `
                     -SubscriptionId $DestinationSubscriptionId `
-                    -EnvironmentName $AzureChinaEnvironmentName `
                     -TenantId $DestinationTenantId
             }
         }
@@ -1830,9 +1807,8 @@ foreach ($recordGroup in $recordGroups) {
     })
 
     if ($RemoveSourceAfterCopy) {
-        Select-AzureSubscription `
+        Select-AzureChinaSubscription `
             -SubscriptionId $SourceSubscriptionId `
-            -EnvironmentName $AzureChinaEnvironmentName `
             -TenantId $SourceTenantId
         $sourceRecordSets = @($recordGroup.Group | Select-Object ZoneName, SourceZoneResourceGroupName, RecordName -Unique)
 
@@ -1844,9 +1820,8 @@ foreach ($recordGroup in $recordGroups) {
                 -RecordName $sourceRecordSet.RecordName
         }
 
-        Select-AzureSubscription `
+        Select-AzureChinaSubscription `
             -SubscriptionId $DestinationSubscriptionId `
-            -EnvironmentName $AzureChinaEnvironmentName `
             -TenantId $DestinationTenantId
     }
 }
