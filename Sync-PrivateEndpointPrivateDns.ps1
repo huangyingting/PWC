@@ -1232,8 +1232,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
     $existingConfigNames = New-Object System.Collections.Generic.List[string]
     $destinationPrivateDnsZoneIdKey = $DestinationPrivateDnsZoneId.ToLowerInvariant()
     $currentZoneNameKey = $CurrentZoneName.ToLowerInvariant()
-    $replacementConfigName = $null
-    $replacedSameZoneConfig = $false
+    $sameZoneConfigFound = $false
     $destinationConfigFound = $false
     $destinationConfigName = $null
 
@@ -1268,9 +1267,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                 if ($existingPrivateDnsZoneId -match '/privateDnsZones/([^/]+)$') {
                     $existingZoneName = [System.Uri]::UnescapeDataString($Matches[1])
                     if ($existingZoneName.ToLowerInvariant() -eq $currentZoneNameKey) {
-                        $replacementConfigName = $existingConfigName
-                        $replacedSameZoneConfig = $true
-                        continue
+                        $sameZoneConfigFound = $true
                     }
                 }
 
@@ -1284,7 +1281,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
     }
 
-    if ($destinationConfigFound -and -not $replacedSameZoneConfig) {
+    if ($destinationConfigFound) {
         return [pscustomobject]@{
             PrivateEndpointName        = $PrivateEndpoint.Name
             PrivateEndpointId          = $PrivateEndpoint.Id
@@ -1297,18 +1294,10 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
     }
 
-    if ($destinationConfigFound) {
-        $newConfigName = $destinationConfigName
-    }
-    elseif ($replacementConfigName) {
-        $newConfigName = $replacementConfigName
-    }
-    else {
-        $newConfigName = New-PrivateDnsZoneConfigName `
-            -CurrentZoneName $CurrentZoneName `
-            -PrivateDnsZoneId $DestinationPrivateDnsZoneId `
-            -ExistingConfigNames @($existingConfigNames.ToArray())
-    }
+    $newConfigName = New-PrivateDnsZoneConfigName `
+        -CurrentZoneName $CurrentZoneName `
+        -PrivateDnsZoneId $DestinationPrivateDnsZoneId `
+        -ExistingConfigNames @($existingConfigNames.ToArray())
 
     if (-not $destinationConfigFound) {
         $existingConfigs.Add(@{
@@ -1320,8 +1309,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
     }
 
     $operation = if ($existingGroup) {
-        if ($destinationConfigFound -and $replacedSameZoneConfig) { 'ZoneGroupRemoveDuplicateConfig' }
-        elseif ($replacedSameZoneConfig) { 'ZoneGroupReplaceConfig' }
+        if ($sameZoneConfigFound) { 'ZoneGroupAddConfigSameZoneName' }
         else { 'ZoneGroupAddConfig' }
     }
     else {
