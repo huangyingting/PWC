@@ -55,6 +55,10 @@ Required permissions:
 - Optional -RemoveSourceAfterCopy: Private DNS Zone Contributor on source zones.
 - Default private endpoint linking: Network Contributor on source private
     endpoints, plus read access to destination private DNS zones.
+- Azure Automation: enable the Automation Account managed identity, assign the
+    required RBAC permissions to that identity, and run this script with
+    -UseManagedIdentity. For a user-assigned managed identity, also pass
+    -ManagedIdentityAccountId with the identity client ID.
 
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
@@ -120,6 +124,26 @@ destination resource group instead of using the source zone resource group name.
         -WhatIf
 
 Preview DNS record sync without creating or updating provenance TXT records.
+
+.EXAMPLE
+    .\Sync-PrivateEndpointPrivateDns.ps1 `
+        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
+        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
+        -UseManagedIdentity `
+        -SkipSourcePrivateEndpointLink
+
+Run inside Azure Automation using the Automation Account system-assigned
+managed identity.
+
+.EXAMPLE
+    .\Sync-PrivateEndpointPrivateDns.ps1 `
+        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
+        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
+        -UseManagedIdentity `
+        -ManagedIdentityAccountId "33333333-3333-3333-3333-333333333333"
+
+Run using a user-assigned managed identity. The ManagedIdentityAccountId value
+is typically the user-assigned managed identity client ID.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]
@@ -139,6 +163,12 @@ param(
 
     [ValidateNotNullOrEmpty()]
     [string]$DestinationTenantId,
+
+    [switch]$UseManagedIdentity,
+
+    [Alias('UserAssignedManagedIdentityClientId')]
+    [ValidateNotNullOrEmpty()]
+    [string]$ManagedIdentityAccountId,
 
     [ValidateNotNullOrEmpty()]
     [string]$DestinationPrivateDnsZoneResourceGroupName,
@@ -180,6 +210,25 @@ $NetworkApiVersion = '2023-09-01'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
 $UseTtlOverride = $PSBoundParameters.ContainsKey('Ttl')
 $ScriptCommand = $PSCmdlet
+$script:ConnectedWithManagedIdentity = $false
+
+$IsAzureAutomationRunbook = $false
+if ($env:AZUREPS_HOST_ENVIRONMENT -match 'AzureAutomation') {
+    $IsAzureAutomationRunbook = $true
+}
+
+$psPrivateMetadataVariable = Get-Variable -Name PSPrivateMetadata -Scope Global -ErrorAction SilentlyContinue
+if ($psPrivateMetadataVariable -and $psPrivateMetadataVariable.Value) {
+    $jobIdProperty = $psPrivateMetadataVariable.Value.PSObject.Properties['JobId']
+    if ($jobIdProperty -and $jobIdProperty.Value) {
+        $IsAzureAutomationRunbook = $true
+    }
+}
+
+$UseManagedIdentityLogin = [bool]($UseManagedIdentity -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId) -or $IsAzureAutomationRunbook)
+if ($UseManagedIdentityLogin -and $IsAzureAutomationRunbook -and -not $UseManagedIdentity -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
+    Write-Host 'Azure Automation runbook environment detected. Using the Automation Account system-assigned managed identity for Azure login.'
+}
 
 $UseDestinationResourceGroupLocationOverride = $PSBoundParameters.ContainsKey('DestinationResourceGroupLocation')
 $DefaultDestinationResourceGroupLocation = 'chinaeast2'
@@ -243,14 +292,18 @@ function Select-AzureChinaSubscription {
         [Parameter(Mandatory = $true)]
         [string]$SubscriptionId,
 
-        [string]$TenantId
+        [string]$TenantId,
+
+        [bool]$UseManagedIdentity,
+
+        [string]$ManagedIdentityAccountId
     )
 
     Import-AzAccountsModule
 
-
     $connectParameters = @{
         Environment = 'AzureChinaCloud'
+        ErrorAction = 'Stop'
     }
     $contextParameters = @{
         SubscriptionId = $SubscriptionId
@@ -258,20 +311,40 @@ function Select-AzureChinaSubscription {
         WhatIf         = $false
     }
 
+    if ($UseManagedIdentity) {
+        $connectParameters['Identity'] = $true
+        if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
+            $connectParameters['AccountId'] = $ManagedIdentityAccountId
+        }
+    }
+
     if ($TenantId) {
         $connectParameters['Tenant'] = $TenantId
         $contextParameters['Tenant'] = $TenantId
     }
 
-    if (-not (Get-AzContext -ErrorAction SilentlyContinue)) {
-        Connect-AzAccount @connectParameters -ErrorAction Stop | Out-Null
+    if ($UseManagedIdentity) {
+        if (-not $script:ConnectedWithManagedIdentity) {
+            Connect-AzAccount @connectParameters | Out-Null
+            $script:ConnectedWithManagedIdentity = $true
+        }
+    }
+    else {
+        $currentContext = Get-AzContext -ErrorAction SilentlyContinue
+        if (-not $currentContext -or $currentContext.Environment.Name -ne 'AzureChinaCloud') {
+            Connect-AzAccount @connectParameters | Out-Null
+        }
     }
 
     try {
         Set-AzContext @contextParameters | Out-Null
     }
     catch {
-        Connect-AzAccount @connectParameters -ErrorAction Stop | Out-Null
+        Connect-AzAccount @connectParameters | Out-Null
+        if ($UseManagedIdentity) {
+            $script:ConnectedWithManagedIdentity = $true
+        }
+
         Set-AzContext @contextParameters | Out-Null
     }
 }
@@ -1679,7 +1752,9 @@ function New-ZoneLookup {
 
 Select-AzureChinaSubscription `
     -SubscriptionId $SourceSubscriptionId `
-    -TenantId $SourceTenantId
+    -TenantId $SourceTenantId `
+    -UseManagedIdentity $UseManagedIdentityLogin `
+    -ManagedIdentityAccountId $ManagedIdentityAccountId
 $sourceZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $SourceSubscriptionId)
 $sourceZonesToSync = @(Select-ZonesForSync `
     -Zones $sourceZones `
@@ -1721,7 +1796,9 @@ if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and $sourceZonesRequiri
 
 Select-AzureChinaSubscription `
     -SubscriptionId $DestinationSubscriptionId `
-    -TenantId $DestinationTenantId
+    -TenantId $DestinationTenantId `
+    -UseManagedIdentity $UseManagedIdentityLogin `
+    -ManagedIdentityAccountId $ManagedIdentityAccountId
 $destinationZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $DestinationSubscriptionId)
 $destinationZonesToSync = @(Select-ZonesForSync `
     -Zones $destinationZones `
@@ -1816,7 +1893,9 @@ foreach ($recordGroup in $recordGroups) {
             if ($linkableMatches.Count -gt 0) {
                 Select-AzureChinaSubscription `
                     -SubscriptionId $SourceSubscriptionId `
-                    -TenantId $SourceTenantId
+                    -TenantId $SourceTenantId `
+                    -UseManagedIdentity $UseManagedIdentityLogin `
+                    -ManagedIdentityAccountId $ManagedIdentityAccountId
 
                 foreach ($linkableMatch in $linkableMatches) {
                     $zoneGroupResult = Set-PrivateEndpointPrivateDnsZoneGroup `
@@ -1833,7 +1912,9 @@ foreach ($recordGroup in $recordGroups) {
 
                 Select-AzureChinaSubscription `
                     -SubscriptionId $DestinationSubscriptionId `
-                    -TenantId $DestinationTenantId
+                    -TenantId $DestinationTenantId `
+                    -UseManagedIdentity $UseManagedIdentityLogin `
+                    -ManagedIdentityAccountId $ManagedIdentityAccountId
             }
         }
     }
@@ -1894,7 +1975,9 @@ foreach ($recordGroup in $recordGroups) {
     if ($RemoveSourceAfterCopy) {
         Select-AzureChinaSubscription `
             -SubscriptionId $SourceSubscriptionId `
-            -TenantId $SourceTenantId
+            -TenantId $SourceTenantId `
+            -UseManagedIdentity $UseManagedIdentityLogin `
+            -ManagedIdentityAccountId $ManagedIdentityAccountId
         $sourceRecordSets = @($recordGroup.Group | Select-Object ZoneName, SourceZoneResourceGroupName, RecordName -Unique)
 
         foreach ($sourceRecordSet in $sourceRecordSets) {
@@ -1907,7 +1990,9 @@ foreach ($recordGroup in $recordGroups) {
 
         Select-AzureChinaSubscription `
             -SubscriptionId $DestinationSubscriptionId `
-            -TenantId $DestinationTenantId
+            -TenantId $DestinationTenantId `
+            -UseManagedIdentity $UseManagedIdentityLogin `
+            -ManagedIdentityAccountId $ManagedIdentityAccountId
     }
 }
 
