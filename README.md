@@ -96,6 +96,65 @@ group name.
 For a user-assigned managed identity, also pass
 `-ManagedIdentityAccountId "<user-assigned-managed-identity-client-id>"`.
 
+### Trigger the runbook
+
+To trigger the runbook from the Azure China portal:
+
+1. Open the Automation Account.
+2. Go to **Runbooks**.
+3. Open `Sync-PrivateEndpointPrivateDns`.
+4. Select **Start**.
+5. Enter only these parameters:
+
+```powershell
+SourceSubscriptionId      <source-subscription-id>
+DestinationSubscriptionId <destination-subscription-id>
+```
+
+To trigger the runbook from PowerShell:
+
+```powershell
+$parameters = @{
+    SourceSubscriptionId      = "<source-subscription-id>"
+    DestinationSubscriptionId = "<destination-subscription-id>"
+}
+
+$job = Start-AzAutomationRunbook `
+    -ResourceGroupName "rg-dns-sync-automation" `
+    -AutomationAccountName "aa-dns-sync-cn-prod" `
+    -Name "Sync-PrivateEndpointPrivateDns" `
+    -Parameters $parameters
+
+Get-AzAutomationJob `
+    -ResourceGroupName "rg-dns-sync-automation" `
+    -AutomationAccountName "aa-dns-sync-cn-prod" `
+    -Id $job.JobId
+```
+
+To run it on a schedule, create a schedule and link the runbook with the same
+two parameters:
+
+```powershell
+$parameters = @{
+    SourceSubscriptionId      = "<source-subscription-id>"
+    DestinationSubscriptionId = "<destination-subscription-id>"
+}
+
+New-AzAutomationSchedule `
+    -ResourceGroupName "rg-dns-sync-automation" `
+    -AutomationAccountName "aa-dns-sync-cn-prod" `
+    -Name "daily-private-endpoint-dns-sync" `
+    -StartTime (Get-Date).AddHours(1) `
+    -DayInterval 1
+
+Register-AzAutomationScheduledRunbook `
+    -ResourceGroupName "rg-dns-sync-automation" `
+    -AutomationAccountName "aa-dns-sync-cn-prod" `
+    -RunbookName "Sync-PrivateEndpointPrivateDns" `
+    -ScheduleName "daily-private-endpoint-dns-sync" `
+    -Parameters $parameters
+```
+
 ## Notes
 
 - By default, the sync runbook uses private endpoint zone-group linking. The only required runbook parameters are `SourceSubscriptionId` and `DestinationSubscriptionId`.
