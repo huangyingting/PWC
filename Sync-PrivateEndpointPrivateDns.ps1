@@ -5,7 +5,9 @@ Syncs Azure Private Link private DNS A records from one subscription to another.
 .DESCRIPTION
 Scans a source subscription for private DNS zones, reads the A records from
 Private Link zones, and writes those records to matching private DNS zones in a
-destination subscription.
+destination subscription. When running in Azure Automation, SourceSubscriptionId,
+DestinationSubscriptionId, and ManagedIdentityAccountId can be read from
+Automation variables created by Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1.
 
 The script is scoped to Azure China. Private DNS zone names are discovered from
 the source subscription and matched by exact zone name in the destination
@@ -148,12 +150,12 @@ is typically the user-assigned managed identity client ID.
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter()]
     [Alias('AppSubscriptionId')]
     [ValidateNotNullOrEmpty()]
     [string]$SourceSubscriptionId,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter()]
     [Alias('CentralSubscriptionId')]
     [ValidateNotNullOrEmpty()]
     [string]$DestinationSubscriptionId,
@@ -208,9 +210,36 @@ $ErrorActionPreference = 'Stop'
 $PrivateDnsApiVersion = '2018-09-01'
 $NetworkApiVersion = '2023-09-01'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
+$DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
+$DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
+$DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $UseTtlOverride = $PSBoundParameters.ContainsKey('Ttl')
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
+
+function Get-AutomationVariableString {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    if (-not (Get-Command -Name Get-AutomationVariable -ErrorAction SilentlyContinue)) {
+        return $null
+    }
+
+    try {
+        $value = Get-AutomationVariable -Name $Name -ErrorAction Stop
+    }
+    catch {
+        return $null
+    }
+
+    if ($null -eq $value) {
+        return $null
+    }
+
+    return [string]$value
+}
 
 $IsAzureAutomationRunbook = $false
 if ($env:AZUREPS_HOST_ENVIRONMENT -match 'AzureAutomation') {
@@ -223,6 +252,26 @@ if ($psPrivateMetadataVariable -and $psPrivateMetadataVariable.Value) {
     if ($jobIdProperty -and $jobIdProperty.Value) {
         $IsAzureAutomationRunbook = $true
     }
+}
+
+if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
+    $SourceSubscriptionId = Get-AutomationVariableString -Name $DefaultSourceSubscriptionIdAutomationVariableName
+}
+
+if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
+    $DestinationSubscriptionId = Get-AutomationVariableString -Name $DefaultDestinationSubscriptionIdAutomationVariableName
+}
+
+if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
+    $ManagedIdentityAccountId = Get-AutomationVariableString -Name $DefaultManagedIdentityAccountIdAutomationVariableName
+}
+
+if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
+    throw "SourceSubscriptionId is required. In Azure Automation, pass SourceSubscriptionId or set the '$DefaultSourceSubscriptionIdAutomationVariableName' Automation variable."
+}
+
+if ([string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
+    throw "DestinationSubscriptionId is required. In Azure Automation, pass DestinationSubscriptionId or set the '$DefaultDestinationSubscriptionIdAutomationVariableName' Automation variable."
 }
 
 $UseManagedIdentityLogin = [bool]($UseManagedIdentity -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId) -or $IsAzureAutomationRunbook)

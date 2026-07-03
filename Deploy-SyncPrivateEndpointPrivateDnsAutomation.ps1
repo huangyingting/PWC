@@ -3,23 +3,28 @@
 Deploys the private endpoint private DNS sync script as an Azure Automation runbook.
 
 .DESCRIPTION
-Creates or updates an Azure China Automation Account with a system-assigned
-managed identity, imports Sync-PrivateEndpointPrivateDns.ps1 as a PowerShell
-runbook, publishes it, and can optionally assign recommended RBAC permissions
-to the Automation Account managed identity.
+Creates or updates an Azure China Automation Account with a user-assigned
+managed identity by default, imports Sync-PrivateEndpointPrivateDns.ps1 as a
+PowerShell runbook, publishes it, and can optionally assign recommended RBAC
+permissions to the Automation Account managed identity.
 
-The runbook itself should be executed with -UseManagedIdentity. If the
-Automation Account modules are not already present, this script can start
-imports for Az.Accounts and Az.Resources from PowerShell Gallery.
+The deployment saves source subscription, destination subscription, and managed
+identity client ID defaults as Automation variables so the runbook can start
+without parameters. If the Automation Account modules are not already present,
+this script can start imports for Az.Accounts and Az.Resources from PowerShell
+Gallery.
 
 .EXAMPLE
     .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
         -SubscriptionId "11111111-1111-1111-1111-111111111111" `
         -ResourceGroupName "rg-dns-sync-automation" `
         -AutomationAccountName "aa-dns-sync-cn-prod" `
-        -Location "chinaeast2"
+        -Location "chinaeast2" `
+        -SourceSubscriptionId "22222222-2222-2222-2222-222222222222" `
+        -DestinationSubscriptionId "33333333-3333-3333-3333-333333333333"
 
-Create or update the Automation Account and publish the runbook.
+    Create or update the Automation Account, publish the runbook, and save the
+    runbook default source and destination subscriptions.
 
 .EXAMPLE
     .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -55,6 +60,18 @@ param(
 
     [string]$AutomationAccountName,
 
+    [ValidateSet('UserAssigned', 'SystemAssigned')]
+    [string]$ManagedIdentityType = 'UserAssigned',
+
+    [ValidateNotNullOrEmpty()]
+    [string]$UserAssignedManagedIdentityName,
+
+    [ValidateNotNullOrEmpty()]
+    [string]$UserAssignedManagedIdentityResourceGroupName,
+
+    [ValidateNotNullOrEmpty()]
+    [string]$UserAssignedManagedIdentityResourceId,
+
     [ValidateNotNullOrEmpty()]
     [string]$RunbookName = 'Sync-PrivateEndpointPrivateDns',
 
@@ -73,6 +90,7 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$SourceSubscriptionId,
 
+    [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]$DestinationSubscriptionId,
 
@@ -90,6 +108,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $AutomationApiVersion = '2023-11-01'
+$ManagedIdentityApiVersion = '2023-01-31'
+$DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
+$DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
+$DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $RequiredAutomationModules = @('Az.Accounts', 'Az.Resources')
 
 function Import-RequiredModule {
@@ -148,6 +170,16 @@ function ConvertTo-ArmPathSegment {
     )
 
     return [System.Uri]::EscapeDataString($Value)
+}
+
+function New-LowercaseAlphanumericString {
+    param(
+        [ValidateRange(1, 128)]
+        [int]$Length = 8
+    )
+
+    $characters = 'abcdefghijklmnopqrstuvwxyz0123456789'.ToCharArray()
+    return -join (1..$Length | ForEach-Object { $characters | Get-Random })
 }
 
 function Invoke-ArmJson {
@@ -219,6 +251,88 @@ function New-AutomationAccountPath {
     return "/subscriptions/$TargetSubscriptionId/resourceGroups/$TargetResourceGroupName/providers/Microsoft.Automation/automationAccounts/$accountSegment?api-version=$AutomationApiVersion"
 }
 
+function New-UserAssignedManagedIdentityPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TargetSubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TargetResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TargetIdentityName
+    )
+
+    $identitySegment = ConvertTo-ArmPathSegment -Value $TargetIdentityName
+    return "/subscriptions/$TargetSubscriptionId/resourceGroups/$TargetResourceGroupName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/$identitySegment?api-version=$ManagedIdentityApiVersion"
+}
+
+function Get-UserAssignedManagedIdentity {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceId
+    )
+
+    $path = "$ResourceId?api-version=$ManagedIdentityApiVersion"
+    return Invoke-ArmJson -Method GET -Path $path -ExpectedStatusCode @(200)
+}
+
+function New-UserAssignedManagedIdentity {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TargetSubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TargetResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TargetIdentityName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TargetLocation
+    )
+
+    $path = New-UserAssignedManagedIdentityPath `
+        -TargetSubscriptionId $TargetSubscriptionId `
+        -TargetResourceGroupName $TargetResourceGroupName `
+        -TargetIdentityName $TargetIdentityName
+    $body = @{
+        location = $TargetLocation
+    }
+    $target = "$TargetSubscriptionId/$TargetResourceGroupName/$TargetIdentityName"
+
+    $existingIdentity = Invoke-ArmJson -Method GET -Path $path -ExpectedStatusCode @(200) -AllowNotFound
+    if ($existingIdentity) {
+        throw "User-assigned managed identity '$TargetIdentityName' already exists in resource group '$TargetResourceGroupName'. Pass -UserAssignedManagedIdentityResourceId '$($existingIdentity.id)' to reuse it, or choose a different -UserAssignedManagedIdentityName."
+    }
+
+    if ($PSCmdlet.ShouldProcess($target, 'Create user-assigned managed identity')) {
+        return Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201)
+    }
+
+    throw 'User-assigned managed identity was not created. Run without -WhatIf to create it.'
+}
+
+function Get-UserAssignedManagedIdentityWithPrincipal {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceId
+    )
+
+    for ($attempt = 1; $attempt -le 12; $attempt++) {
+        $identity = Get-UserAssignedManagedIdentity -ResourceId $ResourceId
+        $principalId = [string]$identity.properties.principalId
+        $clientId = [string]$identity.properties.clientId
+        if (-not [string]::IsNullOrWhiteSpace($principalId) -and -not [string]::IsNullOrWhiteSpace($clientId)) {
+            return $identity
+        }
+
+        Start-Sleep -Seconds 5
+    }
+
+    throw "The user-assigned managed identity principal ID or client ID was not available yet for '$ResourceId'. Wait a minute and rerun the role-assignment step."
+}
+
 function Confirm-ResourceGroup {
     param(
         [Parameter(Mandatory = $true)]
@@ -250,8 +364,34 @@ function Set-AutomationAccountWithIdentity {
         [string]$TargetAutomationAccountName,
 
         [Parameter(Mandatory = $true)]
-        [string]$TargetLocation
+        [string]$TargetLocation,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('UserAssigned', 'SystemAssigned')]
+        [string]$TargetManagedIdentityType,
+
+        [string]$TargetUserAssignedManagedIdentityResourceId
     )
+
+    if ($TargetManagedIdentityType -eq 'UserAssigned' -and [string]::IsNullOrWhiteSpace($TargetUserAssignedManagedIdentityResourceId)) {
+        throw 'TargetUserAssignedManagedIdentityResourceId is required when TargetManagedIdentityType is UserAssigned.'
+    }
+
+    if ($TargetManagedIdentityType -eq 'UserAssigned') {
+        $userAssignedIdentities = @{}
+        $userAssignedIdentities[$TargetUserAssignedManagedIdentityResourceId] = @{}
+        $identity = @{
+            type                   = 'UserAssigned'
+            userAssignedIdentities = $userAssignedIdentities
+        }
+        $identityDescription = 'user-assigned managed identity'
+    }
+    else {
+        $identity = @{
+            type = 'SystemAssigned'
+        }
+        $identityDescription = 'system-assigned managed identity'
+    }
 
     $path = New-AutomationAccountPath `
         -TargetSubscriptionId $TargetSubscriptionId `
@@ -259,9 +399,7 @@ function Set-AutomationAccountWithIdentity {
         -TargetAutomationAccountName $TargetAutomationAccountName
     $body = @{
         location   = $TargetLocation
-        identity   = @{
-            type = 'SystemAssigned'
-        }
+        identity   = $identity
         properties = @{
             sku = @{
                 name = 'Basic'
@@ -270,7 +408,7 @@ function Set-AutomationAccountWithIdentity {
     }
     $target = "$TargetSubscriptionId/$TargetResourceGroupName/$TargetAutomationAccountName"
 
-    if ($PSCmdlet.ShouldProcess($target, 'Create or update Automation Account with system-assigned managed identity')) {
+    if ($PSCmdlet.ShouldProcess($target, "Create or update Automation Account with $identityDescription")) {
         return Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201)
     }
 
@@ -338,6 +476,62 @@ function Confirm-AutomationModule {
     }
 }
 
+function Set-AutomationPlainVariable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    $existingVariable = Get-AzAutomationVariable `
+        -ResourceGroupName $ResourceGroupName `
+        -AutomationAccountName $AutomationAccountName `
+        -Name $Name `
+        -ErrorAction SilentlyContinue
+
+    if ($PSCmdlet.ShouldProcess("$AutomationAccountName/$Name", 'Create or update Automation variable')) {
+        if ($existingVariable) {
+            Set-AzAutomationVariable `
+                -ResourceGroupName $ResourceGroupName `
+                -AutomationAccountName $AutomationAccountName `
+                -Name $Name `
+                -Encrypted $false `
+                -Value $Value | Out-Null
+        }
+        else {
+            New-AzAutomationVariable `
+                -ResourceGroupName $ResourceGroupName `
+                -AutomationAccountName $AutomationAccountName `
+                -Name $Name `
+                -Encrypted $false `
+                -Value $Value | Out-Null
+        }
+    }
+}
+
+function Remove-AutomationPlainVariable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    $existingVariable = Get-AzAutomationVariable `
+        -ResourceGroupName $ResourceGroupName `
+        -AutomationAccountName $AutomationAccountName `
+        -Name $Name `
+        -ErrorAction SilentlyContinue
+
+    if ($existingVariable -and $PSCmdlet.ShouldProcess("$AutomationAccountName/$Name", 'Remove Automation variable')) {
+        Remove-AzAutomationVariable `
+            -ResourceGroupName $ResourceGroupName `
+            -AutomationAccountName $AutomationAccountName `
+            -Name $Name `
+            -Force | Out-Null
+    }
+}
+
 function Import-SyncRunbook {
     if (-not (Test-Path -Path $RunbookPath -PathType Leaf)) {
         throw "RunbookPath '$RunbookPath' was not found."
@@ -398,8 +592,8 @@ function Confirm-RecommendRoleAssignments {
         [string]$PrincipalId
     )
 
-    if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId) -or [string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
-        throw '-AssignRecommendedRoles requires both -SourceSubscriptionId and -DestinationSubscriptionId.'
+    if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
+        throw '-AssignRecommendedRoles requires -SourceSubscriptionId.'
     }
 
     $sourceScope = "/subscriptions/$SourceSubscriptionId"
@@ -428,8 +622,7 @@ foreach ($moduleName in @('Az.Accounts', 'Az.Resources', 'Az.Automation')) {
 }
 
 if ([string]::IsNullOrWhiteSpace($AutomationAccountName)) {
-    $characters = 'abcdefghijklmnopqrstuvwxyz0123456789'.ToCharArray()
-    $suffix = -join (1..8 | ForEach-Object { $characters | Get-Random })
+    $suffix = New-LowercaseAlphanumericString -Length 8
     $AutomationAccountName = "aa-dns-sync-cn-$suffix"
 }
 
@@ -437,15 +630,70 @@ if ([string]::IsNullOrWhiteSpace($ResourceGroupName)) {
     $ResourceGroupName = "rg-$AutomationAccountName"
 }
 
+if ($ManagedIdentityType -eq 'UserAssigned') {
+    if (-not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceId) -and
+        (-not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityName) -or -not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceGroupName))) {
+        throw 'Use either -UserAssignedManagedIdentityResourceId or -UserAssignedManagedIdentityName/-UserAssignedManagedIdentityResourceGroupName, not both.'
+    }
+
+    if ([string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceId)) {
+        if ([string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityName)) {
+            $identitySuffix = New-LowercaseAlphanumericString -Length 8
+            $UserAssignedManagedIdentityName = "id-$AutomationAccountName-$identitySuffix"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceGroupName)) {
+            $UserAssignedManagedIdentityResourceGroupName = $ResourceGroupName
+        }
+    }
+}
+elseif (-not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceId) -or
+    -not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityName) -or
+    -not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceGroupName)) {
+    throw 'User-assigned managed identity parameters require -ManagedIdentityType UserAssigned.'
+}
+
 Select-AzureChinaSubscription -TargetSubscriptionId $SubscriptionId -TargetTenantId $TenantId
 Confirm-ResourceGroup -Name $ResourceGroupName -TargetLocation $Location
+
+$managedIdentity = $null
+$managedIdentityClientId = $null
+$managedIdentityResourceId = $null
+if ($ManagedIdentityType -eq 'UserAssigned') {
+    if ([string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceId)) {
+        if ($UserAssignedManagedIdentityResourceGroupName -ine $ResourceGroupName) {
+            Confirm-ResourceGroup -Name $UserAssignedManagedIdentityResourceGroupName -TargetLocation $Location
+        }
+
+        $managedIdentity = New-UserAssignedManagedIdentity `
+            -TargetSubscriptionId $SubscriptionId `
+            -TargetResourceGroupName $UserAssignedManagedIdentityResourceGroupName `
+            -TargetIdentityName $UserAssignedManagedIdentityName `
+            -TargetLocation $Location
+        $UserAssignedManagedIdentityResourceId = [string]$managedIdentity.id
+    }
+
+    $managedIdentity = Get-UserAssignedManagedIdentityWithPrincipal -ResourceId $UserAssignedManagedIdentityResourceId
+    $managedIdentityResourceId = [string]$managedIdentity.id
+    $managedIdentityClientId = [string]$managedIdentity.properties.clientId
+}
+
 $account = Set-AutomationAccountWithIdentity `
     -TargetSubscriptionId $SubscriptionId `
     -TargetResourceGroupName $ResourceGroupName `
     -TargetAutomationAccountName $AutomationAccountName `
-    -TargetLocation $Location
-$principalId = [string]$account.identity.principalId
-if ([string]::IsNullOrWhiteSpace($principalId)) {
+    -TargetLocation $Location `
+    -TargetManagedIdentityType $ManagedIdentityType `
+    -TargetUserAssignedManagedIdentityResourceId $managedIdentityResourceId
+
+if ($ManagedIdentityType -eq 'UserAssigned') {
+    $principalId = [string]$managedIdentity.properties.principalId
+}
+else {
+    $principalId = [string]$account.identity.principalId
+}
+
+if ($ManagedIdentityType -eq 'SystemAssigned' -and [string]::IsNullOrWhiteSpace($principalId)) {
     $principalId = Get-AutomationAccountPrincipalId `
         -TargetSubscriptionId $SubscriptionId `
         -TargetResourceGroupName $ResourceGroupName `
@@ -460,6 +708,19 @@ if (-not $SkipModuleImport) {
 
 Import-SyncRunbook
 
+if (-not [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
+    Set-AutomationPlainVariable -Name $DefaultSourceSubscriptionIdAutomationVariableName -Value $SourceSubscriptionId
+}
+
+Set-AutomationPlainVariable -Name $DefaultDestinationSubscriptionIdAutomationVariableName -Value $DestinationSubscriptionId
+
+if ($ManagedIdentityType -eq 'UserAssigned') {
+    Set-AutomationPlainVariable -Name $DefaultManagedIdentityAccountIdAutomationVariableName -Value $managedIdentityClientId
+}
+else {
+    Remove-AutomationPlainVariable -Name $DefaultManagedIdentityAccountIdAutomationVariableName
+}
+
 if ($AssignRecommendedRoles) {
     Confirm-RecommendRoleAssignments -PrincipalId $principalId
 }
@@ -469,7 +730,13 @@ if ($AssignRecommendedRoles) {
     ResourceGroupName      = $ResourceGroupName
     Location               = $Location
     AutomationAccountName  = $AutomationAccountName
+    ManagedIdentityType    = $ManagedIdentityType
     ManagedIdentityObjectId = $principalId
+    ManagedIdentityClientId = $managedIdentityClientId
+    ManagedIdentityResourceId = $managedIdentityResourceId
+    DefaultSourceSubscriptionIdVariable = $DefaultSourceSubscriptionIdAutomationVariableName
+    DefaultDestinationSubscriptionIdVariable = $DefaultDestinationSubscriptionIdAutomationVariableName
+    DefaultManagedIdentityAccountIdVariable = $DefaultManagedIdentityAccountIdAutomationVariableName
     RunbookName            = $RunbookName
     RunbookType            = $RunbookType
     RunbookPath            = (Resolve-Path -Path $RunbookPath).Path
