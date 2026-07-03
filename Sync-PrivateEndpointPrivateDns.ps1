@@ -152,33 +152,25 @@ is typically the user-assigned managed identity client ID.
 param(
     [Parameter()]
     [Alias('AppSubscriptionId')]
-    [ValidateNotNullOrEmpty()]
     [string]$SourceSubscriptionId,
 
     [Parameter()]
     [Alias('CentralSubscriptionId')]
-    [ValidateNotNullOrEmpty()]
     [string]$DestinationSubscriptionId,
 
-    [ValidateNotNullOrEmpty()]
     [string]$SourceTenantId,
 
-    [ValidateNotNullOrEmpty()]
     [string]$DestinationTenantId,
 
     [switch]$UseManagedIdentity,
 
     [Alias('UserAssignedManagedIdentityClientId')]
-    [ValidateNotNullOrEmpty()]
     [string]$ManagedIdentityAccountId,
 
-    [ValidateNotNullOrEmpty()]
     [string]$DestinationPrivateDnsZoneResourceGroupName,
 
-    [ValidateNotNullOrEmpty()]
     [string]$DestinationResourceGroupLocation,
 
-    [ValidateNotNullOrEmpty()]
     [string[]]$ZoneName,
 
     [switch]$IncludeAllPrivateDnsZones,

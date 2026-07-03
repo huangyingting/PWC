@@ -248,7 +248,7 @@ function New-AutomationAccountPath {
     )
 
     $accountSegment = ConvertTo-ArmPathSegment -Value $TargetAutomationAccountName
-    return "/subscriptions/$TargetSubscriptionId/resourceGroups/$TargetResourceGroupName/providers/Microsoft.Automation/automationAccounts/$accountSegment?api-version=$AutomationApiVersion"
+    return "/subscriptions/$TargetSubscriptionId/resourceGroups/$TargetResourceGroupName/providers/Microsoft.Automation/automationAccounts/${accountSegment}?api-version=$AutomationApiVersion"
 }
 
 function New-UserAssignedManagedIdentityPath {
@@ -264,7 +264,7 @@ function New-UserAssignedManagedIdentityPath {
     )
 
     $identitySegment = ConvertTo-ArmPathSegment -Value $TargetIdentityName
-    return "/subscriptions/$TargetSubscriptionId/resourceGroups/$TargetResourceGroupName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/$identitySegment?api-version=$ManagedIdentityApiVersion"
+    return "/subscriptions/$TargetSubscriptionId/resourceGroups/$TargetResourceGroupName/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${identitySegment}?api-version=$ManagedIdentityApiVersion"
 }
 
 function Get-UserAssignedManagedIdentity {
@@ -273,7 +273,7 @@ function Get-UserAssignedManagedIdentity {
         [string]$ResourceId
     )
 
-    $path = "$ResourceId?api-version=$ManagedIdentityApiVersion"
+    $path = "${ResourceId}?api-version=$ManagedIdentityApiVersion"
     return Invoke-ArmJson -Method GET -Path $path -ExpectedStatusCode @(200)
 }
 

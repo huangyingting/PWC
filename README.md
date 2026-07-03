@@ -10,6 +10,8 @@ Install-Module Az.Resources -Scope CurrentUser
 Install-Module Az.Automation -Scope CurrentUser
 ```
 
+If `Az.Automation` requires a newer `Az.Accounts` version, update the modules and open a new PowerShell session before running the deployment script.
+
 ## Step 2a. Deploy The Runbook
 
 Provide the source subscription, destination subscription, and existing user-assigned managed identity once during deployment. The deploy script saves them as Automation variables, so users do not need to enter them when starting the runbook.
