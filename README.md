@@ -49,6 +49,35 @@ Skip this step if the managed identity already has the required permissions. Run
 
 This grants `Reader` and optional `Network Contributor` on the source subscription, plus `Private DNS Zone Contributor` and optional `Contributor` on the destination subscription.
 
+## One-Time AKS/PostgreSQL DNS Link Repair
+
+Use `Repair-AksPostgresPrivateDnsLinks.ps1` when AKS private DNS zones ending in `.cx.prod.service.azk8s.cn` or PostgreSQL private DNS zones need a virtual network link to the FCS VNet.
+
+Preview the change first:
+
+```powershell
+.\Repair-AksPostgresPrivateDnsLinks.ps1 -WhatIf
+```
+
+Apply the link repair:
+
+```powershell
+.\Repair-AksPostgresPrivateDnsLinks.ps1
+```
+
+The script defaults to linking matching zones to:
+
+```text
+/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005
+```
+
+If private DNS zones live in a different subscription from that VNet, pass the zone subscription explicitly:
+
+```powershell
+.\Repair-AksPostgresPrivateDnsLinks.ps1 `
+    -SubscriptionId "<private-dns-zone-subscription-id>"
+```
+
 ## Step 3a. Option: Start The Runbook In Azure Portal
 
 1. Open the Automation Account in the Azure China portal.
