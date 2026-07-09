@@ -1,8 +1,23 @@
-# Private Endpoint DNS Sync
+# Azure China Private DNS Automation
 
-Sync Azure China Private Endpoint private DNS from a source subscription to a destination subscription using Azure Automation runbooks and an existing user-assigned managed identity.
+Automates Private DNS operations for Azure China:
 
-## Step 1. Install Modules
+- `Sync-PrivateEndpointPrivateDns` syncs supported Private Endpoint DNS zones from a source subscription to the default destination subscription.
+- `Repair-AksPrivateDnsLinks` links AKS private DNS zones to the default FCS VNet.
+
+Both runbooks are deployed by `Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1`.
+
+## Defaults
+
+| Setting | Default |
+| --- | --- |
+| Destination subscription | `65a9c0da-4f85-47ba-ac0f-7401cbe43205` |
+| AKS target VNet | `/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005` |
+| AKS private DNS suffix | `.cx.prod.service.azk8s.cn` |
+
+Override these only when needed.
+
+## 1. Install local modules
 
 ```powershell
 Install-Module Az.Accounts -Scope CurrentUser
@@ -10,11 +25,9 @@ Install-Module Az.Resources -Scope CurrentUser
 Install-Module Az.Automation -Scope CurrentUser
 ```
 
-If `Az.Automation` requires a newer `Az.Accounts` version, update the modules and open a new PowerShell session before running the deployment script.
+If `Az.Automation` requires a newer `Az.Accounts`, update the modules and start a new PowerShell session.
 
-## Step 2a. Deploy The Runbooks
-
-Provide a default source subscription and existing user-assigned managed identity once during deployment. `DestinationSubscriptionId` defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205`, the same subscription used by the AKS private DNS repair script. Pass `-DestinationSubscriptionId` only when you need to override that default. The deploy script saves provided defaults as Automation variables, so users do not need to enter them when starting the runbooks for the default source subscription.
+## 2. Deploy both Automation runbooks
 
 ```powershell
 .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -22,20 +35,27 @@ Provide a default source subscription and existing user-assigned managed identit
     -ResourceGroupName "rg-dns-sync-automation" `
     -AutomationAccountName "aa-dns-sync-cn-prod" `
     -Location "chinaeast2" `
-    -SourceSubscriptionId "<source-subscription-id>" `
+    -SourceSubscriptionId "<default-source-subscription-id>" `
     -UserAssignedManagedIdentityResourceId "/subscriptions/<identity-subscription-id>/resourceGroups/<identity-resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
 ```
 
-`UserAssignedManagedIdentityResourceId` is the full Azure resource ID of the existing user-assigned managed identity. The runbooks use that identity's client ID for Azure login.
-
-The deploy script publishes both Automation runbooks:
+This publishes:
 
 - `Sync-PrivateEndpointPrivateDns`
 - `Repair-AksPrivateDnsLinks`
 
-## Step 2b. Optional: Assign RBAC
+The deploy script also saves Automation variables for the default source subscription, destination subscription, managed identity client ID, and AKS target VNet.
 
-Skip this step if the managed identity already has the required permissions. Run it only when you want the deploy script to grant the recommended roles to the same managed identity.
+### Optional deployment overrides
+
+```powershell
+-DestinationSubscriptionId "<destination-subscription-id>"
+-AksTargetVirtualNetworkResourceId "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Network/virtualNetworks/<vnet-name>"
+```
+
+## 3. Optional: assign recommended RBAC
+
+Run this only if the managed identity does not already have the required permissions.
 
 ```powershell
 .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -43,73 +63,31 @@ Skip this step if the managed identity already has the required permissions. Run
     -ResourceGroupName "rg-dns-sync-automation" `
     -AutomationAccountName "aa-dns-sync-cn-prod" `
     -Location "chinaeast2" `
-    -SourceSubscriptionId "<source-subscription-id>" `
+    -SourceSubscriptionId "<default-source-subscription-id>" `
     -UserAssignedManagedIdentityResourceId "/subscriptions/<identity-subscription-id>/resourceGroups/<identity-resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" `
     -AssignRecommendedRoles `
     -GrantSourceNetworkContributor `
     -GrantDestinationContributor
 ```
 
-This grants `Reader` and optional `Network Contributor` on the source subscription, plus `Private DNS Zone Contributor` and optional `Contributor` on the destination subscription.
+Recommended roles:
 
-## Sync And Stale Destination DNS Cleanup
+- Source subscription: `Reader`; optional `Network Contributor` for private endpoint zone-group linking.
+- Destination subscription: `Private DNS Zone Contributor`; optional `Contributor` if the runbook may create missing resource groups.
 
-By default, `Sync-PrivateEndpointPrivateDns.ps1` does both modes in one run for all supported Azure China private DNS zones: when a source private endpoint can be matched, it links that private endpoint to the destination private DNS zone; when no source private endpoint can be matched, it directly syncs the DNS A record. It also cleans up destination A records previously synced directly by the script after the matching source record or source zone disappears.
+## 4. Run from Azure Portal
 
-Preview the sync and cleanup first:
-
-```powershell
-.\Sync-PrivateEndpointPrivateDns.ps1 `
-    -SourceSubscriptionId "<source-subscription-id>" `
-    -WhatIf
-```
-
-Cleanup only affects destination records with the script's provenance TXT marker and matching `SourceSubscriptionId`, source zone, and source record metadata. If a destination A record also has unmanaged IP addresses, only the previously synced IP addresses recorded in provenance are removed. If source and destination tenants differ, the script automatically uses direct DNS record sync because private endpoint DNS zone group linking requires a single tenant.
-
-Both sync and AKS repair scripts emit timestamped tracing logs for subscription selection, zone/record counts, cleanup checks, operation summaries, duration, and unhandled error details to simplify troubleshooting in local PowerShell and Azure Automation output.
-
-## One-Time AKS DNS Link Repair
-
-Use `Repair-AksPrivateDnsLinks.ps1` when AKS private DNS zones ending in `.cx.prod.service.azk8s.cn` need a virtual network link to the FCS VNet.
-
-Preview the change first:
-
-```powershell
-.\Repair-AksPrivateDnsLinks.ps1 -WhatIf
-```
-
-Apply the link repair:
-
-```powershell
-.\Repair-AksPrivateDnsLinks.ps1
-```
-
-The script defaults to linking matching zones to:
-
-```text
-/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005
-```
-
-If private DNS zones live in a different source subscription from that VNet or from the saved default source subscription, pass the source subscription explicitly:
-
-```powershell
-.\Repair-AksPrivateDnsLinks.ps1 `
-    -SourceSubscriptionId "<source-subscription-id>"
-```
-
-## Step 3a. Option: Start The Runbook In Azure Portal
-
-1. Open the Automation Account in the Azure China portal.
+1. Open the Automation Account in Azure China portal.
 2. Go to **Runbooks**.
-3. Open `Sync-PrivateEndpointPrivateDns` for private endpoint DNS sync, or `Repair-AksPrivateDnsLinks` for AKS private DNS link repair.
-4. Select **Start**.
-5. Leave parameters blank to use the default source subscription saved during deployment.
-6. If you need to run either `Sync-PrivateEndpointPrivateDns` or `Repair-AksPrivateDnsLinks` for a different source subscription, enter that subscription ID in `SourceSubscriptionId` before selecting **OK**.
-7. For `Repair-AksPrivateDnsLinks`, only enter target VNet parameters when you need to override the default target VNet.
+3. Start one of:
+   - `Sync-PrivateEndpointPrivateDns`
+   - `Repair-AksPrivateDnsLinks`
+4. Leave parameters blank to use deployment defaults.
+5. For another source subscription, enter `SourceSubscriptionId` before selecting **OK**.
 
-For multiple source subscriptions, start each relevant runbook once per source subscription. Each run can use a different `SourceSubscriptionId`; the destination subscription still defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205` unless overridden.
+For multiple source subscriptions, start the relevant runbook once per source subscription.
 
-## Step 3b. Option: Schedule The Sync Runbook
+## 5. Schedule the sync runbook
 
 ```powershell
 New-AzAutomationSchedule `
@@ -126,7 +104,7 @@ Register-AzAutomationScheduledRunbook `
     -ScheduleName "daily-private-endpoint-dns-sync"
 ```
 
-For multiple source subscriptions, register the sync runbook once per source subscription with a parameters hashtable:
+For multiple source subscriptions, register one scheduled run per source:
 
 ```powershell
 Register-AzAutomationScheduledRunbook `
@@ -137,8 +115,57 @@ Register-AzAutomationScheduledRunbook `
     -Parameters @{ SourceSubscriptionId = "<source-subscription-id>" }
 ```
 
-## Notes
+## What the sync runbook does
 
-- The runbooks can start without parameters because deployment saves default `SourceSubscriptionId`, `DestinationSubscriptionId`, and `ManagedIdentityAccountId` as Automation variables, and the AKS repair runbook has built-in defaults for the target VNet. For multiple source subscriptions, override `SourceSubscriptionId` when starting or scheduling the relevant runbook.
-- `GrantDestinationContributor` is only needed if the runbook may create missing destination resource groups.
-- Import or verify `Az.Accounts` and `Az.Resources` in the Automation Account before running the runbook.
+`Sync-PrivateEndpointPrivateDns` processes all supported Azure China private DNS zones.
+
+For each source DNS A record:
+
+1. If a matching source private endpoint exists, the runbook links that private endpoint to the destination private DNS zone.
+2. If no matching private endpoint exists, the runbook directly syncs the destination A record.
+3. For directly synced records, it writes a provenance TXT record.
+4. If the source record or source zone later disappears, stale destination records/IPs previously managed by this script are removed.
+
+Cleanup is safe by design: it only touches destination records with this script's provenance TXT marker and matching `SourceSubscriptionId`, source zone, and source record metadata. Unmanaged IPs are preserved.
+
+If source and destination tenants differ, the runbook automatically uses direct DNS record sync because private endpoint zone-group linking requires a single tenant.
+
+## What the AKS repair runbook does
+
+`Repair-AksPrivateDnsLinks` scans AKS private DNS zones ending with `.cx.prod.service.azk8s.cn` in the source subscription and ensures each matching zone is linked to the target VNet.
+
+Local preview:
+
+```powershell
+.\Repair-AksPrivateDnsLinks.ps1 -WhatIf
+```
+
+Override source subscription locally:
+
+```powershell
+.\Repair-AksPrivateDnsLinks.ps1 `
+    -SourceSubscriptionId "<source-subscription-id>"
+```
+
+## Local sync preview
+
+```powershell
+.\Sync-PrivateEndpointPrivateDns.ps1 `
+    -SourceSubscriptionId "<source-subscription-id>" `
+    -WhatIf
+```
+
+## Troubleshooting
+
+Both runbooks emit timestamped tracing logs for:
+
+- subscription selection
+- zone and record counts
+- private endpoint matching
+- stale cleanup checks
+- deleted/pruned destination record names and IPs
+- operation summaries
+- duration
+- unhandled error details
+
+Import or verify `Az.Accounts` and `Az.Resources` in the Automation Account before running the runbooks.

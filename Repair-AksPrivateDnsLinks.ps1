@@ -61,6 +61,7 @@ $ErrorActionPreference = 'Stop'
 $PrivateDnsApiVersion = '2020-06-01'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
+$DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName = 'RepairAksPrivateDnsLinksTargetVirtualNetworkResourceId'
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
 $RunStartedAt = Get-Date
@@ -591,10 +592,6 @@ function Ensure-PrivateDnsZoneVirtualNetworkLink {
     }
 }
 
-if ([string]::IsNullOrWhiteSpace($LinkName)) {
-    $LinkName = New-DefaultLinkName -VirtualNetworkResourceId $TargetVirtualNetworkResourceId
-}
-
 $IsAzureAutomationRunbook = $false
 if ($env:AZUREPS_HOST_ENVIRONMENT -match 'AzureAutomation') {
     $IsAzureAutomationRunbook = $true
@@ -612,12 +609,23 @@ if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentity
     $ManagedIdentityAccountId = Get-AutomationVariableString -Name $DefaultManagedIdentityAccountIdAutomationVariableName
 }
 
+if ($IsAzureAutomationRunbook -and -not $PSBoundParameters.ContainsKey('TargetVirtualNetworkResourceId')) {
+    $automationTargetVirtualNetworkResourceId = Get-AutomationVariableString -Name $DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName
+    if (-not [string]::IsNullOrWhiteSpace($automationTargetVirtualNetworkResourceId)) {
+        $TargetVirtualNetworkResourceId = $automationTargetVirtualNetworkResourceId
+    }
+}
+
 if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
     $SourceSubscriptionId = Get-AutomationVariableString -Name $DefaultSourceSubscriptionIdAutomationVariableName
 }
 
 if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
     $SourceSubscriptionId = Get-SubscriptionIdFromResourceId -ResourceId $TargetVirtualNetworkResourceId
+}
+
+if ([string]::IsNullOrWhiteSpace($LinkName)) {
+    $LinkName = New-DefaultLinkName -VirtualNetworkResourceId $TargetVirtualNetworkResourceId
 }
 
 $UseManagedIdentityLogin = [bool]($UseManagedIdentity -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId) -or $IsAzureAutomationRunbook)

@@ -13,9 +13,10 @@ The deployment saves source subscription, destination subscription, and managed
 identity client ID defaults as Automation variables so the runbook can start
 without parameters. DestinationSubscriptionId defaults to
 65a9c0da-4f85-47ba-ac0f-7401cbe43205, the same destination subscription used by
-the sync runbook and AKS private DNS repair script. If the Automation Account
-modules are not already present, this script can start imports for Az.Accounts
-and Az.Resources from PowerShell Gallery.
+the sync runbook and AKS private DNS repair script. The AKS repair target VNet
+can be overridden with AksTargetVirtualNetworkResourceId. If the Automation
+Account modules are not already present, this script can start imports for
+Az.Accounts and Az.Resources from PowerShell Gallery.
 
 .EXAMPLE
     .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -85,6 +86,9 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$AksRepairRunbookPath = (Join-Path $PSScriptRoot 'Repair-AksPrivateDnsLinks.ps1'),
 
+    [ValidateNotNullOrEmpty()]
+    [string]$AksTargetVirtualNetworkResourceId = '/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005',
+
     [ValidateSet('PowerShell', 'PowerShell72')]
     [string]$RunbookType = 'PowerShell',
 
@@ -118,6 +122,7 @@ $ManagedIdentityApiVersion = '2023-01-31'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
+$DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName = 'RepairAksPrivateDnsLinksTargetVirtualNetworkResourceId'
 $DefaultDestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205'
 $RequiredAutomationModules = @('Az.Accounts', 'Az.Resources')
 
@@ -729,6 +734,7 @@ if (-not [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
 }
 
 Set-AutomationPlainVariable -Name $DefaultDestinationSubscriptionIdAutomationVariableName -Value $DestinationSubscriptionId
+Set-AutomationPlainVariable -Name $DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName -Value $AksTargetVirtualNetworkResourceId
 
 if ($ManagedIdentityType -eq 'UserAssigned') {
     Set-AutomationPlainVariable -Name $DefaultManagedIdentityAccountIdAutomationVariableName -Value $managedIdentityClientId
@@ -752,6 +758,7 @@ if ($AssignRecommendedRoles) {
     ManagedIdentityResourceId = $managedIdentityResourceId
     DefaultSourceSubscriptionIdVariable = $DefaultSourceSubscriptionIdAutomationVariableName
     DefaultDestinationSubscriptionIdVariable = $DefaultDestinationSubscriptionIdAutomationVariableName
+    DefaultAksTargetVirtualNetworkResourceIdVariable = $DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName
     DefaultManagedIdentityAccountIdVariable = $DefaultManagedIdentityAccountIdAutomationVariableName
     SyncRunbookName        = $RunbookName
     SyncRunbookPath        = (Resolve-Path -Path $RunbookPath).Path
