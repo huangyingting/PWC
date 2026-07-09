@@ -1,12 +1,13 @@
 <#
 .SYNOPSIS
-Deploys the private endpoint private DNS sync script as an Azure Automation runbook.
+Deploys the private endpoint private DNS sync and AKS DNS repair scripts as Azure Automation runbooks.
 
 .DESCRIPTION
 Creates or updates an Azure China Automation Account with a user-assigned
-managed identity by default, imports Sync-PrivateEndpointPrivateDns.ps1 as a
-PowerShell runbook, publishes it, and can optionally assign recommended RBAC
-permissions to the Automation Account managed identity.
+managed identity by default, imports Sync-PrivateEndpointPrivateDns.ps1 and
+Repair-AksPrivateDnsLinks.ps1 as PowerShell runbooks, publishes them, and can
+optionally assign recommended RBAC permissions to the Automation Account managed
+identity.
 
 The deployment saves source subscription, destination subscription, and managed
 identity client ID defaults as Automation variables so the runbook can start
@@ -77,6 +78,12 @@ param(
 
     [ValidateNotNullOrEmpty()]
     [string]$RunbookPath = (Join-Path $PSScriptRoot 'Sync-PrivateEndpointPrivateDns.ps1'),
+
+    [ValidateNotNullOrEmpty()]
+    [string]$AksRepairRunbookName = 'Repair-AksPrivateDnsLinks',
+
+    [ValidateNotNullOrEmpty()]
+    [string]$AksRepairRunbookPath = (Join-Path $PSScriptRoot 'Repair-AksPrivateDnsLinks.ps1'),
 
     [ValidateSet('PowerShell', 'PowerShell72')]
     [string]$RunbookType = 'PowerShell',
@@ -532,27 +539,35 @@ function Remove-AutomationPlainVariable {
     }
 }
 
-function Import-SyncRunbook {
-    if (-not (Test-Path -Path $RunbookPath -PathType Leaf)) {
-        throw "RunbookPath '$RunbookPath' was not found."
+function Import-AutomationRunbookFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -Path $Path -PathType Leaf)) {
+        throw "Runbook path '$Path' was not found."
     }
 
-    if ($PSCmdlet.ShouldProcess("$AutomationAccountName/$RunbookName", 'Import Automation runbook')) {
+    if ($PSCmdlet.ShouldProcess("$AutomationAccountName/$Name", 'Import Automation runbook')) {
         Import-AzAutomationRunbook `
             -ResourceGroupName $ResourceGroupName `
             -AutomationAccountName $AutomationAccountName `
-            -Name $RunbookName `
-            -Path $RunbookPath `
+            -Name $Name `
+            -Path $Path `
             -Type $RunbookType `
             -Force | Out-Null
     }
 
     if (-not $SkipRunbookPublish) {
-        if ($PSCmdlet.ShouldProcess("$AutomationAccountName/$RunbookName", 'Publish Automation runbook')) {
+        if ($PSCmdlet.ShouldProcess("$AutomationAccountName/$Name", 'Publish Automation runbook')) {
             Publish-AzAutomationRunbook `
                 -ResourceGroupName $ResourceGroupName `
                 -AutomationAccountName $AutomationAccountName `
-                -Name $RunbookName | Out-Null
+                -Name $Name | Out-Null
         }
     }
 }
@@ -706,7 +721,8 @@ if (-not $SkipModuleImport) {
     }
 }
 
-Import-SyncRunbook
+Import-AutomationRunbookFile -Name $RunbookName -Path $RunbookPath
+Import-AutomationRunbookFile -Name $AksRepairRunbookName -Path $AksRepairRunbookPath
 
 if (-not [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
     Set-AutomationPlainVariable -Name $DefaultSourceSubscriptionIdAutomationVariableName -Value $SourceSubscriptionId
@@ -737,9 +753,11 @@ if ($AssignRecommendedRoles) {
     DefaultSourceSubscriptionIdVariable = $DefaultSourceSubscriptionIdAutomationVariableName
     DefaultDestinationSubscriptionIdVariable = $DefaultDestinationSubscriptionIdAutomationVariableName
     DefaultManagedIdentityAccountIdVariable = $DefaultManagedIdentityAccountIdAutomationVariableName
-    RunbookName            = $RunbookName
+    SyncRunbookName        = $RunbookName
+    SyncRunbookPath        = (Resolve-Path -Path $RunbookPath).Path
+    AksRepairRunbookName   = $AksRepairRunbookName
+    AksRepairRunbookPath   = (Resolve-Path -Path $AksRepairRunbookPath).Path
     RunbookType            = $RunbookType
-    RunbookPath            = (Resolve-Path -Path $RunbookPath).Path
     ModuleImportStarted    = -not $SkipModuleImport
-    RunbookPublished       = -not $SkipRunbookPublish
+    RunbooksPublished      = -not $SkipRunbookPublish
 }

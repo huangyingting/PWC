@@ -59,6 +59,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $PrivateDnsApiVersion = '2020-06-01'
+$DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
 $RunStartedAt = Get-Date
@@ -121,6 +122,30 @@ function Write-TraceError {
 trap {
     Write-TraceError -ErrorRecord $_
     break
+}
+
+function Get-AutomationVariableString {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    if (-not (Get-Command -Name Get-AutomationVariable -ErrorAction SilentlyContinue)) {
+        return $null
+    }
+
+    try {
+        $value = Get-AutomationVariable -Name $Name -ErrorAction Stop
+    }
+    catch {
+        return $null
+    }
+
+    if ($null -eq $value) {
+        return $null
+    }
+
+    return [string]$value
 }
 
 function Import-AzAccountsModule {
@@ -573,14 +598,36 @@ if ([string]::IsNullOrWhiteSpace($LinkName)) {
     $LinkName = New-DefaultLinkName -VirtualNetworkResourceId $TargetVirtualNetworkResourceId
 }
 
-Write-TraceLog -Message "Starting Repair-AksPrivateDnsLinks.ps1. SubscriptionId='$SubscriptionId'; TargetVirtualNetworkResourceId='$TargetVirtualNetworkResourceId'; LinkName='$LinkName'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$([bool]$UseManagedIdentity)'."
+$IsAzureAutomationRunbook = $false
+if ($env:AZUREPS_HOST_ENVIRONMENT -match 'AzureAutomation') {
+    $IsAzureAutomationRunbook = $true
+}
+
+$psPrivateMetadataVariable = Get-Variable -Name PSPrivateMetadata -Scope Global -ErrorAction SilentlyContinue
+if ($psPrivateMetadataVariable -and $psPrivateMetadataVariable.Value) {
+    $jobIdProperty = $psPrivateMetadataVariable.Value.PSObject.Properties['JobId']
+    if ($jobIdProperty -and $jobIdProperty.Value) {
+        $IsAzureAutomationRunbook = $true
+    }
+}
+
+if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
+    $ManagedIdentityAccountId = Get-AutomationVariableString -Name $DefaultManagedIdentityAccountIdAutomationVariableName
+}
+
+$UseManagedIdentityLogin = [bool]($UseManagedIdentity -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId) -or $IsAzureAutomationRunbook)
+if ($UseManagedIdentityLogin -and $IsAzureAutomationRunbook -and -not $UseManagedIdentity -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
+    Write-TraceLog -Message 'Azure Automation runbook environment detected. Using the Automation Account system-assigned managed identity for Azure login.'
+}
+
+Write-TraceLog -Message "Starting Repair-AksPrivateDnsLinks.ps1. SubscriptionId='$SubscriptionId'; TargetVirtualNetworkResourceId='$TargetVirtualNetworkResourceId'; LinkName='$LinkName'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
 Write-TraceLog -Message "AKS private DNS suffix filter='$AksPrivateDnsZoneSuffix'."
 
 Write-TraceLog -Message "Selecting Azure China subscription '$SubscriptionId'."
 Select-AzureChinaSubscription `
     -TargetSubscriptionId $SubscriptionId `
     -TargetTenantId $TenantId `
-    -UseManagedIdentityLogin ([bool]$UseManagedIdentity) `
+    -UseManagedIdentityLogin $UseManagedIdentityLogin `
     -TargetManagedIdentityAccountId $ManagedIdentityAccountId
 
 Write-TraceLog -Message "Scanning private DNS zones in subscription '$SubscriptionId'."

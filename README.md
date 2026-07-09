@@ -1,6 +1,6 @@
 # Private Endpoint DNS Sync
 
-Sync Azure China Private Endpoint private DNS from a source subscription to a destination subscription using an Azure Automation runbook and an existing user-assigned managed identity.
+Sync Azure China Private Endpoint private DNS from a source subscription to a destination subscription using Azure Automation runbooks and an existing user-assigned managed identity.
 
 ## Step 1. Install Modules
 
@@ -12,9 +12,9 @@ Install-Module Az.Automation -Scope CurrentUser
 
 If `Az.Automation` requires a newer `Az.Accounts` version, update the modules and open a new PowerShell session before running the deployment script.
 
-## Step 2a. Deploy The Runbook
+## Step 2a. Deploy The Runbooks
 
-Provide the source subscription and existing user-assigned managed identity once during deployment. `DestinationSubscriptionId` defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205`, the same subscription used by the AKS private DNS repair script. Pass `-DestinationSubscriptionId` only when you need to override that default. The deploy script saves provided defaults as Automation variables, so users do not need to enter them when starting the runbook.
+Provide the source subscription and existing user-assigned managed identity once during deployment. `DestinationSubscriptionId` defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205`, the same subscription used by the AKS private DNS repair script. Pass `-DestinationSubscriptionId` only when you need to override that default. The deploy script saves provided defaults as Automation variables, so users do not need to enter them when starting the runbooks.
 
 ```powershell
 .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -26,7 +26,12 @@ Provide the source subscription and existing user-assigned managed identity once
     -UserAssignedManagedIdentityResourceId "/subscriptions/<identity-subscription-id>/resourceGroups/<identity-resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
 ```
 
-`UserAssignedManagedIdentityResourceId` is the full Azure resource ID of the existing user-assigned managed identity. The runbook uses that identity's client ID for Azure login.
+`UserAssignedManagedIdentityResourceId` is the full Azure resource ID of the existing user-assigned managed identity. The runbooks use that identity's client ID for Azure login.
+
+The deploy script publishes both Automation runbooks:
+
+- `Sync-PrivateEndpointPrivateDns`
+- `Repair-AksPrivateDnsLinks`
 
 ## Step 2b. Optional: Assign RBAC
 
@@ -96,11 +101,11 @@ If private DNS zones live in a different subscription from that VNet, pass the z
 
 1. Open the Automation Account in the Azure China portal.
 2. Go to **Runbooks**.
-3. Open `Sync-PrivateEndpointPrivateDns`.
+3. Open `Sync-PrivateEndpointPrivateDns` for private endpoint DNS sync, or `Repair-AksPrivateDnsLinks` for AKS private DNS link repair.
 4. Select **Start**.
 5. Leave parameters blank and select **OK**.
 
-## Step 3b. Option: Schedule The Runbook
+## Step 3b. Option: Schedule The Sync Runbook
 
 ```powershell
 New-AzAutomationSchedule `
@@ -119,6 +124,6 @@ Register-AzAutomationScheduledRunbook `
 
 ## Notes
 
-- The runbook starts without parameters because deployment saves `SourceSubscriptionId`, `DestinationSubscriptionId`, and `ManagedIdentityAccountId` as Automation variables.
+- The runbooks can start without parameters because deployment saves `SourceSubscriptionId`, `DestinationSubscriptionId`, and `ManagedIdentityAccountId` as Automation variables, and the AKS repair runbook has built-in defaults for the target VNet.
 - `GrantDestinationContributor` is only needed if the runbook may create missing destination resource groups.
 - Import or verify `Az.Accounts` and `Az.Resources` in the Automation Account before running the runbook.
