@@ -1,24 +1,23 @@
 <#
 .SYNOPSIS
-Links AKS and PostgreSQL Azure China private DNS zones to a target virtual network.
+Links AKS Azure China private DNS zones to a target virtual network.
 
 .DESCRIPTION
 Finds private DNS zones in an Azure China subscription whose names end with the
-AKS private DNS suffix .cx.prod.service.azk8s.cn. By default, the script also
-includes the Azure China PostgreSQL private endpoint private DNS zone name.
+AKS private DNS suffix .cx.prod.service.azk8s.cn.
 
 For every matching private DNS zone, the script checks existing virtual network
 links and creates a missing link to the target virtual network. Existing links
 to the same virtual network are left unchanged.
 
 .EXAMPLE
-    .\Repair-AksPostgresPrivateDnsLinks.ps1 -WhatIf
+    .\Repair-AksPrivateDnsLinks.ps1 -WhatIf
 
-Preview links from matching AKS and PostgreSQL private DNS zones to the default
-target virtual network.
+Preview links from matching AKS private DNS zones to the default target virtual
+network.
 
 .EXAMPLE
-    .\Repair-AksPostgresPrivateDnsLinks.ps1 `
+    .\Repair-AksPrivateDnsLinks.ps1 `
         -SubscriptionId "11111111-1111-1111-1111-111111111111" `
         -TargetVirtualNetworkResourceId "/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005"
 
@@ -51,15 +50,6 @@ param(
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string[]]$PostgresPrivateDnsZoneName = @(
-        'privatelink.postgres.database.chinacloudapi.cn',
-        'private.postgres.database.chinacloudapi.cn'
-    ),
-
-    [switch]$SkipPostgresZones,
-
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
     [string]$LinkName
 )
 
@@ -71,6 +61,67 @@ $ErrorActionPreference = 'Stop'
 $PrivateDnsApiVersion = '2020-06-01'
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
+$RunStartedAt = Get-Date
+
+function Write-TraceLog {
+    param(
+        [ValidateSet('INFO', 'WARN', 'ERROR')]
+        [string]$Level = 'INFO',
+
+        [Parameter(Mandatory = $true)]
+        [string]$Message
+    )
+
+    $timestamp = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffK')
+    $line = "[$timestamp][$Level] $Message"
+
+    switch ($Level) {
+        'WARN' { Write-Warning $line }
+        'ERROR' { Write-Host $line -ForegroundColor Red }
+        default { Write-Host $line }
+    }
+}
+
+function Format-TraceDuration {
+    param(
+        [Parameter(Mandatory = $true)]
+        [datetime]$StartTime
+    )
+
+    $elapsed = (Get-Date) - $StartTime
+    return ('{0:hh\:mm\:ss\.fff}' -f $elapsed)
+}
+
+function Write-TraceError {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.ErrorRecord]$ErrorRecord
+    )
+
+    Write-TraceLog -Level ERROR -Message "Unhandled error: $($ErrorRecord.Exception.Message)"
+
+    if ($ErrorRecord.InvocationInfo) {
+        $location = $ErrorRecord.InvocationInfo.PositionMessage
+        if (-not [string]::IsNullOrWhiteSpace($location)) {
+            Write-TraceLog -Level ERROR -Message "Error location: $location"
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ErrorRecord.ScriptStackTrace)) {
+        Write-TraceLog -Level ERROR -Message "Script stack trace: $($ErrorRecord.ScriptStackTrace)"
+    }
+
+    $exception = $ErrorRecord.Exception
+    while ($exception) {
+        Write-TraceLog -Level ERROR -Message "Exception type: $($exception.GetType().FullName)"
+        $exception = $exception.InnerException
+    }
+}
+
+trap {
+    Write-TraceError -ErrorRecord $_
+    break
+}
 
 function Import-AzAccountsModule {
     if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
@@ -349,24 +400,6 @@ function Test-AksPrivateDnsZoneName {
     return $Name.EndsWith($Suffix, [System.StringComparison]::OrdinalIgnoreCase)
 }
 
-function Test-PostgresPrivateDnsZoneName {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-
-        [Parameter(Mandatory = $true)]
-        [string[]]$AllowedNames
-    )
-
-    foreach ($allowedName in $AllowedNames) {
-        if ($Name -ieq $allowedName) {
-            return $true
-        }
-    }
-
-    return $false
-}
-
 function New-PrivateDnsVirtualNetworkLinkPath {
     param(
         [Parameter(Mandatory = $true)]
@@ -540,14 +573,19 @@ if ([string]::IsNullOrWhiteSpace($LinkName)) {
     $LinkName = New-DefaultLinkName -VirtualNetworkResourceId $TargetVirtualNetworkResourceId
 }
 
+Write-TraceLog -Message "Starting Repair-AksPrivateDnsLinks.ps1. SubscriptionId='$SubscriptionId'; TargetVirtualNetworkResourceId='$TargetVirtualNetworkResourceId'; LinkName='$LinkName'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$([bool]$UseManagedIdentity)'."
+Write-TraceLog -Message "AKS private DNS suffix filter='$AksPrivateDnsZoneSuffix'."
+
+Write-TraceLog -Message "Selecting Azure China subscription '$SubscriptionId'."
 Select-AzureChinaSubscription `
     -TargetSubscriptionId $SubscriptionId `
     -TargetTenantId $TenantId `
     -UseManagedIdentityLogin ([bool]$UseManagedIdentity) `
     -TargetManagedIdentityAccountId $ManagedIdentityAccountId
 
-Write-Host "Scanning private DNS zones in subscription '$SubscriptionId'..."
+Write-TraceLog -Message "Scanning private DNS zones in subscription '$SubscriptionId'."
 $allZones = @(Get-PrivateDnsZonesInSubscription -TargetSubscriptionId $SubscriptionId)
+Write-TraceLog -Message "Private DNS zones discovered='$($allZones.Count)'."
 $matchingZones = @(
     foreach ($zone in $allZones) {
         if (Test-AksPrivateDnsZoneName -Name $zone.Name -Suffix $AksPrivateDnsZoneSuffix) {
@@ -556,21 +594,16 @@ $matchingZones = @(
                 ZoneType = 'AKS'
             }
         }
-        elseif (-not $SkipPostgresZones -and (Test-PostgresPrivateDnsZoneName -Name $zone.Name -AllowedNames $PostgresPrivateDnsZoneName)) {
-            [pscustomobject]@{
-                Zone     = $zone
-                ZoneType = 'PostgreSQL'
-            }
-        }
     }
 )
 
 if ($matchingZones.Count -eq 0) {
-    Write-Warning "No AKS private DNS zones ending with '$AksPrivateDnsZoneSuffix'$(if (-not $SkipPostgresZones) { ' or PostgreSQL private DNS zones' }) were found in subscription '$SubscriptionId'."
+    Write-TraceLog -Level WARN -Message "No AKS private DNS zones ending with '$AksPrivateDnsZoneSuffix' were found in subscription '$SubscriptionId'."
+    Write-TraceLog -Message "Completed Repair-AksPrivateDnsLinks.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
     return
 }
 
-Write-Host "Found $($matchingZones.Count) matching private DNS zone(s). Ensuring virtual network link '$LinkName'..."
+Write-TraceLog -Message "Found '$($matchingZones.Count)' matching private DNS zone(s). Ensuring virtual network link '$LinkName'."
 $results = foreach ($match in $matchingZones) {
     Ensure-PrivateDnsZoneVirtualNetworkLink `
         -Zone $match.Zone `
@@ -579,5 +612,12 @@ $results = foreach ($match in $matchingZones) {
         -TargetLinkName $LinkName `
         -ZoneType $match.ZoneType
 }
+
+Write-TraceLog -Message "Operation summary for '$(@($results).Count)' result row(s):"
+foreach ($actionGroup in @($results | Group-Object Action | Sort-Object Name)) {
+    Write-TraceLog -Message "  $($actionGroup.Name): $($actionGroup.Count)"
+}
+
+Write-TraceLog -Message "Completed Repair-AksPrivateDnsLinks.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
 
 $results | Sort-Object ZoneType, ZoneName | Format-Table -AutoSize

@@ -10,9 +10,11 @@ permissions to the Automation Account managed identity.
 
 The deployment saves source subscription, destination subscription, and managed
 identity client ID defaults as Automation variables so the runbook can start
-without parameters. If the Automation Account modules are not already present,
-this script can start imports for Az.Accounts and Az.Resources from PowerShell
-Gallery.
+without parameters. DestinationSubscriptionId defaults to
+65a9c0da-4f85-47ba-ac0f-7401cbe43205, the same destination subscription used by
+the sync runbook and AKS private DNS repair script. If the Automation Account
+modules are not already present, this script can start imports for Az.Accounts
+and Az.Resources from PowerShell Gallery.
 
 .EXAMPLE
     .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -20,11 +22,10 @@ Gallery.
         -ResourceGroupName "rg-dns-sync-automation" `
         -AutomationAccountName "aa-dns-sync-cn-prod" `
         -Location "chinaeast2" `
-        -SourceSubscriptionId "22222222-2222-2222-2222-222222222222" `
-        -DestinationSubscriptionId "33333333-3333-3333-3333-333333333333"
+        -SourceSubscriptionId "22222222-2222-2222-2222-222222222222"
 
     Create or update the Automation Account, publish the runbook, and save the
-    runbook default source and destination subscriptions.
+    runbook default source subscription and default destination subscription.
 
 .EXAMPLE
     .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -34,7 +35,6 @@ Gallery.
         -Location "chinaeast2" `
         -AssignRecommendedRoles `
         -SourceSubscriptionId "22222222-2222-2222-2222-222222222222" `
-        -DestinationSubscriptionId "33333333-3333-3333-3333-333333333333" `
         -GrantSourceNetworkContributor `
         -GrantDestinationContributor
 
@@ -90,9 +90,8 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$SourceSubscriptionId,
 
-    [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$DestinationSubscriptionId,
+    [string]$DestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205',
 
     [ValidateNotNullOrEmpty()]
     [string]$DestinationPrivateDnsZoneResourceGroupName,
@@ -112,6 +111,7 @@ $ManagedIdentityApiVersion = '2023-01-31'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
+$DefaultDestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205'
 $RequiredAutomationModules = @('Az.Accounts', 'Az.Resources')
 
 function Import-RequiredModule {

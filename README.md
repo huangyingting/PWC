@@ -14,7 +14,7 @@ If `Az.Automation` requires a newer `Az.Accounts` version, update the modules an
 
 ## Step 2a. Deploy The Runbook
 
-Provide the source subscription, destination subscription, and existing user-assigned managed identity once during deployment. The deploy script saves them as Automation variables, so users do not need to enter them when starting the runbook.
+Provide the source subscription and existing user-assigned managed identity once during deployment. `DestinationSubscriptionId` defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205`, the same subscription used by the AKS private DNS repair script. Pass `-DestinationSubscriptionId` only when you need to override that default. The deploy script saves provided defaults as Automation variables, so users do not need to enter them when starting the runbook.
 
 ```powershell
 .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -23,7 +23,6 @@ Provide the source subscription, destination subscription, and existing user-ass
     -AutomationAccountName "aa-dns-sync-cn-prod" `
     -Location "chinaeast2" `
     -SourceSubscriptionId "<source-subscription-id>" `
-    -DestinationSubscriptionId "<destination-subscription-id>" `
     -UserAssignedManagedIdentityResourceId "/subscriptions/<identity-subscription-id>/resourceGroups/<identity-resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>"
 ```
 
@@ -40,7 +39,6 @@ Skip this step if the managed identity already has the required permissions. Run
     -AutomationAccountName "aa-dns-sync-cn-prod" `
     -Location "chinaeast2" `
     -SourceSubscriptionId "<source-subscription-id>" `
-    -DestinationSubscriptionId "<destination-subscription-id>" `
     -UserAssignedManagedIdentityResourceId "/subscriptions/<identity-subscription-id>/resourceGroups/<identity-resource-group>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity-name>" `
     -AssignRecommendedRoles `
     -GrantSourceNetworkContributor `
@@ -49,20 +47,36 @@ Skip this step if the managed identity already has the required permissions. Run
 
 This grants `Reader` and optional `Network Contributor` on the source subscription, plus `Private DNS Zone Contributor` and optional `Contributor` on the destination subscription.
 
-## One-Time AKS/PostgreSQL DNS Link Repair
+## Sync And Stale Destination DNS Cleanup
 
-Use `Repair-AksPostgresPrivateDnsLinks.ps1` when AKS private DNS zones ending in `.cx.prod.service.azk8s.cn` or PostgreSQL private DNS zones need a virtual network link to the FCS VNet.
+By default, `Sync-PrivateEndpointPrivateDns.ps1` does both modes in one run for all supported Azure China private DNS zones: when a source private endpoint can be matched, it links that private endpoint to the destination private DNS zone; when no source private endpoint can be matched, it directly syncs the DNS A record. It also cleans up destination A records previously synced directly by the script after the matching source record or source zone disappears.
+
+Preview the sync and cleanup first:
+
+```powershell
+.\Sync-PrivateEndpointPrivateDns.ps1 `
+    -SourceSubscriptionId "<source-subscription-id>" `
+    -WhatIf
+```
+
+Cleanup only affects destination records with the script's provenance TXT marker and matching `SourceSubscriptionId`, source zone, and source record metadata. If a destination A record also has unmanaged IP addresses, only the previously synced IP addresses recorded in provenance are removed. If source and destination tenants differ, the script automatically uses direct DNS record sync because private endpoint DNS zone group linking requires a single tenant.
+
+Both sync and AKS repair scripts emit timestamped tracing logs for subscription selection, zone/record counts, cleanup checks, operation summaries, duration, and unhandled error details to simplify troubleshooting in local PowerShell and Azure Automation output.
+
+## One-Time AKS DNS Link Repair
+
+Use `Repair-AksPrivateDnsLinks.ps1` when AKS private DNS zones ending in `.cx.prod.service.azk8s.cn` need a virtual network link to the FCS VNet.
 
 Preview the change first:
 
 ```powershell
-.\Repair-AksPostgresPrivateDnsLinks.ps1 -WhatIf
+.\Repair-AksPrivateDnsLinks.ps1 -WhatIf
 ```
 
 Apply the link repair:
 
 ```powershell
-.\Repair-AksPostgresPrivateDnsLinks.ps1
+.\Repair-AksPrivateDnsLinks.ps1
 ```
 
 The script defaults to linking matching zones to:
@@ -74,7 +88,7 @@ The script defaults to linking matching zones to:
 If private DNS zones live in a different subscription from that VNet, pass the zone subscription explicitly:
 
 ```powershell
-.\Repair-AksPostgresPrivateDnsLinks.ps1 `
+.\Repair-AksPrivateDnsLinks.ps1 `
     -SubscriptionId "<private-dns-zone-subscription-id>"
 ```
 

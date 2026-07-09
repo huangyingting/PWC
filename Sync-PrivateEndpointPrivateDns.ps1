@@ -8,6 +8,9 @@ Private Link zones, and writes those records to matching private DNS zones in a
 destination subscription. When running in Azure Automation, SourceSubscriptionId,
 DestinationSubscriptionId, and ManagedIdentityAccountId can be read from
 Automation variables created by Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1.
+DestinationSubscriptionId defaults to 65a9c0da-4f85-47ba-ac0f-7401cbe43205,
+the same subscription used by Repair-AksPrivateDnsLinks.ps1's default target
+virtual network.
 
 The script is scoped to Azure China. Private DNS zone names are discovered from
 the source subscription and matched by exact zone name in the destination
@@ -19,19 +22,15 @@ By default, the script scans supported Azure China private DNS zones and links
 matching source private endpoints to destination private DNS zones by updating
 privateDnsZoneGroups. Azure then manages the destination A records. If no source
 private endpoint can be matched, the script falls back to writing the destination
-A record directly. Use -SkipSourcePrivateEndpointLink to always sync DNS records
-directly, and use -ReplaceExisting when manually synced destination record sets
-should exactly match the source.
-
-AKS private DNS zones ending in cx.prod.service.azk8s.cn are synced directly
-because they do not follow the normal private endpoint privateDnsZoneGroups
-model.
+A record directly. Use -ReplaceExisting when manually synced destination record
+sets should exactly match the source.
 
 By default, the script also finds the source private endpoints that correspond
 to the synced A records and adds the destination private DNS zones to those
 private endpoints' privateDnsZoneGroups. This is an Azure resource update on the
-source private endpoints. Use -SkipSourcePrivateEndpointLink to sync DNS records
-only.
+source private endpoints. If source and destination tenants are explicitly set
+and differ, the script automatically uses direct DNS record sync because private
+endpoint DNS zone group linking requires a single tenant.
 
 If a matching destination private DNS zone doesn't exist, the script creates it
 by default. Private DNS zones are global resources, so the zone location is
@@ -51,6 +50,14 @@ that record set are preserved. Zone-group-managed records do not get provenance
 TXT records by default so that Azure can manage their lifecycle cleanly. Use
 -SkipProvenanceTxtRecord to disable this metadata record for direct record sync.
 
+By default, the script removes stale destination A record values previously
+synced directly by this script when the corresponding source record no longer
+exists, or when the source zone no longer exists. Cleanup only acts on records
+with this script's provenance TXT marker and matching source subscription, zone,
+and record metadata. If a destination A record has extra unmanaged IP addresses,
+only the previously synced IP addresses recorded in provenance are removed. By
+default, all supported zones are in scope.
+
 Required permissions:
 - Source subscription: Reader on private DNS zones.
 - Destination subscription: Private DNS Zone Contributor on private DNS zones.
@@ -65,15 +72,16 @@ Required permissions:
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -WhatIf
 
 Preview all changes for supported source Azure China private DNS zones.
+By default, the script links matching source private endpoints to destination
+private DNS zones and falls back to direct DNS A record sync when no source
+private endpoint can be matched.
 
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -ReplaceExisting
 
 Sync all supported source Azure China private DNS A records and replace matching
@@ -82,16 +90,6 @@ destination record sets.
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
-        -ZoneName "privatelink.blob.core.chinacloudapi.cn", "privatelink.vaultcore.azure.cn"
-
-Sync only selected Azure China private DNS zones. The selected zone names must be
-present in the built-in Azure China allow-list.
-
-.EXAMPLE
-    .\Sync-PrivateEndpointPrivateDns.ps1 `
-        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -WhatIf
 
 Preview DNS record sync and source private endpoint DNS zone group links to the
@@ -100,17 +98,6 @@ matching destination private DNS zones.
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
-        -SkipSourcePrivateEndpointLink `
-        -WhatIf
-
-Preview DNS record sync only, without updating source private endpoint private
-DNS zone groups.
-
-.EXAMPLE
-    .\Sync-PrivateEndpointPrivateDns.ps1 `
-        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -DestinationPrivateDnsZoneResourceGroupName "rg-central-private-dns" `
         -DestinationResourceGroupLocation "chinaeast2" `
         -WhatIf
@@ -121,7 +108,6 @@ destination resource group instead of using the source zone resource group name.
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -SkipProvenanceTxtRecord `
         -WhatIf
 
@@ -130,9 +116,7 @@ Preview DNS record sync without creating or updating provenance TXT records.
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
-        -UseManagedIdentity `
-        -SkipSourcePrivateEndpointLink
+        -UseManagedIdentity
 
 Run inside Azure Automation using the Automation Account system-assigned
 managed identity.
@@ -140,7 +124,6 @@ managed identity.
 .EXAMPLE
     .\Sync-PrivateEndpointPrivateDns.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -UseManagedIdentity `
         -ManagedIdentityAccountId "33333333-3333-3333-3333-333333333333"
 
@@ -156,7 +139,7 @@ param(
 
     [Parameter()]
     [Alias('CentralSubscriptionId')]
-    [string]$DestinationSubscriptionId,
+    [string]$DestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205',
 
     [string]$SourceTenantId,
 
@@ -171,8 +154,6 @@ param(
 
     [string]$DestinationResourceGroupLocation,
 
-    [string[]]$ZoneName,
-
     [switch]$IncludeAllPrivateDnsZones,
 
     [switch]$SkipCreateMissingDestinationZones,
@@ -184,10 +165,6 @@ param(
     [switch]$ReplaceExisting,
 
     [switch]$RemoveSourceAfterCopy,
-
-    [switch]$LinkSourcePrivateEndpointsToDestinationZones,
-
-    [switch]$SkipSourcePrivateEndpointLink,
 
     [ValidateNotNullOrEmpty()]
     [string]$PrivateDnsZoneGroupName = 'default',
@@ -202,12 +179,75 @@ $ErrorActionPreference = 'Stop'
 $PrivateDnsApiVersion = '2018-09-01'
 $NetworkApiVersion = '2023-09-01'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
+$ProvenanceTxtManagedBy = 'Sync-PrivateEndpointPrivateDns.ps1'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
+$DefaultDestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205'
 $UseTtlOverride = $PSBoundParameters.ContainsKey('Ttl')
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
+$RunStartedAt = Get-Date
+
+function Write-TraceLog {
+    param(
+        [ValidateSet('INFO', 'WARN', 'ERROR')]
+        [string]$Level = 'INFO',
+
+        [Parameter(Mandatory = $true)]
+        [string]$Message
+    )
+
+    $timestamp = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffK')
+    $line = "[$timestamp][$Level] $Message"
+
+    switch ($Level) {
+        'WARN' { Write-Warning $line }
+        'ERROR' { Write-Host $line -ForegroundColor Red }
+        default { Write-Host $line }
+    }
+}
+
+function Format-TraceDuration {
+    param(
+        [Parameter(Mandatory = $true)]
+        [datetime]$StartTime
+    )
+
+    $elapsed = (Get-Date) - $StartTime
+    return ('{0:hh\:mm\:ss\.fff}' -f $elapsed)
+}
+
+function Write-TraceError {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.ErrorRecord]$ErrorRecord
+    )
+
+    Write-TraceLog -Level ERROR -Message "Unhandled error: $($ErrorRecord.Exception.Message)"
+
+    if ($ErrorRecord.InvocationInfo) {
+        $location = $ErrorRecord.InvocationInfo.PositionMessage
+        if (-not [string]::IsNullOrWhiteSpace($location)) {
+            Write-TraceLog -Level ERROR -Message "Error location: $location"
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ErrorRecord.ScriptStackTrace)) {
+        Write-TraceLog -Level ERROR -Message "Script stack trace: $($ErrorRecord.ScriptStackTrace)"
+    }
+
+    $exception = $ErrorRecord.Exception
+    while ($exception) {
+        Write-TraceLog -Level ERROR -Message "Exception type: $($exception.GetType().FullName)"
+        $exception = $exception.InnerException
+    }
+}
+
+trap {
+    Write-TraceError -ErrorRecord $_
+    break
+}
 
 function Get-AutomationVariableString {
     param(
@@ -250,8 +290,11 @@ if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($SourceSubscript
     $SourceSubscriptionId = Get-AutomationVariableString -Name $DefaultSourceSubscriptionIdAutomationVariableName
 }
 
-if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
-    $DestinationSubscriptionId = Get-AutomationVariableString -Name $DefaultDestinationSubscriptionIdAutomationVariableName
+if ($IsAzureAutomationRunbook -and -not $PSBoundParameters.ContainsKey('DestinationSubscriptionId')) {
+    $automationDestinationSubscriptionId = Get-AutomationVariableString -Name $DefaultDestinationSubscriptionIdAutomationVariableName
+    if (-not [string]::IsNullOrWhiteSpace($automationDestinationSubscriptionId)) {
+        $DestinationSubscriptionId = $automationDestinationSubscriptionId
+    }
 }
 
 if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
@@ -263,12 +306,12 @@ if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
-    throw "DestinationSubscriptionId is required. In Azure Automation, pass DestinationSubscriptionId or set the '$DefaultDestinationSubscriptionIdAutomationVariableName' Automation variable."
+    $DestinationSubscriptionId = $DefaultDestinationSubscriptionId
 }
 
 $UseManagedIdentityLogin = [bool]($UseManagedIdentity -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId) -or $IsAzureAutomationRunbook)
 if ($UseManagedIdentityLogin -and $IsAzureAutomationRunbook -and -not $UseManagedIdentity -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
-    Write-Host 'Azure Automation runbook environment detected. Using the Automation Account system-assigned managed identity for Azure login.'
+    Write-TraceLog -Message 'Azure Automation runbook environment detected. Using the Automation Account system-assigned managed identity for Azure login.'
 }
 
 $UseDestinationResourceGroupLocationOverride = $PSBoundParameters.ContainsKey('DestinationResourceGroupLocation')
@@ -277,19 +320,17 @@ if ([string]::IsNullOrWhiteSpace($DestinationResourceGroupLocation)) {
     $DestinationResourceGroupLocation = $DefaultDestinationResourceGroupLocation
 }
 
-if ($LinkSourcePrivateEndpointsToDestinationZones -and $SkipSourcePrivateEndpointLink) {
-    throw 'Use either -LinkSourcePrivateEndpointsToDestinationZones or -SkipSourcePrivateEndpointLink, not both.'
-}
-
-$ShouldLinkSourcePrivateEndpointsToDestinationZones = -not $SkipSourcePrivateEndpointLink
-
-if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and $SourceTenantId -and $DestinationTenantId -and $SourceTenantId -ne $DestinationTenantId) {
-    throw 'Private endpoint linking is enabled by default and requires source and destination private DNS zones/private endpoints to be in the same tenant. Use -SkipSourcePrivateEndpointLink to sync DNS records only.'
+$CanUpdatePrivateEndpointZoneGroups = -not ($SourceTenantId -and $DestinationTenantId -and $SourceTenantId -ne $DestinationTenantId)
+if (-not $CanUpdatePrivateEndpointZoneGroups) {
+    Write-TraceLog -Level WARN -Message 'SourceTenantId and DestinationTenantId differ. Private endpoint DNS zone group linking requires a single tenant, so this run will use direct DNS record sync only.'
 }
 
 if ($IncludeAllPrivateDnsZones) {
-    Write-Warning '-IncludeAllPrivateDnsZones is kept for backward compatibility but is ignored. This script only syncs supported Azure China private DNS zones.'
+    Write-TraceLog -Level WARN -Message '-IncludeAllPrivateDnsZones is kept for backward compatibility but is ignored. This script only syncs supported Azure China private DNS zones.'
 }
+
+Write-TraceLog -Message "Starting Sync-PrivateEndpointPrivateDns.ps1. SourceSubscriptionId='$SourceSubscriptionId'; DestinationSubscriptionId='$DestinationSubscriptionId'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
+Write-TraceLog -Message "Mode: combined private endpoint zone-group linking with direct DNS A record fallback. CanUpdatePrivateEndpointZoneGroups='$CanUpdatePrivateEndpointZoneGroups'."
 
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
     # Keep this list aligned with the official China table:
@@ -318,7 +359,6 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink-global\.wvd\.azure\.cn$',
     '^privatelink\.wvd\.azure\.cn$'
 )
-$AzureChinaAksPrivateDnsZoneSuffix = '.cx.prod.service.azk8s.cn'
 
 function Import-AzAccountsModule {
     if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
@@ -614,15 +654,6 @@ function Get-PrivateDnsZonesInSubscription {
     return $results
 }
 
-function Test-AzureChinaAksPrivateDnsZoneName {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name
-    )
-
-    return $Name.Trim().EndsWith($AzureChinaAksPrivateDnsZoneSuffix, [System.StringComparison]::OrdinalIgnoreCase)
-}
-
 function Test-AzurePaaSPrivateDnsZoneName {
     param(
         [Parameter(Mandatory = $true)]
@@ -630,10 +661,6 @@ function Test-AzurePaaSPrivateDnsZoneName {
     )
 
     $normalizedName = $Name.Trim().ToLowerInvariant()
-
-    if (Test-AzureChinaAksPrivateDnsZoneName -Name $normalizedName) {
-        return $true
-    }
 
     foreach ($pattern in $AzureChinaPaaSPrivateDnsZonePatterns) {
         if ($normalizedName -match $pattern) {
@@ -648,38 +675,14 @@ function Select-ZonesForSync {
     param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyCollection()]
-        [object[]]$Zones,
-
-        [string[]]$RequestedZoneNames
+        [object[]]$Zones
     )
-
-    $requestedZoneLookup = @{}
-    foreach ($requestedZoneName in @($RequestedZoneNames)) {
-        if ([string]::IsNullOrWhiteSpace($requestedZoneName)) {
-            continue
-        }
-
-        $normalizedRequestedZoneName = $requestedZoneName.Trim().ToLowerInvariant()
-        if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $normalizedRequestedZoneName)) {
-            throw "ZoneName '$requestedZoneName' is not a supported Azure China private DNS zone."
-        }
-
-        $requestedZoneLookup[$normalizedRequestedZoneName] = $true
-    }
 
     $selectedZones = New-Object System.Collections.Generic.List[object]
     foreach ($currentZone in @($Zones)) {
         $currentZoneName = ([string]$currentZone.Name).Trim()
 
         if (-not (Test-AzurePaaSPrivateDnsZoneName -Name $currentZoneName)) {
-            continue
-        }
-
-        if ($requestedZoneLookup.Count -gt 0) {
-            if ($requestedZoneLookup.ContainsKey($currentZoneName.ToLowerInvariant())) {
-                $selectedZones.Add($currentZone)
-            }
-
             continue
         }
 
@@ -823,6 +826,7 @@ function Get-PrivateDnsARecordRows {
         [string]$SubscriptionId,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
         [object[]]$Zones,
 
         [switch]$AllowApex
@@ -979,6 +983,30 @@ function Get-PrivateDnsTxtRecordSet {
     return Invoke-ArmJson -Method GET -Path $path -ExpectedStatusCode @(200) -AllowNotFound
 }
 
+function Get-PrivateDnsRecordSets {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$CurrentZoneName,
+
+        [ValidateSet('A', 'TXT')]
+        [string]$RecordType = 'A'
+    )
+
+    $path = New-PrivateDnsRecordSetPath `
+        -SubscriptionId $SubscriptionId `
+        -ResourceGroupName $ResourceGroupName `
+        -CurrentZoneName $CurrentZoneName `
+        -RecordType $RecordType
+
+    return Get-ArmPagedValues -Path $path
+}
+
 function ConvertTo-DnsTxtStrings {
     param(
         [Parameter(Mandatory = $true)]
@@ -1029,7 +1057,7 @@ function New-ProvenanceTxtValues {
         "sourceZone=$SourceZoneName"
         "sourceRecord=$RecordName"
         "sourceIPv4Addresses=$(@($IPv4Addresses | Sort-Object -Unique) -join ',')"
-        'managedBy=Sync-PrivateEndpointPrivateDns.ps1'
+        "managedBy=$ProvenanceTxtManagedBy"
     )
 
     return ConvertTo-DnsTxtStrings -Values $values
@@ -1041,6 +1069,115 @@ function Get-TxtRecordValues {
     )
 
     return @((Get-ObjectPropertyValue -InputObject $TxtRecord -Name 'value') | ForEach-Object { [string]$_ })
+}
+
+function ConvertFrom-ProvenanceTxtValues {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Values
+    )
+
+    $metadata = @{}
+    foreach ($value in @($Values)) {
+        if ($value -eq $ProvenanceTxtRecordMarker) {
+            continue
+        }
+
+        $separatorIndex = $value.IndexOf('=')
+        if ($separatorIndex -gt 0) {
+            $metadata[$value.Substring(0, $separatorIndex)] = $value.Substring($separatorIndex + 1)
+        }
+    }
+
+    $sourceIPv4Addresses = @()
+    if ($metadata.ContainsKey('sourceIPv4Addresses')) {
+        $sourceIPv4Addresses = @(([string]$metadata['sourceIPv4Addresses'] -split ',' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { $_.Trim() }))
+    }
+
+    return [pscustomobject]@{
+        SourceSubscriptionId = [string]$metadata['sourceSubscriptionId']
+        SourceZone           = [string]$metadata['sourceZone']
+        SourceRecord         = [string]$metadata['sourceRecord']
+        SourceIPv4Addresses  = @($sourceIPv4Addresses)
+        ManagedBy            = [string]$metadata['managedBy']
+    }
+}
+
+function Test-ProvenanceMatchesScope {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Provenance,
+
+        [Parameter(Mandatory = $true)]
+        [string]$SourceSubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ZoneName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RecordName
+    )
+
+    $isManagedByThisScript = [string]::IsNullOrWhiteSpace([string]$Provenance.ManagedBy) -or $Provenance.ManagedBy -eq $ProvenanceTxtManagedBy
+
+    return $isManagedByThisScript `
+        -and $Provenance.SourceSubscriptionId -ieq $SourceSubscriptionId `
+        -and $Provenance.SourceZone -ieq $ZoneName `
+        -and $Provenance.SourceRecord -ieq $RecordName
+}
+
+function Get-MatchingManagedProvenanceTxtValues {
+    param(
+        [object]$TxtRecordSet,
+
+        [Parameter(Mandatory = $true)]
+        [string]$SourceSubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ZoneName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RecordName
+    )
+
+    if ($null -eq $TxtRecordSet) {
+        return @()
+    }
+
+    $properties = Get-ObjectPropertyValue -InputObject $TxtRecordSet -Name 'properties'
+    foreach ($txtRecord in @(Get-ObjectPropertyValue -InputObject $properties -Name 'txtRecords')) {
+        if ($null -eq $txtRecord) {
+            continue
+        }
+
+        $values = @(Get-TxtRecordValues -TxtRecord $txtRecord)
+        if ($values.Count -eq 0 -or $values[0] -ne $ProvenanceTxtRecordMarker) {
+            continue
+        }
+
+        $provenance = ConvertFrom-ProvenanceTxtValues -Values $values
+        if (Test-ProvenanceMatchesScope `
+            -Provenance $provenance `
+            -SourceSubscriptionId $SourceSubscriptionId `
+            -ZoneName $ZoneName `
+            -RecordName $RecordName) {
+            return @($values)
+        }
+    }
+
+    return @()
+}
+
+function New-PrivateDnsRecordKey {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ZoneName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RecordName
+    )
+
+    return "$($ZoneName.Trim().ToLowerInvariant())|$($RecordName.Trim().ToLowerInvariant())"
 }
 
 function ConvertTo-NormalizedFqdn {
@@ -1581,6 +1718,7 @@ function Set-PrivateDnsTxtRecordSet {
     $preservedTxtRecords = New-Object System.Collections.Generic.List[object]
     $existingManagedTxtValues = @()
     $existingTtl = $null
+    $desiredProvenance = ConvertFrom-ProvenanceTxtValues -Values $TxtValues
 
     if ($existingRecordSet) {
         $existingProperties = Get-ObjectPropertyValue -InputObject $existingRecordSet -Name 'properties'
@@ -1593,7 +1731,17 @@ function Set-PrivateDnsTxtRecordSet {
 
             $existingValues = @(Get-TxtRecordValues -TxtRecord $existingTxtRecord)
             if ($existingValues.Count -gt 0 -and $existingValues[0] -eq $ProvenanceTxtRecordMarker) {
-                $existingManagedTxtValues = $existingValues
+                $existingProvenance = ConvertFrom-ProvenanceTxtValues -Values $existingValues
+                if (Test-ProvenanceMatchesScope `
+                    -Provenance $existingProvenance `
+                    -SourceSubscriptionId $desiredProvenance.SourceSubscriptionId `
+                    -ZoneName $desiredProvenance.SourceZone `
+                    -RecordName $desiredProvenance.SourceRecord) {
+                    $existingManagedTxtValues = $existingValues
+                    continue
+                }
+
+                $preservedTxtRecords.Add(@{ value = @($existingValues) })
                 continue
             }
 
@@ -1657,6 +1805,114 @@ function Set-PrivateDnsTxtRecordSet {
     }
 }
 
+function Remove-ManagedProvenanceTxtRecordSet {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$CurrentZoneName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RecordName,
+
+        [string]$ExpectedSourceSubscriptionId,
+
+        [string]$ExpectedSourceZone,
+
+        [string]$ExpectedSourceRecord
+    )
+
+    $existingRecordSet = Get-PrivateDnsTxtRecordSet `
+        -SubscriptionId $SubscriptionId `
+        -ResourceGroupName $ResourceGroupName `
+        -CurrentZoneName $CurrentZoneName `
+        -RecordName $RecordName
+
+    if ($null -eq $existingRecordSet) {
+        return [pscustomobject]@{
+            Operation = 'TxtMissing'
+            Changed   = $false
+        }
+    }
+
+    $existingProperties = Get-ObjectPropertyValue -InputObject $existingRecordSet -Name 'properties'
+    $existingTtl = [int](Get-ObjectPropertyValue -InputObject $existingProperties -Name 'ttl')
+    $preservedTxtRecords = New-Object System.Collections.Generic.List[object]
+    $managedTxtFound = $false
+
+    foreach ($existingTxtRecord in @(Get-ObjectPropertyValue -InputObject $existingProperties -Name 'txtRecords')) {
+        if ($null -eq $existingTxtRecord) {
+            continue
+        }
+
+        $existingValues = @(Get-TxtRecordValues -TxtRecord $existingTxtRecord)
+        if ($existingValues.Count -gt 0 -and $existingValues[0] -eq $ProvenanceTxtRecordMarker) {
+            if (-not [string]::IsNullOrWhiteSpace($ExpectedSourceSubscriptionId) -or -not [string]::IsNullOrWhiteSpace($ExpectedSourceZone) -or -not [string]::IsNullOrWhiteSpace($ExpectedSourceRecord)) {
+                $provenance = ConvertFrom-ProvenanceTxtValues -Values $existingValues
+                if (-not (Test-ProvenanceMatchesScope `
+                    -Provenance $provenance `
+                    -SourceSubscriptionId $ExpectedSourceSubscriptionId `
+                    -ZoneName $ExpectedSourceZone `
+                    -RecordName $ExpectedSourceRecord)) {
+                    $preservedTxtRecords.Add(@{ value = @($existingValues) })
+                    continue
+                }
+            }
+
+            $managedTxtFound = $true
+            continue
+        }
+
+        $preservedTxtRecords.Add(@{ value = @($existingValues) })
+    }
+
+    if (-not $managedTxtFound) {
+        return [pscustomobject]@{
+            Operation = 'TxtNoManagedProvenance'
+            Changed   = $false
+        }
+    }
+
+    $path = New-PrivateDnsRecordSetPath `
+        -SubscriptionId $SubscriptionId `
+        -ResourceGroupName $ResourceGroupName `
+        -CurrentZoneName $CurrentZoneName `
+        -RecordType 'TXT' `
+        -RecordName $RecordName
+    $target = "$SubscriptionId/$ResourceGroupName/$CurrentZoneName/TXT/$RecordName"
+
+    if ($preservedTxtRecords.Count -eq 0) {
+        if ($ScriptCommand.ShouldProcess($target, 'Delete managed provenance TXT record set')) {
+            Invoke-ArmJson -Method DELETE -Path $path -ExpectedStatusCode @(200, 202, 204) | Out-Null
+        }
+
+        return [pscustomobject]@{
+            Operation = 'TxtDeleteManagedProvenance'
+            Changed   = $true
+        }
+    }
+
+    $body = @{
+        properties = @{
+            ttl        = $existingTtl
+            txtRecords = @($preservedTxtRecords.ToArray())
+        }
+    }
+
+    if ($ScriptCommand.ShouldProcess($target, 'Remove managed provenance TXT value from record set')) {
+        Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+    }
+
+    return [pscustomobject]@{
+        Operation = 'TxtRemoveManagedProvenance'
+        Changed   = $true
+    }
+}
+
 function Set-PrivateDnsARecordSet {
     param(
         [Parameter(Mandatory = $true)]
@@ -1677,7 +1933,9 @@ function Set-PrivateDnsARecordSet {
         [Parameter(Mandatory = $true)]
         [int]$RecordTtl,
 
-        [switch]$Replace
+        [switch]$Replace,
+
+        [string[]]$PreviouslyManagedIPv4Addresses
     )
 
     $existingRecordSet = Get-PrivateDnsARecordSet `
@@ -1696,9 +1954,26 @@ function Set-PrivateDnsARecordSet {
     }
 
     if ($existingRecordSet -and -not $Replace) {
-        $desiredIpAddresses = @($existingIpAddresses + $IPv4Addresses | Sort-Object -Unique)
+        $previouslyManagedIpLookup = @{}
+        foreach ($previouslyManagedIpAddress in @($PreviouslyManagedIPv4Addresses)) {
+            if ([string]::IsNullOrWhiteSpace($previouslyManagedIpAddress)) {
+                continue
+            }
+
+            $previouslyManagedIpLookup[$previouslyManagedIpAddress.Trim()] = $true
+        }
+
+        if ($previouslyManagedIpLookup.Count -gt 0) {
+            $unmanagedExistingIpAddresses = @($existingIpAddresses | Where-Object { -not $previouslyManagedIpLookup.ContainsKey($_) })
+            $desiredIpAddresses = @($unmanagedExistingIpAddresses + $IPv4Addresses | Sort-Object -Unique)
+            $operation = 'SyncManaged'
+        }
+        else {
+            $desiredIpAddresses = @($existingIpAddresses + $IPv4Addresses | Sort-Object -Unique)
+            $operation = 'Merge'
+        }
+
         $desiredTtl = $existingTtl
-        $operation = 'Merge'
     }
     else {
         $desiredIpAddresses = @($IPv4Addresses | Sort-Object -Unique)
@@ -1756,7 +2031,9 @@ function Remove-PrivateDnsARecordSet {
         [string]$CurrentZoneName,
 
         [Parameter(Mandatory = $true)]
-        [string]$RecordName
+        [string]$RecordName,
+
+        [string]$ActionDescription = 'Delete private DNS A record set'
     )
 
     $path = New-PrivateDnsRecordSetPath `
@@ -1766,9 +2043,167 @@ function Remove-PrivateDnsARecordSet {
         -RecordName $RecordName
     $target = "$SubscriptionId/$ResourceGroupName/$CurrentZoneName/A/$RecordName"
 
-    if ($ScriptCommand.ShouldProcess($target, 'Delete source private DNS A record set')) {
+    if ($ScriptCommand.ShouldProcess($target, $ActionDescription)) {
         Invoke-ArmJson -Method DELETE -Path $path -ExpectedStatusCode @(200, 202, 204) | Out-Null
     }
+}
+
+function Remove-MissingDestinationPrivateDnsRecords {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationSubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [object[]]$DestinationZones,
+
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [object[]]$SourceRows,
+
+        [Parameter(Mandatory = $true)]
+        [string]$SourceSubscriptionId,
+
+        [switch]$AllowApex
+    )
+
+    $results = New-Object System.Collections.Generic.List[object]
+    $sourceRecordLookup = @{}
+    foreach ($sourceRow in @($SourceRows)) {
+        $sourceKey = New-PrivateDnsRecordKey `
+            -ZoneName ([string]$sourceRow.ZoneName) `
+            -RecordName ([string]$sourceRow.RecordName)
+        $sourceRecordLookup[$sourceKey] = $true
+    }
+
+    foreach ($destinationZone in @($DestinationZones)) {
+        $zoneName = [string]$destinationZone.Name
+        $resourceGroupName = [string]$destinationZone.ResourceGroupName
+        $destinationARecordSets = @(Get-PrivateDnsRecordSets `
+            -SubscriptionId $DestinationSubscriptionId `
+            -ResourceGroupName $resourceGroupName `
+            -CurrentZoneName $zoneName `
+            -RecordType 'A')
+
+        foreach ($destinationARecordSet in $destinationARecordSets) {
+            $recordName = [string]$destinationARecordSet.name
+            if ([string]::IsNullOrWhiteSpace($recordName)) {
+                continue
+            }
+
+            if (-not $AllowApex -and $recordName -eq '@') {
+                continue
+            }
+
+            $destinationRecordKey = New-PrivateDnsRecordKey -ZoneName $zoneName -RecordName $recordName
+            if ($sourceRecordLookup.ContainsKey($destinationRecordKey)) {
+                continue
+            }
+
+            $txtRecordSet = Get-PrivateDnsTxtRecordSet `
+                -SubscriptionId $DestinationSubscriptionId `
+                -ResourceGroupName $resourceGroupName `
+                -CurrentZoneName $zoneName `
+                -RecordName $recordName
+            $managedTxtValues = @(Get-MatchingManagedProvenanceTxtValues `
+                -TxtRecordSet $txtRecordSet `
+                -SourceSubscriptionId $SourceSubscriptionId `
+                -ZoneName $zoneName `
+                -RecordName $recordName)
+            if ($managedTxtValues.Count -eq 0) {
+                continue
+            }
+
+            $provenance = ConvertFrom-ProvenanceTxtValues -Values $managedTxtValues
+            if (-not (Test-ProvenanceMatchesScope `
+                -Provenance $provenance `
+                -SourceSubscriptionId $SourceSubscriptionId `
+                -ZoneName $zoneName `
+                -RecordName $recordName)) {
+                continue
+            }
+
+            $managedIpLookup = @{}
+            foreach ($managedIpAddress in @($provenance.SourceIPv4Addresses)) {
+                if ([string]::IsNullOrWhiteSpace($managedIpAddress)) {
+                    continue
+                }
+
+                $managedIpLookup[$managedIpAddress.Trim()] = $true
+            }
+
+            if ($managedIpLookup.Count -eq 0) {
+                Write-Warning "Skipped stale destination record '$recordName.$zoneName' because its provenance TXT record does not contain source IPv4 addresses."
+                continue
+            }
+
+            $recordProperties = Get-ObjectPropertyValue -InputObject $destinationARecordSet -Name 'properties'
+            $recordTtl = [int](Get-ObjectPropertyValue -InputObject $recordProperties -Name 'ttl')
+            $currentIpAddresses = @((Get-ObjectPropertyValue -InputObject $recordProperties -Name 'aRecords') | ForEach-Object { [string]$_.ipv4Address } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
+            $remainingIpAddresses = @($currentIpAddresses | Where-Object { -not $managedIpLookup.ContainsKey($_) } | Sort-Object -Unique)
+            $removedIpAddresses = @($currentIpAddresses | Where-Object { $managedIpLookup.ContainsKey($_) } | Sort-Object -Unique)
+
+            if ($removedIpAddresses.Count -eq 0) {
+                Write-Warning "Skipped stale destination record '$recordName.$zoneName' because none of the provenance-managed IP addresses are present in the destination A record set."
+                continue
+            }
+
+            if ($remainingIpAddresses.Count -eq 0) {
+                Write-TraceLog -Message "Deleting stale destination A record '$recordName.$zoneName' in resource group '$resourceGroupName'. Removed IP(s)='$($removedIpAddresses -join ',')'."
+                Remove-PrivateDnsARecordSet `
+                    -SubscriptionId $DestinationSubscriptionId `
+                    -ResourceGroupName $resourceGroupName `
+                    -CurrentZoneName $zoneName `
+                    -RecordName $recordName `
+                    -ActionDescription 'Delete stale destination private DNS A record set'
+                $operation = 'DeleteMissingDestinationRecord'
+                $resultIpAddresses = ''
+            }
+            else {
+                Write-TraceLog -Message "Pruning stale destination A record '$recordName.$zoneName' in resource group '$resourceGroupName'. Removed IP(s)='$($removedIpAddresses -join ',')'; remaining IP(s)='$($remainingIpAddresses -join ',')'."
+                Set-PrivateDnsARecordSet `
+                    -SubscriptionId $DestinationSubscriptionId `
+                    -ResourceGroupName $resourceGroupName `
+                    -CurrentZoneName $zoneName `
+                    -RecordName $recordName `
+                    -IPv4Addresses $remainingIpAddresses `
+                    -RecordTtl $recordTtl `
+                    -Replace | Out-Null
+                $operation = 'PruneMissingDestinationRecord'
+                $resultIpAddresses = ($remainingIpAddresses -join ',')
+            }
+
+            $txtCleanupResult = Remove-ManagedProvenanceTxtRecordSet `
+                -SubscriptionId $DestinationSubscriptionId `
+                -ResourceGroupName $resourceGroupName `
+                -CurrentZoneName $zoneName `
+                -RecordName $recordName `
+                -ExpectedSourceSubscriptionId $SourceSubscriptionId `
+                -ExpectedSourceZone $zoneName `
+                -ExpectedSourceRecord $recordName
+
+            $results.Add([pscustomobject]@{
+                ZoneName                         = $zoneName
+                RecordName                       = $recordName
+                DestinationZoneResourceGroupName = $resourceGroupName
+                Operation                        = $operation
+                IPv4Addresses                    = $resultIpAddresses
+                RemovedIPv4Addresses             = ($removedIpAddresses -join ',')
+                TTL                              = $recordTtl
+                Changed                          = $true
+                SourcePrivateEndpointNames       = ''
+                SourcePrivateEndpointIds         = ''
+                SourcePrivateEndpointMatchTypes  = ''
+                PrivateDnsZoneGroupOperations    = ''
+                PrivateDnsZoneGroupChanged       = $false
+                ProvenanceTxtRecordOperation     = $txtCleanupResult.Operation
+                ProvenanceTxtRecordChanged       = $txtCleanupResult.Changed
+                ProvenanceTxtRecordValues        = ($managedTxtValues -join ';')
+            })
+        }
+    }
+
+    return $results
 }
 
 function New-ZoneLookup {
@@ -1791,77 +2226,92 @@ function New-ZoneLookup {
     return $lookup
 }
 
+Write-TraceLog -Message "Selecting source subscription '$SourceSubscriptionId'."
 Select-AzureChinaSubscription `
     -SubscriptionId $SourceSubscriptionId `
     -TenantId $SourceTenantId `
     -UseManagedIdentity $UseManagedIdentityLogin `
     -ManagedIdentityAccountId $ManagedIdentityAccountId
+Write-TraceLog -Message 'Reading source private DNS zones.'
 $sourceZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $SourceSubscriptionId)
-$sourceZonesToSync = @(Select-ZonesForSync `
-    -Zones $sourceZones `
-    -RequestedZoneNames $ZoneName)
+$sourceZonesToSync = @(Select-ZonesForSync -Zones $sourceZones)
+Write-TraceLog -Message "Source zones discovered='$($sourceZones.Count)'; selected for sync='$($sourceZonesToSync.Count)'."
 
 if ($sourceZonesToSync.Count -eq 0) {
-    throw 'No supported source Azure China private DNS zones matched the scan criteria.'
+    Write-TraceLog -Level WARN -Message 'No supported source Azure China private DNS zones matched the scan criteria. Continuing destination cleanup based on destination zones and provenance TXT metadata.'
 }
 
+Write-TraceLog -Message 'Reading source private DNS A records.'
 $sourceRows = @(Get-PrivateDnsARecordRows `
     -SubscriptionId $SourceSubscriptionId `
     -Zones $sourceZonesToSync `
     -AllowApex:$IncludeApex)
+Write-TraceLog -Message "Source A record rows discovered='$($sourceRows.Count)'."
 
 if ($sourceRows.Count -eq 0) {
-    $zoneNames = @($sourceZonesToSync | ForEach-Object { [string]$_.Name } | Sort-Object -Unique) -join ', '
-    Write-Warning "No source Azure China private DNS A records were found in supported source zones: $zoneNames. This can be expected after source private endpoints are already associated to destination private DNS zones. Nothing to sync."
-    return
+    if ($sourceZonesToSync.Count -gt 0) {
+        $zoneNames = @($sourceZonesToSync | ForEach-Object { [string]$_.Name } | Sort-Object -Unique) -join ', '
+        Write-TraceLog -Level WARN -Message "No source Azure China private DNS A records were found in supported source zones: $zoneNames. This can be expected after source private endpoints are already associated to destination private DNS zones. Nothing to sync."
+    }
+
 }
 
 $validatedRows = @(ConvertTo-ValidatedRecordRows `
     -Rows $sourceRows `
     -UseOverrideTtl $UseTtlOverride `
     -OverrideTtl $Ttl)
-
-if ($validatedRows.Count -eq 0) {
-    throw 'No source Azure China private DNS A records matched the scan criteria.'
-}
+Write-TraceLog -Message "Validated source A record rows='$($validatedRows.Count)'."
 
 $sourcePrivateEndpoints = @()
-$sourceZonesRequiringPrivateEndpointLink = @($sourceZonesToSync | Where-Object { -not (Test-AzureChinaAksPrivateDnsZoneName -Name ([string]$_.Name)) })
-if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and $sourceZonesRequiringPrivateEndpointLink.Count -gt 0) {
-    Write-Host 'Reading source private endpoints to match DNS records...'
+if ($CanUpdatePrivateEndpointZoneGroups -and $validatedRows.Count -gt 0) {
+    Write-TraceLog -Message 'Reading source private endpoints to match DNS records.'
     $sourcePrivateEndpoints = @(Get-PrivateEndpointDnsDetailsInSubscription -SubscriptionId $SourceSubscriptionId)
+    Write-TraceLog -Message "Source private endpoints with DNS details='$($sourcePrivateEndpoints.Count)'."
     if ($sourcePrivateEndpoints.Count -eq 0) {
-        Write-Warning 'No source private endpoints were found. DNS records can still be synced, but no private endpoint DNS zone group links can be added.'
+        Write-TraceLog -Level WARN -Message 'No source private endpoints were found. DNS records can still be synced, but no private endpoint DNS zone group links can be added.'
     }
 }
 
+Write-TraceLog -Message "Selecting destination subscription '$DestinationSubscriptionId'."
 Select-AzureChinaSubscription `
     -SubscriptionId $DestinationSubscriptionId `
     -TenantId $DestinationTenantId `
     -UseManagedIdentity $UseManagedIdentityLogin `
     -ManagedIdentityAccountId $ManagedIdentityAccountId
+Write-TraceLog -Message 'Reading destination private DNS zones.'
 $destinationZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $DestinationSubscriptionId)
-$destinationZonesToSync = @(Select-ZonesForSync `
-    -Zones $destinationZones `
-    -RequestedZoneNames $ZoneName)
-$destinationZonesToSync = @(Confirm-DestinationPrivateDnsZones `
-    -DestinationSubscriptionId $DestinationSubscriptionId `
-    -SourceZones $sourceZonesToSync `
-    -DestinationZones $destinationZonesToSync `
-    -ResourceGroupNameOverride $DestinationPrivateDnsZoneResourceGroupName `
-    -ResourceGroupLocation $DestinationResourceGroupLocation `
-    -UseResourceGroupLocationOverride $UseDestinationResourceGroupLocationOverride `
-    -SkipCreate:$SkipCreateMissingDestinationZones)
+$destinationZonesInScope = @(Select-ZonesForSync -Zones $destinationZones)
+Write-TraceLog -Message "Destination zones discovered='$($destinationZones.Count)'; selected in scope='$($destinationZonesInScope.Count)'."
+$destinationZonesForCleanup = $destinationZonesInScope
+if (-not [string]::IsNullOrWhiteSpace($DestinationPrivateDnsZoneResourceGroupName)) {
+    $destinationZonesForCleanup = @($destinationZonesForCleanup | Where-Object { $_.ResourceGroupName -ieq $DestinationPrivateDnsZoneResourceGroupName })
+    Write-TraceLog -Message "Destination cleanup zones after resource group filter '$DestinationPrivateDnsZoneResourceGroupName'='$($destinationZonesForCleanup.Count)'."
+}
+
+$destinationZonesToSync = @()
+if ($sourceZonesToSync.Count -gt 0) {
+    Write-TraceLog -Message 'Confirming destination private DNS zones exist.'
+    $skipCreateDestinationZones = [bool]($SkipCreateMissingDestinationZones -or $validatedRows.Count -eq 0)
+    $destinationZonesToSync = @(Confirm-DestinationPrivateDnsZones `
+        -DestinationSubscriptionId $DestinationSubscriptionId `
+        -SourceZones $sourceZonesToSync `
+        -DestinationZones $destinationZonesInScope `
+        -ResourceGroupNameOverride $DestinationPrivateDnsZoneResourceGroupName `
+        -ResourceGroupLocation $DestinationResourceGroupLocation `
+        -UseResourceGroupLocationOverride $UseDestinationResourceGroupLocationOverride `
+        -SkipCreate:$skipCreateDestinationZones)
+}
+Write-TraceLog -Message "Destination zones available for sync='$($destinationZonesToSync.Count)'; cleanup scope='$($destinationZonesForCleanup.Count)'."
 $destinationZoneLookup = New-ZoneLookup -Zones $destinationZonesToSync
 
 $results = New-Object System.Collections.Generic.List[object]
 $skippedZones = New-Object System.Collections.Generic.List[string]
 $recordGroups = $validatedRows | Group-Object ZoneName, RecordName
+Write-TraceLog -Message "Processing DNS record sets='$(@($recordGroups).Count)'."
 
 foreach ($recordGroup in $recordGroups) {
     $firstRow = $recordGroup.Group[0]
     $zoneKey = ([string]$firstRow.ZoneName).ToLowerInvariant()
-    $isAksPrivateDnsZone = Test-AzureChinaAksPrivateDnsZoneName -Name $firstRow.ZoneName
 
     if (-not $destinationZoneLookup.ContainsKey($zoneKey)) {
         if (-not $skippedZones.Contains($firstRow.ZoneName)) {
@@ -1900,7 +2350,7 @@ foreach ($recordGroup in $recordGroups) {
     $privateDnsZoneGroupChanged = $false
     $linkableMatches = @()
 
-    if ($ShouldLinkSourcePrivateEndpointsToDestinationZones -and -not $isAksPrivateDnsZone) {
+    if ($CanUpdatePrivateEndpointZoneGroups) {
         $sourcePrivateEndpointMatchLookup = @{}
 
         foreach ($row in @($recordGroup.Group)) {
@@ -1960,8 +2410,30 @@ foreach ($recordGroup in $recordGroups) {
         }
     }
 
-    $shouldSyncRecordDirectly = (-not $ShouldLinkSourcePrivateEndpointsToDestinationZones) -or $linkableMatches.Count -eq 0
+    $shouldSyncRecordDirectly = (-not $CanUpdatePrivateEndpointZoneGroups) -or $linkableMatches.Count -eq 0
     if ($shouldSyncRecordDirectly) {
+        $previouslyManagedIpAddresses = @()
+        $existingTxtRecordSet = Get-PrivateDnsTxtRecordSet `
+            -SubscriptionId $DestinationSubscriptionId `
+            -ResourceGroupName $destinationZone.ResourceGroupName `
+            -CurrentZoneName $firstRow.ZoneName `
+            -RecordName $firstRow.RecordName
+        $existingManagedTxtValues = @(Get-MatchingManagedProvenanceTxtValues `
+            -TxtRecordSet $existingTxtRecordSet `
+            -SourceSubscriptionId $SourceSubscriptionId `
+            -ZoneName $firstRow.ZoneName `
+            -RecordName $firstRow.RecordName)
+        if ($existingManagedTxtValues.Count -gt 0) {
+            $existingProvenance = ConvertFrom-ProvenanceTxtValues -Values $existingManagedTxtValues
+            if (Test-ProvenanceMatchesScope `
+                -Provenance $existingProvenance `
+                -SourceSubscriptionId $SourceSubscriptionId `
+                -ZoneName $firstRow.ZoneName `
+                -RecordName $firstRow.RecordName) {
+                $previouslyManagedIpAddresses = @($existingProvenance.SourceIPv4Addresses)
+            }
+        }
+
         $syncResult = Set-PrivateDnsARecordSet `
             -SubscriptionId $DestinationSubscriptionId `
             -ResourceGroupName $destinationZone.ResourceGroupName `
@@ -1969,7 +2441,8 @@ foreach ($recordGroup in $recordGroups) {
             -RecordName $firstRow.RecordName `
             -IPv4Addresses $ipAddresses `
             -RecordTtl $groupTtls[0] `
-            -Replace:$ReplaceExisting
+            -Replace:$ReplaceExisting `
+            -PreviouslyManagedIPv4Addresses $previouslyManagedIpAddresses
 
         if (-not $SkipProvenanceTxtRecord) {
             $sourceResourceGroupNames = @($recordGroup.Group | ForEach-Object { [string]$_.SourceZoneResourceGroupName } | Sort-Object -Unique)
@@ -1991,8 +2464,23 @@ foreach ($recordGroup in $recordGroups) {
             $provenanceTxtRecordChanged = $provenanceTxtRecordResult.Changed
         }
     }
-    elseif (-not $SkipProvenanceTxtRecord) {
-        $provenanceTxtRecordOperation = 'TxtSkippedZoneGroupManaged'
+    else {
+        $txtCleanupResult = Remove-ManagedProvenanceTxtRecordSet `
+            -SubscriptionId $DestinationSubscriptionId `
+            -ResourceGroupName $destinationZone.ResourceGroupName `
+            -CurrentZoneName $firstRow.ZoneName `
+            -RecordName $firstRow.RecordName `
+            -ExpectedSourceSubscriptionId $SourceSubscriptionId `
+            -ExpectedSourceZone $firstRow.ZoneName `
+            -ExpectedSourceRecord $firstRow.RecordName
+
+        if ($txtCleanupResult.Changed) {
+            $provenanceTxtRecordOperation = $txtCleanupResult.Operation
+            $provenanceTxtRecordChanged = $txtCleanupResult.Changed
+        }
+        elseif (-not $SkipProvenanceTxtRecord) {
+            $provenanceTxtRecordOperation = 'TxtSkippedZoneGroupManaged'
+        }
     }
 
     $results.Add([pscustomobject]@{
@@ -2026,7 +2514,8 @@ foreach ($recordGroup in $recordGroups) {
                 -SubscriptionId $SourceSubscriptionId `
                 -ResourceGroupName $sourceRecordSet.SourceZoneResourceGroupName `
                 -CurrentZoneName $sourceRecordSet.ZoneName `
-                -RecordName $sourceRecordSet.RecordName
+                -RecordName $sourceRecordSet.RecordName `
+                -ActionDescription 'Delete source private DNS A record set'
         }
 
         Select-AzureChinaSubscription `
@@ -2037,12 +2526,46 @@ foreach ($recordGroup in $recordGroups) {
     }
 }
 
+Write-TraceLog -Message 'Checking for stale destination DNS records managed by this script.'
+$cleanupResults = @(Remove-MissingDestinationPrivateDnsRecords `
+    -DestinationSubscriptionId $DestinationSubscriptionId `
+    -DestinationZones $destinationZonesForCleanup `
+    -SourceRows $validatedRows `
+    -SourceSubscriptionId $SourceSubscriptionId `
+    -AllowApex:$IncludeApex)
+Write-TraceLog -Message "Stale destination cleanup results='$($cleanupResults.Count)'."
+
+foreach ($cleanupResult in $cleanupResults) {
+    $results.Add($cleanupResult)
+}
+
 foreach ($skippedZone in @($skippedZones | Sort-Object -Unique)) {
-    Write-Warning "Skipped source zone '$skippedZone' because no matching destination private DNS zone was found."
+    Write-TraceLog -Level WARN -Message "Skipped source zone '$skippedZone' because no matching destination private DNS zone was found."
 }
 
 if ($results.Count -eq 0) {
-    throw 'No records were synced. Check that matching destination private DNS zones exist.'
+    if ($validatedRows.Count -eq 0) {
+        Write-TraceLog -Level WARN -Message 'No records were synced or removed. Check that matching destination private DNS zones exist and that stale destination records have provenance TXT metadata from this script.'
+        Write-TraceLog -Message "Completed Sync-PrivateEndpointPrivateDns.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
+        return
+    }
+
+    throw 'No records were synced or removed. Check that matching destination private DNS zones exist.'
 }
+
+Write-TraceLog -Message "Operation summary for '$($results.Count)' result row(s):"
+foreach ($operationGroup in @($results | Group-Object Operation | Sort-Object Name)) {
+    Write-TraceLog -Message "  $($operationGroup.Name): $($operationGroup.Count)"
+}
+
+$staleCleanupRows = @($results | Where-Object { $_.Operation -in @('DeleteMissingDestinationRecord', 'PruneMissingDestinationRecord') } | Sort-Object ZoneName, RecordName)
+if ($staleCleanupRows.Count -gt 0) {
+    Write-TraceLog -Message "Stale destination record cleanup details:"
+    foreach ($cleanupRow in $staleCleanupRows) {
+        Write-TraceLog -Message "  $($cleanupRow.Operation): $($cleanupRow.RecordName).$($cleanupRow.ZoneName) in resource group '$($cleanupRow.DestinationZoneResourceGroupName)'; removed IP(s)='$($cleanupRow.RemovedIPv4Addresses)'; remaining IP(s)='$($cleanupRow.IPv4Addresses)'."
+    }
+}
+
+Write-TraceLog -Message "Completed Sync-PrivateEndpointPrivateDns.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
 
 $results | Sort-Object ZoneName, RecordName
