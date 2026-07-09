@@ -18,7 +18,7 @@ network.
 
 .EXAMPLE
     .\Repair-AksPrivateDnsLinks.ps1 `
-        -SubscriptionId "11111111-1111-1111-1111-111111111111" `
+        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
         -TargetVirtualNetworkResourceId "/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005"
 
 Link matching zones in a specific private DNS zone subscription to the FCS VNet.
@@ -28,7 +28,7 @@ Link matching zones in a specific private DNS zone subscription to the FCS VNet.
 param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string]$SubscriptionId,
+    [string]$SourceSubscriptionId,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -59,6 +59,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $PrivateDnsApiVersion = '2020-06-01'
+$DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
@@ -590,10 +591,6 @@ function Ensure-PrivateDnsZoneVirtualNetworkLink {
     }
 }
 
-if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
-    $SubscriptionId = Get-SubscriptionIdFromResourceId -ResourceId $TargetVirtualNetworkResourceId
-}
-
 if ([string]::IsNullOrWhiteSpace($LinkName)) {
     $LinkName = New-DefaultLinkName -VirtualNetworkResourceId $TargetVirtualNetworkResourceId
 }
@@ -615,23 +612,31 @@ if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentity
     $ManagedIdentityAccountId = Get-AutomationVariableString -Name $DefaultManagedIdentityAccountIdAutomationVariableName
 }
 
+if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
+    $SourceSubscriptionId = Get-AutomationVariableString -Name $DefaultSourceSubscriptionIdAutomationVariableName
+}
+
+if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
+    $SourceSubscriptionId = Get-SubscriptionIdFromResourceId -ResourceId $TargetVirtualNetworkResourceId
+}
+
 $UseManagedIdentityLogin = [bool]($UseManagedIdentity -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId) -or $IsAzureAutomationRunbook)
 if ($UseManagedIdentityLogin -and $IsAzureAutomationRunbook -and -not $UseManagedIdentity -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
     Write-TraceLog -Message 'Azure Automation runbook environment detected. Using the Automation Account system-assigned managed identity for Azure login.'
 }
 
-Write-TraceLog -Message "Starting Repair-AksPrivateDnsLinks.ps1. SubscriptionId='$SubscriptionId'; TargetVirtualNetworkResourceId='$TargetVirtualNetworkResourceId'; LinkName='$LinkName'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
+Write-TraceLog -Message "Starting Repair-AksPrivateDnsLinks.ps1. SourceSubscriptionId='$SourceSubscriptionId'; TargetVirtualNetworkResourceId='$TargetVirtualNetworkResourceId'; LinkName='$LinkName'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
 Write-TraceLog -Message "AKS private DNS suffix filter='$AksPrivateDnsZoneSuffix'."
 
-Write-TraceLog -Message "Selecting Azure China subscription '$SubscriptionId'."
+Write-TraceLog -Message "Selecting Azure China source subscription '$SourceSubscriptionId'."
 Select-AzureChinaSubscription `
-    -TargetSubscriptionId $SubscriptionId `
+    -TargetSubscriptionId $SourceSubscriptionId `
     -TargetTenantId $TenantId `
     -UseManagedIdentityLogin $UseManagedIdentityLogin `
     -TargetManagedIdentityAccountId $ManagedIdentityAccountId
 
-Write-TraceLog -Message "Scanning private DNS zones in subscription '$SubscriptionId'."
-$allZones = @(Get-PrivateDnsZonesInSubscription -TargetSubscriptionId $SubscriptionId)
+Write-TraceLog -Message "Scanning private DNS zones in source subscription '$SourceSubscriptionId'."
+$allZones = @(Get-PrivateDnsZonesInSubscription -TargetSubscriptionId $SourceSubscriptionId)
 Write-TraceLog -Message "Private DNS zones discovered='$($allZones.Count)'."
 $matchingZones = @(
     foreach ($zone in $allZones) {
@@ -645,7 +650,7 @@ $matchingZones = @(
 )
 
 if ($matchingZones.Count -eq 0) {
-    Write-TraceLog -Level WARN -Message "No AKS private DNS zones ending with '$AksPrivateDnsZoneSuffix' were found in subscription '$SubscriptionId'."
+    Write-TraceLog -Level WARN -Message "No AKS private DNS zones ending with '$AksPrivateDnsZoneSuffix' were found in source subscription '$SourceSubscriptionId'."
     Write-TraceLog -Message "Completed Repair-AksPrivateDnsLinks.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
     return
 }
@@ -654,7 +659,7 @@ Write-TraceLog -Message "Found '$($matchingZones.Count)' matching private DNS zo
 $results = foreach ($match in $matchingZones) {
     Ensure-PrivateDnsZoneVirtualNetworkLink `
         -Zone $match.Zone `
-        -ZoneSubscriptionId $SubscriptionId `
+        -ZoneSubscriptionId $SourceSubscriptionId `
         -TargetVirtualNetworkId $TargetVirtualNetworkResourceId `
         -TargetLinkName $LinkName `
         -ZoneType $match.ZoneType

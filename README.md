@@ -14,7 +14,7 @@ If `Az.Automation` requires a newer `Az.Accounts` version, update the modules an
 
 ## Step 2a. Deploy The Runbooks
 
-Provide the source subscription and existing user-assigned managed identity once during deployment. `DestinationSubscriptionId` defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205`, the same subscription used by the AKS private DNS repair script. Pass `-DestinationSubscriptionId` only when you need to override that default. The deploy script saves provided defaults as Automation variables, so users do not need to enter them when starting the runbooks.
+Provide a default source subscription and existing user-assigned managed identity once during deployment. `DestinationSubscriptionId` defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205`, the same subscription used by the AKS private DNS repair script. Pass `-DestinationSubscriptionId` only when you need to override that default. The deploy script saves provided defaults as Automation variables, so users do not need to enter them when starting the runbooks for the default source subscription.
 
 ```powershell
 .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -90,11 +90,11 @@ The script defaults to linking matching zones to:
 /subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005
 ```
 
-If private DNS zones live in a different subscription from that VNet, pass the zone subscription explicitly:
+If private DNS zones live in a different source subscription from that VNet or from the saved default source subscription, pass the source subscription explicitly:
 
 ```powershell
 .\Repair-AksPrivateDnsLinks.ps1 `
-    -SubscriptionId "<private-dns-zone-subscription-id>"
+    -SourceSubscriptionId "<source-subscription-id>"
 ```
 
 ## Step 3a. Option: Start The Runbook In Azure Portal
@@ -103,7 +103,11 @@ If private DNS zones live in a different subscription from that VNet, pass the z
 2. Go to **Runbooks**.
 3. Open `Sync-PrivateEndpointPrivateDns` for private endpoint DNS sync, or `Repair-AksPrivateDnsLinks` for AKS private DNS link repair.
 4. Select **Start**.
-5. Leave parameters blank and select **OK**.
+5. Leave parameters blank to use the default source subscription saved during deployment.
+6. If you need to run either `Sync-PrivateEndpointPrivateDns` or `Repair-AksPrivateDnsLinks` for a different source subscription, enter that subscription ID in `SourceSubscriptionId` before selecting **OK**.
+7. For `Repair-AksPrivateDnsLinks`, only enter target VNet parameters when you need to override the default target VNet.
+
+For multiple source subscriptions, start each relevant runbook once per source subscription. Each run can use a different `SourceSubscriptionId`; the destination subscription still defaults to `65a9c0da-4f85-47ba-ac0f-7401cbe43205` unless overridden.
 
 ## Step 3b. Option: Schedule The Sync Runbook
 
@@ -122,8 +126,19 @@ Register-AzAutomationScheduledRunbook `
     -ScheduleName "daily-private-endpoint-dns-sync"
 ```
 
+For multiple source subscriptions, register the sync runbook once per source subscription with a parameters hashtable:
+
+```powershell
+Register-AzAutomationScheduledRunbook `
+    -ResourceGroupName "rg-dns-sync-automation" `
+    -AutomationAccountName "aa-dns-sync-cn-prod" `
+    -RunbookName "Sync-PrivateEndpointPrivateDns" `
+    -ScheduleName "daily-private-endpoint-dns-sync" `
+    -Parameters @{ SourceSubscriptionId = "<source-subscription-id>" }
+```
+
 ## Notes
 
-- The runbooks can start without parameters because deployment saves `SourceSubscriptionId`, `DestinationSubscriptionId`, and `ManagedIdentityAccountId` as Automation variables, and the AKS repair runbook has built-in defaults for the target VNet.
+- The runbooks can start without parameters because deployment saves default `SourceSubscriptionId`, `DestinationSubscriptionId`, and `ManagedIdentityAccountId` as Automation variables, and the AKS repair runbook has built-in defaults for the target VNet. For multiple source subscriptions, override `SourceSubscriptionId` when starting or scheduling the relevant runbook.
 - `GrantDestinationContributor` is only needed if the runbook may create missing destination resource groups.
 - Import or verify `Az.Accounts` and `Az.Resources` in the Automation Account before running the runbook.
