@@ -1,6 +1,6 @@
-# Azure China Private DNS Automation
+# PWC Azure China Private DNS Automation
 
-Automates Private DNS operations for Azure China:
+Automates Private DNS operations for PWC on Azure China:
 
 - `Sync-PrivateEndpointPrivateDns` syncs supported Private Endpoint DNS zones from a source subscription to the default destination subscription.
 - `Repair-AksPrivateDnsLinks` links AKS private DNS zones to the default FCS VNet.
@@ -77,13 +77,30 @@ Recommended roles:
 
 ## 4. Run from Azure Portal
 
-1. Open the Automation Account in Azure China portal.
-2. Go to **Runbooks**.
-3. Start one of:
-   - `Sync-PrivateEndpointPrivateDns`
-   - `Repair-AksPrivateDnsLinks`
-4. Leave parameters blank to use deployment defaults.
-5. For another source subscription, enter `SourceSubscriptionId` before selecting **OK**.
+### Step 1: Open the Automation Account
+
+In the Azure China portal, open **Automation Accounts** and select the Automation Account where the runbooks were deployed, for example `nga-automation-dns-sync`.
+
+![Select the Azure Automation Account](Images/1.png)
+
+### Step 2: Select the runbook
+
+Under **Process Automation**, select **Runbooks**, and then select the published runbook for the required operation:
+
+| Runbook | Use it for |
+| --- | --- |
+| `Repair-AksPrivateDnsLinks` | Repairing AKS private DNS virtual network links. |
+| `Sync-PrivateEndpointPrivateDns` | Handling other supported Azure China PaaS private endpoint DNS zones, including PostgreSQL. |
+
+![Select the AKS repair or private endpoint DNS sync runbook](Images/2.png)
+
+### Step 3: Enter the source subscription and start
+
+Select **Start**, enter the source workload subscription ID in `SourceSubscriptionId`, and then select **Start** at the bottom of the parameters pane. This is the subscription containing the private endpoints, private DNS zones, or AKS resources that the runbook must process.
+
+![Enter SourceSubscriptionId and start the runbook](Images/3.png)
+
+After the job starts, open the job details to review its **Output**, **Warning**, **Error**, and **Verbose** streams. The deployment script enables verbose logging for the published runbooks so that stage counts, operation summaries, and completion duration are retained.
 
 For multiple source subscriptions, start the relevant runbook once per source subscription.
 

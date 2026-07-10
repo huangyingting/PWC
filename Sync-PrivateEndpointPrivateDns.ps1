@@ -203,8 +203,8 @@ function Write-TraceLog {
 
     switch ($Level) {
         'WARN' { Write-Warning $line }
-        'ERROR' { Write-Host $line -ForegroundColor Red }
-        default { Write-Host $line }
+        'ERROR' { Write-Error -Message $line -ErrorAction Continue }
+        default { Write-Verbose -Message $line -Verbose }
     }
 }
 

@@ -575,6 +575,14 @@ function Import-AutomationRunbookFile {
                 -Name $Name | Out-Null
         }
     }
+
+    if ($PSCmdlet.ShouldProcess("$AutomationAccountName/$Name", 'Enable verbose runbook logging')) {
+        Set-AzAutomationRunbook `
+            -ResourceGroupName $ResourceGroupName `
+            -AutomationAccountName $AutomationAccountName `
+            -Name $Name `
+            -LogVerbose $true | Out-Null
+    }
 }
 
 function Confirm-RoleAssignment {
