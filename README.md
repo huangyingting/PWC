@@ -100,7 +100,7 @@ Select **Start**, enter the source workload subscription ID in `SourceSubscripti
 
 ![Enter SourceSubscriptionId and start the runbook](Images/3.png)
 
-After the job starts, open the job details to review its **Output**, **Warning**, **Error**, and **Verbose** streams. The deployment script enables verbose logging for the published runbooks so that stage counts, operation summaries, and completion duration are retained.
+After the job starts, open the job details to review its **Output**, **Warning**, **Error**, and **Verbose** streams. The deployment script enables verbose logging for the published runbooks so that stage counts, operation summaries, and completion duration are retained. By default, `Sync-PrivateEndpointPrivateDns` writes only changed rows to **Output**; no-change audit rows such as `ZoneGroupNoChange` are kept in **Verbose** summaries and suppressed from **Output**. Use `IncludeNoChangeResults = True` only when you want the full audit output.
 
 For multiple source subscriptions, start the relevant runbook once per source subscription.
 

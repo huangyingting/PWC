@@ -58,6 +58,11 @@ and record metadata. If a destination A record has extra unmanaged IP addresses,
 only the previously synced IP addresses recorded in provenance are removed. By
 default, all supported zones are in scope.
 
+By default, the script writes only changed result rows to the output stream so
+Azure Automation job output stays focused on real changes. No-change audit rows
+are still counted in verbose summaries. Use -IncludeNoChangeResults to include
+no-change rows such as ZoneGroupNoChange in the final output.
+
 Required permissions:
 - Source subscription: Reader on private DNS zones.
 - Destination subscription: Private DNS Zone Contributor on private DNS zones.
@@ -161,6 +166,8 @@ param(
     [switch]$SkipProvenanceTxtRecord,
 
     [switch]$IncludeApex,
+
+    [switch]$IncludeNoChangeResults,
 
     [switch]$ReplaceExisting,
 
@@ -2645,6 +2652,23 @@ if ($staleCleanupRows.Count -gt 0) {
     }
 }
 
+$allResultRows = @($results.ToArray())
+if ($IncludeNoChangeResults) {
+    $outputRows = $allResultRows
+    Write-TraceLog -Message "Output result rows='$($outputRows.Count)' including no-change audit rows because IncludeNoChangeResults='$IncludeNoChangeResults'."
+}
+else {
+    $outputRows = @($allResultRows | Where-Object { [bool]$_.Changed })
+    $suppressedNoChangeRows = @($allResultRows | Where-Object { -not [bool]$_.Changed })
+
+    if ($outputRows.Count -eq 0) {
+        Write-TraceLog -Message "No changed result rows to write to output. Suppressed no-change audit rows='$($suppressedNoChangeRows.Count)'. Use -IncludeNoChangeResults to include no-change rows in output."
+    }
+    else {
+        Write-TraceLog -Message "Output changed result rows='$($outputRows.Count)'; suppressed no-change audit rows='$($suppressedNoChangeRows.Count)'. Use -IncludeNoChangeResults to include no-change rows in output."
+    }
+}
+
 Write-TraceLog -Message "Completed Sync-PrivateEndpointPrivateDns.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
 
-$results | Sort-Object ZoneName, RecordName
+$outputRows | Sort-Object ZoneName, RecordName
