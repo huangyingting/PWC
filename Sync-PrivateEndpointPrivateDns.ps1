@@ -2559,9 +2559,10 @@ foreach ($operationGroup in @($results | Group-Object Operation | Sort-Object Na
 }
 
 if ($CanUpdatePrivateEndpointZoneGroups -and $sourcePrivateEndpoints.Count -gt 0) {
+    $summaryRows = @($results.ToArray())
     $matchedSourcePrivateEndpointIdLookup = @{}
-    foreach ($result in @($results)) {
-        $sourcePrivateEndpointIdsValue = Get-ObjectPropertyValue -InputObject $result -Name 'SourcePrivateEndpointIds'
+    foreach ($summaryRow in $summaryRows) {
+        $sourcePrivateEndpointIdsValue = Get-ObjectPropertyValue -InputObject $summaryRow -Name 'SourcePrivateEndpointIds'
         foreach ($sourcePrivateEndpointId in @(([string]$sourcePrivateEndpointIdsValue -split ','))) {
             $normalizedSourcePrivateEndpointId = $sourcePrivateEndpointId.Trim()
             if (-not [string]::IsNullOrWhiteSpace($normalizedSourcePrivateEndpointId)) {
@@ -2583,8 +2584,8 @@ if ($CanUpdatePrivateEndpointZoneGroups -and $sourcePrivateEndpoints.Count -gt 0
     }
 
     $privateDnsZoneGroupOperationNames = New-Object System.Collections.Generic.List[string]
-    foreach ($result in @($results)) {
-        $privateDnsZoneGroupOperationsValue = Get-ObjectPropertyValue -InputObject $result -Name 'PrivateDnsZoneGroupOperations'
+    foreach ($summaryRow in $summaryRows) {
+        $privateDnsZoneGroupOperationsValue = Get-ObjectPropertyValue -InputObject $summaryRow -Name 'PrivateDnsZoneGroupOperations'
         foreach ($operationEntry in @(([string]$privateDnsZoneGroupOperationsValue -split ','))) {
             $normalizedOperationEntry = $operationEntry.Trim()
             if ([string]::IsNullOrWhiteSpace($normalizedOperationEntry)) {
