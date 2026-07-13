@@ -2558,6 +2558,51 @@ foreach ($operationGroup in @($results | Group-Object Operation | Sort-Object Na
     Write-TraceLog -Message "  $($operationGroup.Name): $($operationGroup.Count)"
 }
 
+if ($CanUpdatePrivateEndpointZoneGroups -and $sourcePrivateEndpoints.Count -gt 0) {
+    $matchedSourcePrivateEndpointIdLookup = @{}
+    foreach ($result in @($results)) {
+        $sourcePrivateEndpointIdsValue = Get-ObjectPropertyValue -InputObject $result -Name 'SourcePrivateEndpointIds'
+        foreach ($sourcePrivateEndpointId in @(([string]$sourcePrivateEndpointIdsValue -split ','))) {
+            $normalizedSourcePrivateEndpointId = $sourcePrivateEndpointId.Trim()
+            if (-not [string]::IsNullOrWhiteSpace($normalizedSourcePrivateEndpointId)) {
+                $matchedSourcePrivateEndpointIdLookup[$normalizedSourcePrivateEndpointId.ToLowerInvariant()] = $true
+            }
+        }
+    }
+
+    $matchedSourcePrivateEndpoints = @($sourcePrivateEndpoints | Where-Object { $matchedSourcePrivateEndpointIdLookup.ContainsKey(([string]$_.Id).ToLowerInvariant()) } | Sort-Object Name)
+    $unmatchedSourcePrivateEndpoints = @($sourcePrivateEndpoints | Where-Object { -not $matchedSourcePrivateEndpointIdLookup.ContainsKey(([string]$_.Id).ToLowerInvariant()) } | Sort-Object Name)
+    Write-TraceLog -Message "Source private endpoints matched to processed DNS records='$($matchedSourcePrivateEndpoints.Count)' out of '$($sourcePrivateEndpoints.Count)' endpoint(s) with DNS details."
+
+    if ($matchedSourcePrivateEndpoints.Count -gt 0) {
+        Write-TraceLog -Message "Matched source private endpoints: $(@($matchedSourcePrivateEndpoints | ForEach-Object { $_.Name }) -join ', ')."
+    }
+
+    if ($unmatchedSourcePrivateEndpoints.Count -gt 0) {
+        Write-TraceLog -Level WARN -Message "Source private endpoints not matched to processed DNS records='$($unmatchedSourcePrivateEndpoints.Count)': $(@($unmatchedSourcePrivateEndpoints | ForEach-Object { $_.Name }) -join ', '). Check that each endpoint has a supported source private DNS zone A record and that a matching destination private DNS zone is available."
+    }
+
+    $privateDnsZoneGroupOperationNames = New-Object System.Collections.Generic.List[string]
+    foreach ($result in @($results)) {
+        $privateDnsZoneGroupOperationsValue = Get-ObjectPropertyValue -InputObject $result -Name 'PrivateDnsZoneGroupOperations'
+        foreach ($operationEntry in @(([string]$privateDnsZoneGroupOperationsValue -split ','))) {
+            $normalizedOperationEntry = $operationEntry.Trim()
+            if ([string]::IsNullOrWhiteSpace($normalizedOperationEntry)) {
+                continue
+            }
+
+            $separatorIndex = $normalizedOperationEntry.LastIndexOf(':')
+            if ($separatorIndex -ge 0 -and $separatorIndex -lt ($normalizedOperationEntry.Length - 1)) {
+                $privateDnsZoneGroupOperationNames.Add($normalizedOperationEntry.Substring($separatorIndex + 1))
+            }
+        }
+    }
+
+    foreach ($privateDnsZoneGroupOperationGroup in @($privateDnsZoneGroupOperationNames | Group-Object | Sort-Object Name)) {
+        Write-TraceLog -Message "  PrivateEndpointZoneGroup $($privateDnsZoneGroupOperationGroup.Name): $($privateDnsZoneGroupOperationGroup.Count)"
+    }
+}
+
 $staleCleanupRows = @($results | Where-Object { $_.Operation -in @('DeleteMissingDestinationRecord', 'PruneMissingDestinationRecord') } | Sort-Object ZoneName, RecordName)
 if ($staleCleanupRows.Count -gt 0) {
     Write-TraceLog -Message "Stale destination record cleanup details:"
