@@ -2465,6 +2465,37 @@ foreach ($recordGroup in $recordGroups) {
         }
     }
     else {
+        $linkablePrivateEndpointNames = @($linkableMatches | ForEach-Object { $_.PrivateEndpoint.Name } | Sort-Object -Unique) -join ', '
+        $zoneGroupOperationNames = New-Object System.Collections.Generic.List[string]
+        foreach ($operationEntry in @($privateDnsZoneGroupOperations)) {
+            $normalizedOperationEntry = ([string]$operationEntry).Trim()
+            if ([string]::IsNullOrWhiteSpace($normalizedOperationEntry)) {
+                continue
+            }
+
+            $separatorIndex = $normalizedOperationEntry.LastIndexOf(':')
+            if ($separatorIndex -ge 0 -and $separatorIndex -lt ($normalizedOperationEntry.Length - 1)) {
+                $zoneGroupOperationNames.Add($normalizedOperationEntry.Substring($separatorIndex + 1))
+            }
+            else {
+                $zoneGroupOperationNames.Add($normalizedOperationEntry)
+            }
+        }
+
+        $uniqueZoneGroupOperationNames = @($zoneGroupOperationNames.ToArray() | Sort-Object -Unique)
+        if ($uniqueZoneGroupOperationNames.Count -eq 1) {
+            $syncResult.Operation = $uniqueZoneGroupOperationNames[0]
+        }
+        elseif ($privateDnsZoneGroupChanged) {
+            $syncResult.Operation = 'ZoneGroupUpdated'
+        }
+        else {
+            $syncResult.Operation = 'ZoneGroupChecked'
+        }
+
+        $syncResult.Changed = $privateDnsZoneGroupChanged
+        Write-TraceLog -Message "Private endpoint zone-group result '$($syncResult.Operation)' for source A record '$($firstRow.RecordName).$($firstRow.ZoneName)'. The source private DNS A record still exists and matched source private endpoint(s): $linkablePrivateEndpointNames. No direct destination A/TXT record write is needed because Azure manages the destination A record through privateDnsZoneGroups."
+
         $txtCleanupResult = Remove-ManagedProvenanceTxtRecordSet `
             -SubscriptionId $DestinationSubscriptionId `
             -ResourceGroupName $destinationZone.ResourceGroupName `
@@ -2479,7 +2510,7 @@ foreach ($recordGroup in $recordGroups) {
             $provenanceTxtRecordChanged = $txtCleanupResult.Changed
         }
         elseif (-not $SkipProvenanceTxtRecord) {
-            $provenanceTxtRecordOperation = 'TxtSkippedZoneGroupManaged'
+            $provenanceTxtRecordOperation = 'TxtNotApplicableZoneGroupManaged'
         }
     }
 
@@ -2490,7 +2521,7 @@ foreach ($recordGroup in $recordGroups) {
         Operation                        = $syncResult.Operation
         IPv4Addresses                    = $syncResult.IPv4Addresses
         TTL                              = $syncResult.TTL
-        Changed                          = $syncResult.Changed
+        Changed                          = [bool]($syncResult.Changed -or $privateDnsZoneGroupChanged -or $provenanceTxtRecordChanged)
         SourcePrivateEndpointNames       = (@($sourcePrivateEndpointMatches | Where-Object { -not $_.IsAmbiguous } | ForEach-Object { $_.PrivateEndpoint.Name } | Sort-Object -Unique) -join ',')
         SourcePrivateEndpointIds         = (@($sourcePrivateEndpointMatches | Where-Object { -not $_.IsAmbiguous } | ForEach-Object { $_.PrivateEndpoint.Id } | Sort-Object -Unique) -join ',')
         SourcePrivateEndpointMatchTypes  = (@($sourcePrivateEndpointMatches | Where-Object { -not $_.IsAmbiguous } | ForEach-Object { "$($_.PrivateEndpoint.Name):$($_.MatchType)" } | Sort-Object -Unique) -join ',')
@@ -2573,14 +2604,16 @@ if ($CanUpdatePrivateEndpointZoneGroups -and $sourcePrivateEndpoints.Count -gt 0
 
     $matchedSourcePrivateEndpoints = @($sourcePrivateEndpoints | Where-Object { $matchedSourcePrivateEndpointIdLookup.ContainsKey(([string]$_.Id).ToLowerInvariant()) } | Sort-Object Name)
     $unmatchedSourcePrivateEndpoints = @($sourcePrivateEndpoints | Where-Object { -not $matchedSourcePrivateEndpointIdLookup.ContainsKey(([string]$_.Id).ToLowerInvariant()) } | Sort-Object Name)
-    Write-TraceLog -Message "Source private endpoints matched to processed DNS records='$($matchedSourcePrivateEndpoints.Count)' out of '$($sourcePrivateEndpoints.Count)' endpoint(s) with DNS details."
+    Write-TraceLog -Message "Source private endpoints matched to processed source private DNS A records still present='$($matchedSourcePrivateEndpoints.Count)' out of '$($sourcePrivateEndpoints.Count)' endpoint(s) with DNS details."
 
     if ($matchedSourcePrivateEndpoints.Count -gt 0) {
-        Write-TraceLog -Message "Matched source private endpoints: $(@($matchedSourcePrivateEndpoints | ForEach-Object { $_.Name }) -join ', ')."
+        Write-TraceLog -Message "Matched source private endpoints with source A records still present: $(@($matchedSourcePrivateEndpoints | ForEach-Object { $_.Name }) -join ', ')."
     }
 
     if ($unmatchedSourcePrivateEndpoints.Count -gt 0) {
-        Write-TraceLog -Level WARN -Message "Source private endpoints not matched to processed DNS records='$($unmatchedSourcePrivateEndpoints.Count)': $(@($unmatchedSourcePrivateEndpoints | ForEach-Object { $_.Name }) -join ', '). Check that each endpoint has a supported source private DNS zone A record and that a matching destination private DNS zone is available."
+        $unmatchedSourcePrivateEndpointNames = @($unmatchedSourcePrivateEndpoints | ForEach-Object { $_.Name }) -join ', '
+        Write-TraceLog -Level WARN -Message "Skipped private endpoint zone-group update for '$($unmatchedSourcePrivateEndpoints.Count)' source endpoint(s) because no processed source private DNS A record matched them: $unmatchedSourcePrivateEndpointNames."
+        Write-TraceLog -Level WARN -Message 'Possible reasons: the endpoint is already linked to the destination private DNS zone and the old source A record no longer exists; this run was scoped to other zones; the source private DNS zone/record is missing or unsupported; no matching destination private DNS zone was available; or the endpoint DNS metadata could not be matched. No action is required if the endpoint DNS configuration already references the intended destination private DNS zone.'
     }
 
     $privateDnsZoneGroupOperationNames = New-Object System.Collections.Generic.List[string]
