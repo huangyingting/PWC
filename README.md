@@ -175,16 +175,18 @@ Override source subscription locally:
 ## Redis private endpoint integration test
 
 `Deploy-TestRedisPrivateEndpointSync.ps1` performs an isolated end-to-end test
-for Azure Cache for Redis in Azure China. The source and destination
-subscriptions must be in the same Microsoft Entra tenant.
+for either Azure Cache for Redis or Azure Managed Redis in Azure China. The
+source and destination subscriptions must be in the same Microsoft Entra
+tenant.
 
 The signed-in account needs permission to create and remove the test resources:
 
 - Source subscription: resource group, virtual network, Azure Cache for Redis,
-  private endpoint, and private DNS resources.
+    Azure Managed Redis, private endpoint, and private DNS resources, depending
+    on the selected service type.
 - Destination subscription: resource group and private DNS resources.
 
-Run the test:
+Run the classic Azure Cache for Redis test (the default service type):
 
 ```powershell
 .\Deploy-TestRedisPrivateEndpointSync.ps1 `
@@ -192,10 +194,38 @@ Run the test:
     -DestinationSubscriptionId "<destination-subscription-id>"
 ```
 
-The test deploys a Basic C0 Redis cache with public network access disabled,
-creates a private endpoint using group ID `redisCache`, and initially links it
-to `privatelink.redis.cache.chinacloudapi.cn` in the source test resource group.
-It then runs the real sync script with source and destination resource-group
+Run the Azure Managed Redis preview test:
+
+```powershell
+.\Deploy-TestRedisPrivateEndpointSync.ps1 `
+        -SourceSubscriptionId "<source-subscription-id>" `
+        -DestinationSubscriptionId "<destination-subscription-id>" `
+        -RedisServiceType Managed `
+        -OutputPath ".\managed-redis-private-endpoint-sync-test.json"
+```
+
+Azure Managed Redis is a gated preview in Azure China. The tested subscription
+required the `Microsoft.Cache` preview features `AMRMooncakeBuildout`,
+`AmrAugust2025Preview`, and the subscription-specific `cnn2-*` feature to be in
+the `Registered` state, followed by refreshing the `Microsoft.Cache` resource
+provider registration. The script performs a preflight request against
+`Microsoft.Cache/redisEnterprise` API version `2025-07-01` and stops before
+creating a resource group if the preview is not available. Live ARM validation
+showed `chinanorth3` as the only enabled region for this preview subscription,
+so Managed mode uses `chinanorth3` by default and rejects other regions.
+
+The service-specific resources are:
+
+| Service type | SKU | Private endpoint group ID | Private DNS zone | Service port |
+| --- | --- | --- | --- | --- |
+| `Classic` | Basic C0 | `redisCache` | `privatelink.redis.cache.chinacloudapi.cn` | 6380 (TLS) |
+| `Managed` | Balanced B0 | `redisEnterprise` | `privatelink.redis.chinacloudapi.cn` | 10000 |
+
+Managed mode deploys a `Microsoft.Cache/redisEnterprise` cluster and its
+required `databases/default` child before creating the private endpoint. Both
+modes disable public network access and initially link the endpoint to the
+service-specific private DNS zone in the source test resource group. The test
+then runs the real sync script with source and destination resource-group
 filters and verifies:
 
 1. Redis and the private endpoint provision successfully.

@@ -360,6 +360,7 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink\.vaultcore\.azure\.cn$',
     '^privatelink\.servicebus\.chinacloudapi\.cn$',
     '^privatelink\.redis\.cache\.chinacloudapi\.cn$',
+    '^privatelink\.redis\.chinacloudapi\.cn$',
     '^privatelink\.chinacloudsites\.cn$',
     '^privatelink\.datafactory\.azure\.cn$',
     '^privatelink\.adf\.azure\.cn$',
@@ -1614,8 +1615,9 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                 privateDnsZoneConfigs = @($configsAfterRemove.ToArray())
             }
         }
+        $zoneGroupMustBeRecreated = $configsAfterRemove.Count -eq 0
 
-        if ($configsAfterRemove.Count -eq 0) {
+        if ($zoneGroupMustBeRecreated) {
             if ($ScriptCommand.ShouldProcess($target, 'Delete private endpoint zone group before replacing its only same-name private DNS zone config')) {
                 Invoke-ArmJson -Method DELETE -Path $path -ExpectedStatusCode @(200, 202, 204) | Out-Null
             }
@@ -1638,7 +1640,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                 privateDnsZoneConfigs = @($configsAfterRemove.ToArray())
             }
         }
-        if ($configsAfterRemove.Count -eq 0) {
+        if ($zoneGroupMustBeRecreated) {
             $operation = 'ZoneGroupDeleteCreateMoveToDestinationConfig'
         }
         elseif ($destinationConfigFound) {

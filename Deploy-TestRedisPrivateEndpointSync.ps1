@@ -1,11 +1,12 @@
 <#
 .SYNOPSIS
-Deploys Azure Cache for Redis with a private endpoint and tests private DNS synchronization.
+Deploys Redis with a private endpoint and tests private DNS synchronization.
 
 .DESCRIPTION
 Creates an isolated Azure China test environment in a source subscription with
-Azure Cache for Redis, a virtual network, a private endpoint, and the Redis
-private DNS zone. It then runs Sync-PrivateEndpointPrivateDns.ps1 against an
+either classic Azure Cache for Redis or Azure Managed Redis, a virtual network,
+a private endpoint, and the corresponding Redis private DNS zone. It then runs
+Sync-PrivateEndpointPrivateDns.ps1 against an
 isolated destination resource group and verifies that:
 - the Redis private endpoint is approved and has private IP addresses;
 - the source Redis private DNS A record is created;
@@ -33,6 +34,15 @@ Deploy, test, write the JSON report, and remove the test resource groups.
         -KeepResources
 
 Retain both resource groups after the test for troubleshooting.
+
+.EXAMPLE
+    .\Deploy-TestRedisPrivateEndpointSync.ps1 `
+        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
+        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
+        -RedisServiceType Managed
+
+Deploy Azure Managed Redis Balanced B0 in China North 3 and test its private
+endpoint DNS synchronization.
 #>
 
 [CmdletBinding()]
@@ -44,6 +54,10 @@ param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]$DestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205',
+
+    [Parameter()]
+    [ValidateSet('Classic', 'Managed')]
+    [string]$RedisServiceType = 'Classic',
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -91,10 +105,35 @@ $ErrorActionPreference = 'Stop'
 
 $PrivateDnsApiVersion = '2018-09-01'
 $NetworkApiVersion = '2023-09-01'
-$RedisPrivateDnsZoneName = 'privatelink.redis.cache.chinacloudapi.cn'
 $PrivateDnsZoneGroupName = 'default'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
 $script:RedisSyncTestAssertions = New-Object System.Collections.Generic.List[object]
+
+$UseAzureManagedRedis = $RedisServiceType -eq 'Managed'
+if ($UseAzureManagedRedis -and -not $PSBoundParameters.ContainsKey('Location')) {
+    $Location = 'chinanorth3'
+}
+
+if ($UseAzureManagedRedis -and $Location -ne 'chinanorth3') {
+    throw "The Azure Managed Redis preview is enabled only for 'chinanorth3' in this subscription. Location was '$Location'."
+}
+
+if ($UseAzureManagedRedis) {
+    $RedisDisplayName = 'Azure Managed Redis'
+    $RedisResourceType = 'Microsoft.Cache/redisEnterprise'
+    $RedisApiVersion = '2025-07-01'
+    $RedisSkuName = 'Balanced_B0'
+    $RedisPrivateLinkGroupId = 'redisEnterprise'
+    $RedisPrivateDnsZoneName = 'privatelink.redis.chinacloudapi.cn'
+}
+else {
+    $RedisDisplayName = 'Azure Cache for Redis'
+    $RedisResourceType = 'Microsoft.Cache/Redis'
+    $RedisApiVersion = '2023-08-01'
+    $RedisSkuName = 'Basic C0'
+    $RedisPrivateLinkGroupId = 'redisCache'
+    $RedisPrivateDnsZoneName = 'privatelink.redis.cache.chinacloudapi.cn'
+}
 
 function Import-RequiredAzModules {
     foreach ($moduleName in @('Az.Accounts', 'Az.Resources')) {
@@ -542,7 +581,7 @@ if ($SourceResourceGroupName -ieq $DestinationResourceGroupName -and $SourceSubs
     throw 'SourceResourceGroupName and DestinationResourceGroupName must be different when both subscriptions are the same.'
 }
 
-$redisCacheName = "rediscnpe$NameSuffix"
+$redisCacheName = if ($UseAzureManagedRedis) { "amrcnpe$NameSuffix" } else { "rediscnpe$NameSuffix" }
 $virtualNetworkName = 'vnet-redis-pe-test'
 $subnetName = 'snet-private-endpoints'
 $privateEndpointName = 'pe-redis-sync-test'
@@ -585,6 +624,15 @@ try {
         throw "Source tenant '$SourceTenantId' and destination tenant '$DestinationTenantId' differ. This test validates private endpoint DNS zone-group linking, which requires both subscriptions to be in the same tenant."
     }
 
+    if ($UseAzureManagedRedis) {
+        Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
+        $managedRedisCollectionPath = "/subscriptions/$SourceSubscriptionId/providers/Microsoft.Cache/redisEnterprise?api-version=$RedisApiVersion"
+        $managedRedisCollectionResponse = Invoke-AzRestMethod -Method GET -Path $managedRedisCollectionPath -ErrorAction Stop
+        if ([int]$managedRedisCollectionResponse.StatusCode -ne 200) {
+            throw "Azure Managed Redis preview is not enabled for source subscription '$SourceSubscriptionId'. ARM returned HTTP $($managedRedisCollectionResponse.StatusCode): $($managedRedisCollectionResponse.Content)"
+        }
+    }
+
     $preflightComplete = $true
     $testStatus = 'Deploying'
 
@@ -592,6 +640,60 @@ try {
     Write-Host "Creating source resource group '$SourceResourceGroupName' in '$Location'..."
     New-AzResourceGroup -Name $SourceResourceGroupName -Location $Location -Force | Out-Null
     $sourceResourceGroupOwned = $true
+
+    if ($UseAzureManagedRedis) {
+        $redisResource = @{
+            type       = $RedisResourceType
+            apiVersion = $RedisApiVersion
+            name       = "[parameters('redisCacheName')]"
+            location   = "[parameters('location')]"
+            sku        = @{ name = $RedisSkuName }
+            properties = @{
+                encryption          = @{}
+                highAvailability    = 'Disabled'
+                minimumTlsVersion   = '1.2'
+                publicNetworkAccess = 'Disabled'
+            }
+        }
+        $redisDatabaseResource = @{
+            type       = 'Microsoft.Cache/redisEnterprise/databases'
+            apiVersion = $RedisApiVersion
+            name       = "[format('{0}/default', parameters('redisCacheName'))]"
+            dependsOn  = @(
+                "[resourceId('Microsoft.Cache/redisEnterprise', parameters('redisCacheName'))]"
+            )
+            properties = @{
+                accessKeysAuthentication = 'Enabled'
+                clientProtocol            = 'Encrypted'
+                clusteringPolicy          = 'OSSCluster'
+                evictionPolicy            = 'VolatileLRU'
+                modules                   = @()
+                port                      = 10000
+            }
+        }
+        $redisPrivateEndpointDependency = "[resourceId('Microsoft.Cache/redisEnterprise/databases', parameters('redisCacheName'), 'default')]"
+    }
+    else {
+        $redisResource = @{
+            type       = $RedisResourceType
+            apiVersion = $RedisApiVersion
+            name       = "[parameters('redisCacheName')]"
+            location   = "[parameters('location')]"
+            properties = @{
+                sku = @{
+                    name     = 'Basic'
+                    family   = 'C'
+                    capacity = 0
+                }
+                enableNonSslPort    = $false
+                minimumTlsVersion   = '1.2'
+                publicNetworkAccess = 'Disabled'
+                redisVersion        = '6'
+            }
+        }
+        $redisDatabaseResource = $null
+        $redisPrivateEndpointDependency = "[resourceId('Microsoft.Cache/Redis', parameters('redisCacheName'))]"
+    }
 
     $template = @{
         '$schema'      = 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
@@ -608,7 +710,7 @@ try {
             privateDnsZoneGroupName   = $PrivateDnsZoneGroupName
             virtualNetworkLinkName    = 'redis-pe-test-link'
             subnetId                  = "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
-            redisCacheId              = "[resourceId('Microsoft.Cache/Redis', parameters('redisCacheName'))]"
+            redisCacheId              = "[resourceId('$RedisResourceType', parameters('redisCacheName'))]"
             privateDnsZoneId          = "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
         }
         resources      = @(
@@ -631,23 +733,7 @@ try {
                     )
                 }
             }
-            @{
-                type       = 'Microsoft.Cache/Redis'
-                apiVersion = '2023-08-01'
-                name       = "[parameters('redisCacheName')]"
-                location   = "[parameters('location')]"
-                properties = @{
-                    sku = @{
-                        name     = 'Basic'
-                        family   = 'C'
-                        capacity = 0
-                    }
-                    enableNonSslPort    = $false
-                    minimumTlsVersion   = '1.2'
-                    publicNetworkAccess = 'Disabled'
-                    redisVersion        = '6'
-                }
-            }
+            $redisResource
             @{
                 type       = 'Microsoft.Network/privateDnsZones'
                 apiVersion = '2020-06-01'
@@ -675,16 +761,16 @@ try {
                 location   = "[parameters('location')]"
                 dependsOn  = @(
                     "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
-                    "[resourceId('Microsoft.Cache/Redis', parameters('redisCacheName'))]"
+                    $redisPrivateEndpointDependency
                 )
                 properties = @{
                     subnet = @{ id = "[variables('subnetId')]" }
                     privateLinkServiceConnections = @(
                         @{
-                            name       = 'redisCache'
+                            name       = $RedisPrivateLinkGroupId
                             properties = @{
                                 privateLinkServiceId = "[variables('redisCacheId')]"
-                                groupIds              = @('redisCache')
+                                groupIds              = @($RedisPrivateLinkGroupId)
                             }
                         }
                     )
@@ -710,7 +796,11 @@ try {
         )
     }
 
-    Write-Host "Deploying Azure Cache for Redis '$redisCacheName' and its private endpoint. Redis provisioning can take several minutes..."
+    if ($redisDatabaseResource) {
+        $template.resources += $redisDatabaseResource
+    }
+
+    Write-Host "Deploying $RedisDisplayName '$redisCacheName' and its private endpoint. Redis provisioning can take several minutes..."
     New-AzResourceGroupDeployment `
         -Name "redis-pe-sync-test-$NameSuffix" `
         -ResourceGroupName $SourceResourceGroupName `
@@ -723,7 +813,7 @@ try {
     $testStatus = 'ValidatingSource'
     $redisCache = Get-AzResource `
         -ResourceGroupName $SourceResourceGroupName `
-        -ResourceType 'Microsoft.Cache/Redis' `
+        -ResourceType $RedisResourceType `
         -ResourceName $redisCacheName `
         -ExpandProperties `
         -ErrorAction Stop
@@ -925,11 +1015,13 @@ finally {
         DestinationSubscriptionId     = $DestinationSubscriptionId
         TenantId                      = $SourceTenantId
         Location                      = $Location
+        RedisServiceType              = $RedisServiceType
+        RedisResourceType             = $RedisResourceType
         NameSuffix                    = $NameSuffix
         SourceResourceGroupName       = $SourceResourceGroupName
         DestinationResourceGroupName  = $DestinationResourceGroupName
         RedisCacheName                = $redisCacheName
-        RedisSku                      = 'Basic C0'
+        RedisSku                      = $RedisSkuName
         RedisPrivateDnsZoneName       = $RedisPrivateDnsZoneName
         PrivateEndpointName           = $privateEndpointName
         PrivateIpAddresses            = @($privateIpAddresses)
