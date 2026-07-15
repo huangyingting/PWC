@@ -1,0 +1,125 @@
+{
+  "Status": "Passed",
+  "Timestamp": "2026-07-16T06:46:34.2293689+08:00",
+  "SourceSubscriptionId": "4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56",
+  "DestinationSubscriptionId": "ae64c6cc-8c34-47ca-9f02-d3dcdd9de155",
+  "SourceResourceGroupName": "rg-zonegroup-adopt-src-yxkbpkbe",
+  "DestinationResourceGroupName": "rg-zonegroup-adopt-dst-yxkbpkbe",
+  "RequestedZoneGroupName": "default",
+  "ExistingZoneGroupName": "custom-zone-group",
+  "AssertionCount": 22,
+  "Assertions": [
+    {
+      "Name": "SubscriptionsShareTenant",
+      "Passed": true,
+      "Details": "SourceTenant=e8c0f7f4-ac60-41d9-84e5-947027d21034;DestinationTenant=e8c0f7f4-ac60-41d9-84e5-947027d21034"
+    },
+    {
+      "Name": "SingleZoneGroup:pe-storage-blob-test",
+      "Passed": true,
+      "Details": "Count=1"
+    },
+    {
+      "Name": "CustomNameRetained:pe-storage-blob-test",
+      "Passed": true,
+      "Details": "Name=custom-zone-group"
+    },
+    {
+      "Name": "NoDefaultGroup:pe-storage-blob-test",
+      "Passed": true,
+      "Details": "Names=custom-zone-group"
+    },
+    {
+      "Name": "DestinationZoneLinked:pe-storage-blob-test",
+      "Passed": true,
+      "Details": "ZoneIds=/subscriptions/ae64c6cc-8c34-47ca-9f02-d3dcdd9de155/resourceGroups/rg-zonegroup-adopt-dst-yxkbpkbe/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.chinacloudapi.cn"
+    },
+    {
+      "Name": "SyncMatchedEndpoint:pe-storage-blob-test",
+      "Passed": true,
+      "Details": "Matches=1"
+    },
+    {
+      "Name": "ZoneGroupOperation:pe-storage-blob-test",
+      "Passed": true,
+      "Details": "Operations=ZoneGroupDeleteCreateMoveToDestinationConfig"
+    },
+    {
+      "Name": "SingleZoneGroup:pe-storage-file-test",
+      "Passed": true,
+      "Details": "Count=1"
+    },
+    {
+      "Name": "CustomNameRetained:pe-storage-file-test",
+      "Passed": true,
+      "Details": "Name=custom-zone-group"
+    },
+    {
+      "Name": "NoDefaultGroup:pe-storage-file-test",
+      "Passed": true,
+      "Details": "Names=custom-zone-group"
+    },
+    {
+      "Name": "DestinationZoneLinked:pe-storage-file-test",
+      "Passed": true,
+      "Details": "ZoneIds=/subscriptions/ae64c6cc-8c34-47ca-9f02-d3dcdd9de155/resourceGroups/rg-zonegroup-adopt-dst-yxkbpkbe/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.chinacloudapi.cn"
+    },
+    {
+      "Name": "SyncMatchedEndpoint:pe-storage-file-test",
+      "Passed": true,
+      "Details": "Matches=1"
+    },
+    {
+      "Name": "ZoneGroupOperation:pe-storage-file-test",
+      "Passed": true,
+      "Details": "Operations=ZoneGroupDeleteCreateMoveToDestinationConfig"
+    },
+    {
+      "Name": "SingleZoneGroup:pe-keyvault-test",
+      "Passed": true,
+      "Details": "Count=1"
+    },
+    {
+      "Name": "CustomNameRetained:pe-keyvault-test",
+      "Passed": true,
+      "Details": "Name=custom-zone-group"
+    },
+    {
+      "Name": "NoDefaultGroup:pe-keyvault-test",
+      "Passed": true,
+      "Details": "Names=custom-zone-group"
+    },
+    {
+      "Name": "DestinationZoneLinked:pe-keyvault-test",
+      "Passed": true,
+      "Details": "ZoneIds=/subscriptions/ae64c6cc-8c34-47ca-9f02-d3dcdd9de155/resourceGroups/rg-zonegroup-adopt-dst-yxkbpkbe/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.cn"
+    },
+    {
+      "Name": "SyncMatchedEndpoint:pe-keyvault-test",
+      "Passed": true,
+      "Details": "Matches=1"
+    },
+    {
+      "Name": "ZoneGroupOperation:pe-keyvault-test",
+      "Passed": true,
+      "Details": "Operations=ZoneGroupDeleteCreateMoveToDestinationConfig"
+    },
+    {
+      "Name": "DestinationDns:privatelink.blob.core.chinacloudapi.cn",
+      "Passed": true,
+      "Details": "Expected=10.83.1.6;Actual=10.83.1.6;Records=1"
+    },
+    {
+      "Name": "DestinationDns:privatelink.file.core.chinacloudapi.cn",
+      "Passed": true,
+      "Details": "Expected=10.83.1.5;Actual=10.83.1.5;Records=1"
+    },
+    {
+      "Name": "DestinationDns:privatelink.vaultcore.azure.cn",
+      "Passed": true,
+      "Details": "Expected=10.83.1.4;Actual=10.83.1.4;Records=1"
+    }
+  ],
+  "Error": null,
+  "CleanupErrors": []
+}

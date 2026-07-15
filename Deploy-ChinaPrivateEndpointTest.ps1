@@ -8,6 +8,9 @@ endpoint group IDs and private DNS zones:
 - Storage blob: privatelink.blob.core.chinacloudapi.cn
 - Storage file: privatelink.file.core.chinacloudapi.cn
 - Key Vault vault: privatelink.vaultcore.azure.cn
+
+Use PrivateDnsZoneGroupName to deploy a non-default group name and validate
+that synchronization adopts the endpoint's existing group.
 #>
 
 [CmdletBinding()]
@@ -19,6 +22,10 @@ param(
 	[Parameter()]
 	[ValidateNotNullOrEmpty()]
 	[string]$Location = 'chinaeast2',
+
+	[Parameter()]
+	[ValidateNotNullOrEmpty()]
+	[string]$PrivateDnsZoneGroupName = 'default',
 
 	[Parameter()]
 	[ValidateNotNullOrEmpty()]
@@ -159,6 +166,7 @@ $template = @{
 		blobPrivateEndpointName  = 'pe-storage-blob-test'
 		filePrivateEndpointName  = 'pe-storage-file-test'
 		vaultPrivateEndpointName = 'pe-keyvault-test'
+		privateDnsZoneGroupName  = $PrivateDnsZoneGroupName
 		blobDnsZoneName          = 'privatelink.blob.core.chinacloudapi.cn'
 		fileDnsZoneName          = 'privatelink.file.core.chinacloudapi.cn'
 		vaultDnsZoneName         = 'privatelink.vaultcore.azure.cn'
@@ -334,7 +342,7 @@ $template = @{
 		@{
 			type       = 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups'
 			apiVersion = '2023-09-01'
-			name       = "[format('{0}/default', variables('blobPrivateEndpointName'))]"
+			name       = "[format('{0}/{1}', variables('blobPrivateEndpointName'), variables('privateDnsZoneGroupName'))]"
 			dependsOn  = @(
 				"[resourceId('Microsoft.Network/privateEndpoints', variables('blobPrivateEndpointName'))]"
 				"[resourceId('Microsoft.Network/privateDnsZones', variables('blobDnsZoneName'))]"
@@ -344,7 +352,7 @@ $template = @{
 		@{
 			type       = 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups'
 			apiVersion = '2023-09-01'
-			name       = "[format('{0}/default', variables('filePrivateEndpointName'))]"
+			name       = "[format('{0}/{1}', variables('filePrivateEndpointName'), variables('privateDnsZoneGroupName'))]"
 			dependsOn  = @(
 				"[resourceId('Microsoft.Network/privateEndpoints', variables('filePrivateEndpointName'))]"
 				"[resourceId('Microsoft.Network/privateDnsZones', variables('fileDnsZoneName'))]"
@@ -354,7 +362,7 @@ $template = @{
 		@{
 			type       = 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups'
 			apiVersion = '2023-09-01'
-			name       = "[format('{0}/default', variables('vaultPrivateEndpointName'))]"
+			name       = "[format('{0}/{1}', variables('vaultPrivateEndpointName'), variables('privateDnsZoneGroupName'))]"
 			dependsOn  = @(
 				"[resourceId('Microsoft.Network/privateEndpoints', variables('vaultPrivateEndpointName'))]"
 				"[resourceId('Microsoft.Network/privateDnsZones', variables('vaultDnsZoneName'))]"
@@ -403,6 +411,7 @@ $result = [ordered]@{
 	KeyVaultName       = $keyVaultName
 	VNetName           = 'vnet-pe-cn-test'
 	SubnetName         = 'snet-private-endpoints'
+	PrivateDnsZoneGroupName = $PrivateDnsZoneGroupName
 	PrivateEndpoints   = @($privateEndpoints)
 	CleanupCommand     = "Remove-AzResourceGroup -Name '$ResourceGroupName' -Force"
 }

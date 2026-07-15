@@ -32,6 +32,19 @@ source private endpoints. If source and destination tenants are explicitly set
 and differ, the script automatically uses direct DNS record sync because private
 endpoint DNS zone group linking requires a single tenant.
 
+Before changing a private endpoint, the script lists its existing private DNS
+zone groups. Azure normally permits only one group per endpoint. If that group
+has a different name from PrivateDnsZoneGroupName, the script adopts the
+existing group instead of trying to create a forbidden second group. For an
+abnormal endpoint that already returns multiple groups, the script selects the
+requested group, a group containing the destination zone, or a unique group
+containing the same DNS zone, in that order. It stops with an actionable error
+instead of making an arbitrary change when no group can be selected safely.
+When replacing the only same-zone config in a normal single group, the script
+deletes the group and waits until ARM reports it absent before recreating the
+same child name with the destination zone. This avoids both an invalid empty
+config array and a recreate race with Azure's asynchronous DELETE.
+
 If a matching destination private DNS zone doesn't exist, the script creates it
 by default. Private DNS zones are global resources, so the zone location is
 always "global". The destination resource group name defaults to the source
@@ -1439,6 +1452,189 @@ function New-PrivateDnsZoneGroupPath {
     return "${PrivateEndpointId}/privateDnsZoneGroups/${zoneGroupSegment}?api-version=$NetworkApiVersion"
 }
 
+function Wait-PrivateDnsZoneGroupDeleted {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [string]$PrivateEndpointName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ZoneGroupName,
+
+        [ValidateRange(1, 3600)]
+        [int]$TimeoutSeconds = 180,
+
+        [ValidateRange(1, 60)]
+        [int]$PollIntervalSeconds = 2
+    )
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    $observedPendingDeletion = $false
+
+    while ($true) {
+        $remainingGroup = Invoke-ArmJson `
+            -Method GET `
+            -Path $Path `
+            -ExpectedStatusCode @(200) `
+            -AllowNotFound
+
+        if ($null -eq $remainingGroup) {
+            if ($observedPendingDeletion) {
+                Write-TraceLog -Message "Private DNS zone group '$ZoneGroupName' on endpoint '$PrivateEndpointName' finished deleting."
+            }
+
+            return
+        }
+
+        $observedPendingDeletion = $true
+        if ([DateTime]::UtcNow -ge $deadline) {
+            throw "Timed out after '$TimeoutSeconds' seconds waiting for private DNS zone group '$ZoneGroupName' on endpoint '$PrivateEndpointName' to finish deleting. The destination zone config was not created; rerun the sync after Azure completes the deletion."
+        }
+
+        Start-Sleep -Seconds $PollIntervalSeconds
+    }
+}
+
+function Get-PrivateDnsZoneGroupName {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$PrivateDnsZoneGroup
+    )
+
+    $resourceId = [string](Get-ObjectPropertyValue -InputObject $PrivateDnsZoneGroup -Name 'id')
+    if ($resourceId -match '/privateDnsZoneGroups/([^/?]+)(?:\?|$)') {
+        return [System.Uri]::UnescapeDataString($Matches[1])
+    }
+
+    $resourceName = [string](Get-ObjectPropertyValue -InputObject $PrivateDnsZoneGroup -Name 'name')
+    if (-not [string]::IsNullOrWhiteSpace($resourceName)) {
+        return [System.Uri]::UnescapeDataString((@($resourceName -split '/')[-1]))
+    }
+
+    return $null
+}
+
+function Get-PrivateDnsZoneGroupZoneIds {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$PrivateDnsZoneGroup
+    )
+
+    $properties = Get-ObjectPropertyValue -InputObject $PrivateDnsZoneGroup -Name 'properties'
+    return @((Get-ObjectPropertyValue -InputObject $properties -Name 'privateDnsZoneConfigs') | ForEach-Object {
+        $configProperties = Get-ObjectPropertyValue -InputObject $_ -Name 'properties'
+        [string](Get-ObjectPropertyValue -InputObject $configProperties -Name 'privateDnsZoneId')
+    } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
+function Select-PrivateEndpointPrivateDnsZoneGroup {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [object[]]$PrivateDnsZoneGroups,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RequestedZoneGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$CurrentZoneName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationPrivateDnsZoneId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$PrivateEndpointName
+    )
+
+    $groups = @($PrivateDnsZoneGroups | Where-Object { $null -ne $_ })
+    if ($groups.Count -eq 0) {
+        return [pscustomobject]@{
+            Group         = $null
+            Name          = $RequestedZoneGroupName
+            SelectionReason = 'NoExistingGroup'
+        }
+    }
+
+    $groupDetails = @($groups | ForEach-Object {
+        [pscustomobject]@{
+            Group   = $_
+            Name    = [string](Get-PrivateDnsZoneGroupName -PrivateDnsZoneGroup $_)
+            ZoneIds = @(Get-PrivateDnsZoneGroupZoneIds -PrivateDnsZoneGroup $_)
+        }
+    })
+    $unnamedGroups = @($groupDetails | Where-Object { [string]::IsNullOrWhiteSpace($_.Name) })
+    if ($unnamedGroups.Count -gt 0) {
+        throw "Private endpoint '$PrivateEndpointName' returned '$($unnamedGroups.Count)' private DNS zone group resource(s) without a usable name. Refusing to create another group."
+    }
+
+    $requestedNameMatches = @($groupDetails | Where-Object { $_.Name -ieq $RequestedZoneGroupName })
+    if ($requestedNameMatches.Count -eq 1) {
+        return [pscustomobject]@{
+            Group           = $requestedNameMatches[0].Group
+            Name            = $requestedNameMatches[0].Name
+            SelectionReason = 'RequestedName'
+        }
+    }
+
+    if ($requestedNameMatches.Count -gt 1) {
+        throw "Private endpoint '$PrivateEndpointName' returned multiple private DNS zone groups named '$RequestedZoneGroupName'. Refusing an ambiguous update."
+    }
+
+    $destinationZoneIdKey = $DestinationPrivateDnsZoneId.ToLowerInvariant()
+    $destinationZoneMatches = @($groupDetails | Where-Object {
+        @($_.ZoneIds | ForEach-Object { $_.ToLowerInvariant() }) -contains $destinationZoneIdKey
+    })
+    if ($destinationZoneMatches.Count -eq 1) {
+        return [pscustomobject]@{
+            Group           = $destinationZoneMatches[0].Group
+            Name            = $destinationZoneMatches[0].Name
+            SelectionReason = 'ExistingDestinationZoneConfig'
+        }
+    }
+
+    $currentZoneNameKey = $CurrentZoneName.ToLowerInvariant()
+    $sameZoneMatches = @($groupDetails | Where-Object {
+        $zoneNames = @($_.ZoneIds | ForEach-Object {
+            if ($_ -match '/privateDnsZones/([^/]+)$') {
+                [System.Uri]::UnescapeDataString($Matches[1]).ToLowerInvariant()
+            }
+        } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $zoneNames -contains $currentZoneNameKey
+    })
+    if ($sameZoneMatches.Count -eq 1) {
+        return [pscustomobject]@{
+            Group           = $sameZoneMatches[0].Group
+            Name            = $sameZoneMatches[0].Name
+            SelectionReason = 'ExistingSameZoneConfig'
+        }
+    }
+
+    if ($groups.Count -eq 1) {
+        return [pscustomobject]@{
+            Group           = $groupDetails[0].Group
+            Name            = $groupDetails[0].Name
+            SelectionReason = 'OnlyExistingGroup'
+        }
+    }
+
+    $existingGroupDescriptions = @($groupDetails | ForEach-Object {
+        "$($_.Name) [$(@($_.ZoneIds) -join ', ')]"
+    }) -join '; '
+    $ambiguityReason = if ($destinationZoneMatches.Count -gt 1) {
+        "multiple groups contain destination zone '$DestinationPrivateDnsZoneId'"
+    }
+    elseif ($sameZoneMatches.Count -gt 1) {
+        "multiple groups contain DNS zone '$CurrentZoneName'"
+    }
+    else {
+        "none is named '$RequestedZoneGroupName' or uniquely matches DNS zone '$CurrentZoneName'"
+    }
+
+    throw "Private endpoint '$PrivateEndpointName' has '$($groups.Count)' private DNS zone groups and $ambiguityReason. Azure normally permits only one group, so the script will not create or arbitrarily modify another one. Existing groups: $existingGroupDescriptions. Pass -PrivateDnsZoneGroupName with the intended existing group name after reviewing the endpoint configuration."
+}
+
 function New-ShortHash {
     param(
         [Parameter(Mandatory = $true)]
@@ -1501,11 +1697,31 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         [string]$DestinationPrivateDnsZoneId,
 
         [Parameter(Mandatory = $true)]
-        [string]$ZoneGroupName
+        [string]$ZoneGroupName,
+
+        [switch]$RetriedAfterGroupConflict
     )
 
-    $path = New-PrivateDnsZoneGroupPath -PrivateEndpointId $PrivateEndpoint.Id -ZoneGroupName $ZoneGroupName
-    $existingGroup = Invoke-ArmJson -Method GET -Path $path -ExpectedStatusCode @(200) -AllowNotFound
+    $groupsPath = "$($PrivateEndpoint.Id)/privateDnsZoneGroups?api-version=$NetworkApiVersion"
+    $existingGroups = @(Get-ArmPagedValues -Path $groupsPath)
+    $selectedGroup = Select-PrivateEndpointPrivateDnsZoneGroup `
+        -PrivateDnsZoneGroups $existingGroups `
+        -RequestedZoneGroupName $ZoneGroupName `
+        -CurrentZoneName $CurrentZoneName `
+        -DestinationPrivateDnsZoneId $DestinationPrivateDnsZoneId `
+        -PrivateEndpointName $PrivateEndpoint.Name
+    $effectiveZoneGroupName = [string]$selectedGroup.Name
+    $existingGroup = $selectedGroup.Group
+    $path = New-PrivateDnsZoneGroupPath -PrivateEndpointId $PrivateEndpoint.Id -ZoneGroupName $effectiveZoneGroupName
+
+    if ($existingGroups.Count -gt 1) {
+        $existingGroupNames = @($existingGroups | ForEach-Object { Get-PrivateDnsZoneGroupName -PrivateDnsZoneGroup $_ }) -join ', '
+        Write-TraceLog -Level WARN -Message "Private endpoint '$($PrivateEndpoint.Name)' returned '$($existingGroups.Count)' private DNS zone groups ('$existingGroupNames'), although Azure normally permits one. Selected '$effectiveZoneGroupName' using '$($selectedGroup.SelectionReason)'."
+    }
+    elseif ($existingGroup -and $effectiveZoneGroupName -ine $ZoneGroupName) {
+        Write-TraceLog -Message "Private endpoint '$($PrivateEndpoint.Name)' already has private DNS zone group '$effectiveZoneGroupName'. Using it instead of requested group '$ZoneGroupName' to avoid creating a second group. Selection reason='$($selectedGroup.SelectionReason)'."
+    }
+
     $existingConfigs = New-Object System.Collections.Generic.List[object]
     $existingConfigNames = New-Object System.Collections.Generic.List[string]
     $destinationPrivateDnsZoneIdKey = $DestinationPrivateDnsZoneId.ToLowerInvariant()
@@ -1568,8 +1784,9 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
             PrivateEndpointId          = $PrivateEndpoint.Id
             ZoneName                   = $CurrentZoneName
             DestinationPrivateDnsZoneId = $DestinationPrivateDnsZoneId
-            PrivateDnsZoneGroupName    = $ZoneGroupName
+            PrivateDnsZoneGroupName    = $effectiveZoneGroupName
             PrivateDnsZoneConfigName   = $destinationConfigName
+            PrivateDnsZoneGroupSelectionReason = $selectedGroup.SelectionReason
             Operation                  = 'ZoneGroupNoChange'
             Changed                    = $false
         }
@@ -1588,7 +1805,7 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
             -ExistingConfigNames @($existingConfigNames.ToArray())
     }
 
-    $target = "$($PrivateEndpoint.Id)/privateDnsZoneGroups/$ZoneGroupName -> $DestinationPrivateDnsZoneId"
+    $target = "$($PrivateEndpoint.Id)/privateDnsZoneGroups/$effectiveZoneGroupName -> $DestinationPrivateDnsZoneId"
 
     if ($replacedSameZoneConfig) {
         $configsAfterRemove = New-Object System.Collections.Generic.List[object]
@@ -1616,10 +1833,18 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
             }
         }
         $zoneGroupMustBeRecreated = $configsAfterRemove.Count -eq 0
+        $useSinglePutReplacement = $zoneGroupMustBeRecreated -and $existingGroups.Count -gt 1
 
-        if ($zoneGroupMustBeRecreated) {
+        if ($useSinglePutReplacement) {
+            Write-TraceLog -Level WARN -Message "Private endpoint '$($PrivateEndpoint.Name)' has multiple private DNS zone groups. Replacing the only same-zone config in existing group '$effectiveZoneGroupName' with one non-empty PUT because deleting and recreating that group would be rejected as an additional group."
+        }
+        elseif ($zoneGroupMustBeRecreated) {
             if ($ScriptCommand.ShouldProcess($target, 'Delete private endpoint zone group before replacing its only same-name private DNS zone config')) {
                 Invoke-ArmJson -Method DELETE -Path $path -ExpectedStatusCode @(200, 202, 204) | Out-Null
+                Wait-PrivateDnsZoneGroupDeleted `
+                    -Path $path `
+                    -PrivateEndpointName $PrivateEndpoint.Name `
+                    -ZoneGroupName $effectiveZoneGroupName
             }
         }
         elseif ($ScriptCommand.ShouldProcess($target, 'Remove source private DNS zone config from private endpoint zone group')) {
@@ -1640,7 +1865,10 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                 privateDnsZoneConfigs = @($configsAfterRemove.ToArray())
             }
         }
-        if ($zoneGroupMustBeRecreated) {
+        if ($useSinglePutReplacement) {
+            $operation = 'ZoneGroupSinglePutMoveToDestinationConfig'
+        }
+        elseif ($zoneGroupMustBeRecreated) {
             $operation = 'ZoneGroupDeleteCreateMoveToDestinationConfig'
         }
         elseif ($destinationConfigFound) {
@@ -1651,7 +1879,22 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
 
         if ($ScriptCommand.ShouldProcess($target, 'Add destination private DNS zone config to private endpoint zone group')) {
-            Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+            try {
+                Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+            }
+            catch {
+                if (-not $RetriedAfterGroupConflict -and $_.Exception.Message -match 'MoreThanOnePrivateDnsZoneGroupPerPrivateEndpointNotAllowed') {
+                    Write-TraceLog -Level WARN -Message "Private DNS zone group PUT for endpoint '$($PrivateEndpoint.Name)' encountered a concurrent group conflict. Refreshing existing groups and retrying once."
+                    return Set-PrivateEndpointPrivateDnsZoneGroup `
+                        -PrivateEndpoint $PrivateEndpoint `
+                        -CurrentZoneName $CurrentZoneName `
+                        -DestinationPrivateDnsZoneId $DestinationPrivateDnsZoneId `
+                        -ZoneGroupName $ZoneGroupName `
+                        -RetriedAfterGroupConflict
+                }
+
+                throw
+            }
         }
     }
     else {
@@ -1672,7 +1915,22 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         }
 
         if ($ScriptCommand.ShouldProcess($target, 'Link source private endpoint to destination private DNS zone')) {
-            Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+            try {
+                Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
+            }
+            catch {
+                if (-not $RetriedAfterGroupConflict -and $_.Exception.Message -match 'MoreThanOnePrivateDnsZoneGroupPerPrivateEndpointNotAllowed') {
+                    Write-TraceLog -Level WARN -Message "Private DNS zone group PUT for endpoint '$($PrivateEndpoint.Name)' encountered a concurrent group conflict. Refreshing existing groups and retrying once."
+                    return Set-PrivateEndpointPrivateDnsZoneGroup `
+                        -PrivateEndpoint $PrivateEndpoint `
+                        -CurrentZoneName $CurrentZoneName `
+                        -DestinationPrivateDnsZoneId $DestinationPrivateDnsZoneId `
+                        -ZoneGroupName $ZoneGroupName `
+                        -RetriedAfterGroupConflict
+                }
+
+                throw
+            }
         }
     }
 
@@ -1681,8 +1939,9 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
         PrivateEndpointId          = $PrivateEndpoint.Id
         ZoneName                   = $CurrentZoneName
         DestinationPrivateDnsZoneId = $DestinationPrivateDnsZoneId
-        PrivateDnsZoneGroupName    = $ZoneGroupName
+        PrivateDnsZoneGroupName    = $effectiveZoneGroupName
         PrivateDnsZoneConfigName   = $newConfigName
+        PrivateDnsZoneGroupSelectionReason = $selectedGroup.SelectionReason
         Operation                  = $operation
         Changed                    = $true
     }

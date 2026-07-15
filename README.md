@@ -143,6 +143,18 @@ For each source DNS A record:
 3. For directly synced records, it writes a provenance TXT record.
 4. If the source record or source zone later disappears, stale destination records/IPs previously managed by this script are removed.
 
+Azure normally allows only one `privateDnsZoneGroups` child per private
+endpoint. The runbook discovers that child before updating it and adopts its
+existing name when it is not `default`; this avoids trying to create a second
+group. If an endpoint is already in an abnormal multiple-group state, the
+runbook selects an exact requested-name match, an existing destination-zone
+match, or a unique same-zone match. It fails with the existing group names and
+zone IDs when the state is ambiguous rather than modifying an arbitrary group.
+When the selected group's only config must move to the destination zone, the
+runbook deletes the group, waits until ARM reports that asynchronous deletion
+complete, and then recreates the same child name. This avoids an invalid empty
+config array and prevents the recreate PUT from racing the DELETE.
+
 Cleanup is safe by design: it only touches destination records with this script's provenance TXT marker and matching `SourceSubscriptionId`, source zone, and source record metadata. Unmanaged IPs are preserved.
 
 If source and destination tenants differ, the runbook automatically uses direct DNS record sync because private endpoint zone-group linking requires a single tenant.
