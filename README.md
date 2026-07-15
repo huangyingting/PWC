@@ -172,6 +172,51 @@ Override source subscription locally:
     -WhatIf
 ```
 
+## Redis private endpoint integration test
+
+`Deploy-TestRedisPrivateEndpointSync.ps1` performs an isolated end-to-end test
+for Azure Cache for Redis in Azure China. The source and destination
+subscriptions must be in the same Microsoft Entra tenant.
+
+The signed-in account needs permission to create and remove the test resources:
+
+- Source subscription: resource group, virtual network, Azure Cache for Redis,
+  private endpoint, and private DNS resources.
+- Destination subscription: resource group and private DNS resources.
+
+Run the test:
+
+```powershell
+.\Deploy-TestRedisPrivateEndpointSync.ps1 `
+    -SourceSubscriptionId "<source-subscription-id>" `
+    -DestinationSubscriptionId "<destination-subscription-id>"
+```
+
+The test deploys a Basic C0 Redis cache with public network access disabled,
+creates a private endpoint using group ID `redisCache`, and initially links it
+to `privatelink.redis.cache.chinacloudapi.cn` in the source test resource group.
+It then runs the real sync script with source and destination resource-group
+filters and verifies:
+
+1. Redis and the private endpoint provision successfully.
+2. The source Redis private DNS A record contains the private endpoint IP.
+3. The sync script matches the Redis private endpoint.
+4. The endpoint's `privateDnsZoneGroups/default` configuration references the
+   destination Redis private DNS zone and no longer references the source zone.
+5. Azure creates the destination A record with the same private IP.
+6. No provenance TXT record is created because Azure manages the A record
+   through the private endpoint zone group.
+
+Redis provisioning can take several minutes. The script writes detailed results
+to `redis-private-endpoint-sync-test.json` and removes both test resource groups
+by default, including after a failed assertion. Add `-KeepResources` to retain
+the resources for troubleshooting. The JSON report includes cleanup commands.
+
+The optional `SourcePrivateDnsZoneResourceGroupName` parameter added to
+`Sync-PrivateEndpointPrivateDns.ps1` keeps this test isolated from other Redis
+private DNS zones and endpoints in the source subscription. Normal runbook
+execution remains subscription-wide when the parameter is omitted.
+
 ## Troubleshooting
 
 Both runbooks emit timestamped tracing logs for:

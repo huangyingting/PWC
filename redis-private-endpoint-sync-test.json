@@ -1,0 +1,76 @@
+{
+  "Status": "Failed",
+  "StartedAt": "2026-07-15T21:00:03.7257818+08:00",
+  "CompletedAt": "2026-07-15T21:23:21.8220044+08:00",
+  "Duration": "00:23:18",
+  "Environment": "AzureChinaCloud",
+  "SourceSubscriptionId": "4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56",
+  "DestinationSubscriptionId": "4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56",
+  "TenantId": "e8c0f7f4-ac60-41d9-84e5-947027d21034",
+  "Location": "chinaeast2",
+  "NameSuffix": "alsi8n6omq",
+  "SourceResourceGroupName": "rg-redis-pe-src-alsi8n6omq",
+  "DestinationResourceGroupName": "rg-redis-pe-dst-alsi8n6omq",
+  "RedisCacheName": "rediscnpealsi8n6omq",
+  "RedisSku": "Basic C0",
+  "RedisPrivateDnsZoneName": "privatelink.redis.cache.chinacloudapi.cn",
+  "PrivateEndpointName": "pe-redis-sync-test",
+  "PrivateIpAddresses": [
+    "10.84.1.4"
+  ],
+  "SourceDnsRecords": [
+    {
+      "RecordName": "rediscnpealsi8n6omq",
+      "IPv4Addresses": [
+        "10.84.1.4"
+      ],
+      "TTL": 10
+    }
+  ],
+  "DestinationDnsRecords": [],
+  "SyncResults": [],
+  "Assertions": [
+    {
+      "Name": "RedisProvisioningSucceeded",
+      "Passed": true,
+      "Details": "ProvisioningState='Succeeded'."
+    },
+    {
+      "Name": "RedisPublicNetworkDisabled",
+      "Passed": true,
+      "Details": "PublicNetworkAccess='Disabled'."
+    },
+    {
+      "Name": "RedisPrivateEndpointApproved",
+      "Passed": true,
+      "Details": "ConnectionStatus='Approved'."
+    },
+    {
+      "Name": "RedisPrivateEndpointHasPrivateIp",
+      "Passed": true,
+      "Details": "PrivateIpAddresses='10.84.1.4'."
+    },
+    {
+      "Name": "InitialZoneGroupUsesSourceRedisZone",
+      "Passed": true,
+      "Details": "ZoneIds='/subscriptions/4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56/resourceGroups/rg-redis-pe-src-alsi8n6omq/providers/Microsoft.Network/privateDnsZones/privatelink.redis.cache.chinacloudapi.cn'."
+    },
+    {
+      "Name": "SourceRedisDnsRecordsCreated",
+      "Passed": true,
+      "Details": "RecordNames='rediscnpealsi8n6omq'; IPs='10.84.1.4'."
+    }
+  ],
+  "KeepResources": false,
+  "SourceResourceGroupCreated": true,
+  "DestinationResourceGroupUsed": false,
+  "CleanupActions": [
+    "Removed source resource group 'rg-redis-pe-src-alsi8n6omq'."
+  ],
+  "CleanupErrors": [],
+  "CleanupCommands": [
+    "Set-AzContext -SubscriptionId '4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56'; Remove-AzResourceGroup -Name 'rg-redis-pe-src-alsi8n6omq' -Force",
+    "Set-AzContext -SubscriptionId '4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56'; Remove-AzResourceGroup -Name 'rg-redis-pe-dst-alsi8n6omq' -Force"
+  ],
+  "Error": "ARM PUT failed for /subscriptions/4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56/resourceGroups/rg-redis-pe-src-alsi8n6omq/providers/Microsoft.Network/privateEndpoints/pe-redis-sync-test/privateDnsZoneGroups/default?api-version=2023-09-01. Status: 400. Response: {\r\n  \"error\": {\r\n    \"code\": \"InvalidPrivateDnsZoneIds\",\r\n    \"message\": \"Private Dns Zone group /subscriptions/4157b2d1-e1d0-4c44-8ef3-2bcda2f98d56/resourceGroups/rg-redis-pe-src-alsi8n6omq/providers/Microsoft.Network/privateEndpoints/pe-redis-sync-test/privateDnsZoneGroups/default has invalid private dns zone ids .\",\r\n    \"details\": []\r\n  }\r\n}"
+}

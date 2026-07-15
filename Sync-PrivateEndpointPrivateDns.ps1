@@ -42,6 +42,11 @@ created in the source resource group's location unless
 group for newly created zones, or -SkipCreateMissingDestinationZones to require
 destination zones to already exist.
 
+Use -SourcePrivateDnsZoneResourceGroupName to limit discovery and processing to
+supported source private DNS zones in one resource group. This is useful for
+isolated deployment tests and does not change the default subscription-wide
+behavior.
+
 When the script falls back to direct A record sync, it also writes a same-name
 provenance TXT record by default. The managed TXT value records the source
 subscription, source private DNS zone resource group, source zone, source record
@@ -154,6 +159,8 @@ param(
 
     [Alias('UserAssignedManagedIdentityClientId')]
     [string]$ManagedIdentityAccountId,
+
+    [string]$SourcePrivateDnsZoneResourceGroupName,
 
     [string]$DestinationPrivateDnsZoneResourceGroupName,
 
@@ -1608,7 +1615,12 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
             }
         }
 
-        if ($ScriptCommand.ShouldProcess($target, 'Remove source private DNS zone config from private endpoint zone group')) {
+        if ($configsAfterRemove.Count -eq 0) {
+            if ($ScriptCommand.ShouldProcess($target, 'Delete private endpoint zone group before replacing its only same-name private DNS zone config')) {
+                Invoke-ArmJson -Method DELETE -Path $path -ExpectedStatusCode @(200, 202, 204) | Out-Null
+            }
+        }
+        elseif ($ScriptCommand.ShouldProcess($target, 'Remove source private DNS zone config from private endpoint zone group')) {
             Invoke-ArmJson -Method PUT -Path $path -Body $removeBody -ExpectedStatusCode @(200, 201) | Out-Null
         }
 
@@ -1626,7 +1638,15 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
                 privateDnsZoneConfigs = @($configsAfterRemove.ToArray())
             }
         }
-        $operation = if ($destinationConfigFound) { 'ZoneGroupTwoPutRemoveDuplicateConfig' } else { 'ZoneGroupTwoPutMoveToDestinationConfig' }
+        if ($configsAfterRemove.Count -eq 0) {
+            $operation = 'ZoneGroupDeleteCreateMoveToDestinationConfig'
+        }
+        elseif ($destinationConfigFound) {
+            $operation = 'ZoneGroupTwoPutRemoveDuplicateConfig'
+        }
+        else {
+            $operation = 'ZoneGroupTwoPutMoveToDestinationConfig'
+        }
 
         if ($ScriptCommand.ShouldProcess($target, 'Add destination private DNS zone config to private endpoint zone group')) {
             Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
@@ -2243,6 +2263,11 @@ Write-TraceLog -Message 'Reading source private DNS zones.'
 $sourceZones = @(Get-PrivateDnsZonesInSubscription -SubscriptionId $SourceSubscriptionId)
 $sourceZonesToSync = @(Select-ZonesForSync -Zones $sourceZones)
 Write-TraceLog -Message "Source zones discovered='$($sourceZones.Count)'; selected for sync='$($sourceZonesToSync.Count)'."
+
+if (-not [string]::IsNullOrWhiteSpace($SourcePrivateDnsZoneResourceGroupName)) {
+    $sourceZonesToSync = @($sourceZonesToSync | Where-Object { $_.ResourceGroupName -ieq $SourcePrivateDnsZoneResourceGroupName })
+    Write-TraceLog -Message "Source zones after resource group filter '$SourcePrivateDnsZoneResourceGroupName'='$($sourceZonesToSync.Count)'."
+}
 
 if ($sourceZonesToSync.Count -eq 0) {
     Write-TraceLog -Level WARN -Message 'No supported source Azure China private DNS zones matched the scan criteria. Continuing destination cleanup based on destination zones and provenance TXT metadata.'
