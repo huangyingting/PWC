@@ -247,6 +247,56 @@ The optional `SourcePrivateDnsZoneResourceGroupName` parameter added to
 private DNS zones and endpoints in the source subscription. Normal runbook
 execution remains subscription-wide when the parameter is omitted.
 
+## Azure Machine Learning private endpoint integration test
+
+`Deploy-TestAmlPrivateEndpointSync.ps1` performs an isolated end-to-end Azure
+Machine Learning private endpoint test in Azure China. It supports `chinaeast2`
+(the default) and `chinanorth3`, based on the live Azure China resource-provider
+metadata. The source and destination subscriptions must be in the same Microsoft
+Entra tenant.
+
+Run the test:
+
+```powershell
+.\Deploy-TestAmlPrivateEndpointSync.ps1 `
+    -SourceSubscriptionId "<source-subscription-id>" `
+    -DestinationSubscriptionId "<destination-subscription-id>" `
+    -OutputPath ".\aml-private-endpoint-sync-test.json"
+```
+
+The signed-in account needs permission to register resource providers and to
+create and remove the isolated test resource groups. The harness confirms these
+source-subscription providers are registered before deployment:
+
+- `Microsoft.MachineLearningServices`
+- `Microsoft.Storage`
+- `Microsoft.KeyVault`
+- `Microsoft.Insights`
+- `Microsoft.OperationalInsights`
+- `Microsoft.Network`
+
+The harness deploys an Azure Machine Learning workspace with public network
+access disabled, a Storage account, Key Vault, Application Insights component,
+VNet, and private endpoint using group ID `amlworkspace`. The endpoint zone
+group initially contains both required Azure China private DNS zones:
+
+- `privatelink.api.ml.azure.cn`
+- `privatelink.notebooks.chinacloudapi.cn`
+
+It then invokes the real sync script with isolated source and destination
+resource-group filters and verifies that the workspace and endpoint succeeded,
+source records exist in both zones, all records match the endpoint, both zone
+configs move to the destination subscription without dropping either config,
+Azure recreates every destination A record with the corresponding private IP,
+and no direct-sync provenance TXT record is written for zone-group-managed
+records.
+
+The JSON report is written to `aml-private-endpoint-sync-test.json` by default.
+Both test resource groups are removed after success or failure; add
+`-KeepResources` to retain them for troubleshooting. The report includes the
+resource names, provider states, source and destination records, sync
+operations, assertions, cleanup actions, and manual cleanup commands.
+
 ## Troubleshooting
 
 Both runbooks emit timestamped tracing logs for:
