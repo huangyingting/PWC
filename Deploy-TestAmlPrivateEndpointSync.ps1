@@ -15,9 +15,15 @@ resource group and verifies that:
 - Azure creates matching destination A records for both zones; and
 - zone-group-managed records do not receive direct-sync provenance TXT records.
 
-The source and destination subscriptions must be in the same Microsoft Entra
-tenant. Test resource groups are removed by default, including when the test
-fails. Use -KeepResources to retain them for investigation.
+When synchronization is enabled, the source and destination subscriptions must
+be in the same Microsoft Entra tenant. Test resource groups are removed by
+default, including when the test fails. Use -KeepResources to retain them for
+investigation.
+
+Use -SkipSync to deploy and validate only the source Azure Machine Learning
+workspace, private endpoint, and private DNS resources. This mode does not
+access the destination subscription or invoke the sync script, and it retains
+the successfully deployed source resource group.
 
 .EXAMPLE
     .\Deploy-TestAmlPrivateEndpointSync.ps1 `
@@ -33,6 +39,14 @@ Deploy, test, write the JSON report, and remove both test resource groups.
         -KeepResources
 
 Retain both resource groups after the test for troubleshooting.
+
+.EXAMPLE
+    .\Deploy-TestAmlPrivateEndpointSync.ps1 `
+        -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
+        -SkipSync
+
+Deploy Azure Machine Learning with a private endpoint, validate the source
+resources, retain them, and do not run private DNS synchronization.
 #>
 
 [CmdletBinding()]
@@ -84,6 +98,8 @@ param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]$OutputPath = (Join-Path $PSScriptRoot 'aml-private-endpoint-sync-test.json'),
+
+    [switch]$SkipSync,
 
     [switch]$KeepResources
 )
@@ -616,7 +632,9 @@ function Test-StringCollectionContainsAll {
 
 Import-RequiredAzModules
 
-$SyncScriptPath = (Resolve-Path -LiteralPath $SyncScriptPath -ErrorAction Stop).ProviderPath
+if (-not $SkipSync) {
+    $SyncScriptPath = (Resolve-Path -LiteralPath $SyncScriptPath -ErrorAction Stop).ProviderPath
+}
 $OutputPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
 $outputDirectory = Split-Path -Parent $OutputPath
 if (-not [string]::IsNullOrWhiteSpace($outputDirectory) -and -not (Test-Path -LiteralPath $outputDirectory)) {
@@ -685,14 +703,16 @@ try {
         throw "Source test resource group '$SourceResourceGroupName' already exists. Choose another NameSuffix or SourceResourceGroupName."
     }
 
-    $destinationContext = Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId
-    $DestinationTenantId = [string]$destinationContext.Tenant.Id
-    if (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue) {
-        throw "Destination test resource group '$DestinationResourceGroupName' already exists. Choose another NameSuffix or DestinationResourceGroupName."
-    }
+    if (-not $SkipSync) {
+        $destinationContext = Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId
+        $DestinationTenantId = [string]$destinationContext.Tenant.Id
+        if (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue) {
+            throw "Destination test resource group '$DestinationResourceGroupName' already exists. Choose another NameSuffix or DestinationResourceGroupName."
+        }
 
-    if ($SourceTenantId -ne $DestinationTenantId) {
-        throw "Source tenant '$SourceTenantId' and destination tenant '$DestinationTenantId' differ. This test validates private endpoint DNS zone-group linking, which requires both subscriptions to be in the same tenant."
+        if ($SourceTenantId -ne $DestinationTenantId) {
+            throw "Source tenant '$SourceTenantId' and destination tenant '$DestinationTenantId' differ. This test validates private endpoint DNS zone-group linking, which requires both subscriptions to be in the same tenant."
+        }
     }
 
     Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
@@ -984,6 +1004,11 @@ try {
             -Details "RecordNames='$(@($zoneRecords.RecordName) -join ',')'; IPs='$($zoneIpAddresses -join ',')'."
     }
 
+    if ($SkipSync) {
+        $testStatus = 'Deployed'
+        Write-Host "Azure Machine Learning workspace '$workspaceName' and private endpoint '$privateEndpointName' were deployed and source-validated. Synchronization was skipped."
+    }
+    else {
     $testStatus = 'RunningSync'
     Write-Host "Running '$SyncScriptPath' for the isolated Machine Learning source zones..."
     $syncParameters = @{
@@ -1076,7 +1101,8 @@ try {
         }
     }
 
-    $testStatus = 'Passed'
+        $testStatus = 'Passed'
+    }
 }
 catch {
     $testError = $_
@@ -1086,7 +1112,8 @@ catch {
 finally {
     $testCompletedAt = Get-Date
 
-    if (-not $KeepResources) {
+    $retainResources = [bool]($KeepResources -or ($SkipSync -and $testStatus -eq 'Deployed'))
+    if (-not $retainResources) {
         if ($sourceContext -and $sourceResourceGroupOwned) {
             try {
                 Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
@@ -1118,8 +1145,9 @@ finally {
             }
         }
     }
-    elseif ($KeepResources) {
-        $cleanupActions.Add('Resources retained because KeepResources was specified.')
+    else {
+        $retainReason = if ($SkipSync -and $testStatus -eq 'Deployed') { 'SkipSync deployment completed successfully.' } else { 'KeepResources was specified.' }
+        $cleanupActions.Add("Resources retained because $retainReason")
     }
 
     if ($testStatus -eq 'Passed' -and $cleanupErrors.Count -gt 0) {
@@ -1153,14 +1181,18 @@ finally {
         DestinationDnsRecords         = @($destinationDnsRecords)
         SyncResults                   = @($syncResultRows)
         Assertions                    = @($script:AmlSyncTestAssertions.ToArray())
+        SyncSkipped                   = [bool]$SkipSync
         KeepResources                 = [bool]$KeepResources
+        ResourcesRetained             = $retainResources
         SourceResourceGroupCreated    = $sourceResourceGroupOwned
         DestinationResourceGroupUsed = $destinationResourceGroupOwned
         CleanupActions                = @($cleanupActions.ToArray())
         CleanupErrors                 = @($cleanupErrors.ToArray())
         CleanupCommands               = @(
             "Set-AzContext -SubscriptionId '$SourceSubscriptionId'; Remove-AzResourceGroup -Name '$SourceResourceGroupName' -Force"
-            "Set-AzContext -SubscriptionId '$DestinationSubscriptionId'; Remove-AzResourceGroup -Name '$DestinationResourceGroupName' -Force"
+            if (-not $SkipSync) {
+                "Set-AzContext -SubscriptionId '$DestinationSubscriptionId'; Remove-AzResourceGroup -Name '$DestinationResourceGroupName' -Force"
+            }
         )
         Error                          = if ($testError) { [string]$testError.Exception.Message } else { $null }
     }
@@ -1177,5 +1209,10 @@ if ($cleanupErrors.Count -gt 0) {
     throw "Azure Machine Learning private endpoint sync passed, but cleanup failed: $($cleanupErrors -join ' | ')"
 }
 
-Write-Host "Azure Machine Learning private endpoint sync test passed with '$($script:AmlSyncTestAssertions.Count)' assertion(s)." -ForegroundColor Green
+if ($SkipSync) {
+    Write-Host "Azure Machine Learning private endpoint deployment completed without synchronization. Source resource group '$SourceResourceGroupName' was retained." -ForegroundColor Green
+}
+else {
+    Write-Host "Azure Machine Learning private endpoint sync test passed with '$($script:AmlSyncTestAssertions.Count)' assertion(s)." -ForegroundColor Green
+}
 [pscustomobject]$report

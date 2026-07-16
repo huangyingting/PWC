@@ -264,8 +264,25 @@ execution remains subscription-wide when the parameter is omitted.
 `Deploy-TestAmlPrivateEndpointSync.ps1` performs an isolated end-to-end Azure
 Machine Learning private endpoint test in Azure China. It supports `chinaeast2`
 (the default) and `chinanorth3`, based on the live Azure China resource-provider
-metadata. The source and destination subscriptions must be in the same Microsoft
-Entra tenant.
+metadata. For the synchronization test, the source and destination subscriptions
+must be in the same Microsoft Entra tenant.
+
+Deploy Azure Machine Learning with a private endpoint but do not run DNS
+synchronization:
+
+```powershell
+.\Deploy-TestAmlPrivateEndpointSync.ps1 `
+    -SourceSubscriptionId "<source-subscription-id>" `
+    -SkipSync `
+    -OutputPath ".\aml-private-endpoint-deployment.json"
+```
+
+`-SkipSync` creates and source-validates the AML workspace, dependent resources,
+VNet, private endpoint, both source private DNS zones, and their A records. It
+does not access the destination subscription or invoke
+`Sync-PrivateEndpointPrivateDns.ps1`. After a successful deployment, the source
+resource group is retained automatically. Use the source cleanup command in the
+JSON report when the resources are no longer needed.
 
 Run the test:
 
