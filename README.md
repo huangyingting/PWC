@@ -14,8 +14,6 @@ Both runbooks are deployed by `Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps
 | Destination subscription | `65a9c0da-4f85-47ba-ac0f-7401cbe43205` |
 | AKS target VNet | `/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005` |
 | AKS private DNS suffix | `.cx.prod.service.azk8s.cn` |
-| PostgreSQL HA zone pattern | `nga-*.privatelink.postgres.database.cchinacloudapi.cn` |
-| PostgreSQL HA target VNet | `/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005` |
 
 Override these only when needed.
 
@@ -74,15 +72,14 @@ Run this only if the managed identity does not already have the required permiss
 
 Recommended roles:
 
-- Source subscription: `Reader`; `Private DNS Zone Contributor` for matching PostgreSQL HA zone links; optional `Network Contributor` for private endpoint zone-group linking.
+- Source subscription: `Reader`; optional `Network Contributor` for private endpoint zone-group linking.
 - Destination subscription: `Private DNS Zone Contributor`; optional `Contributor` if the runbook may create missing resource groups.
-- PostgreSQL HA target VNet: `Network Contributor` at the VNet scope, or a custom role containing `Microsoft.Network/virtualNetworks/join/action`.
 
 ## 4. Run from Azure Portal
 
 ### Step 1: Open the Automation Account
 
-In the Azure China portal, open **Automation Accounts** and select the Automation Account where the runbooks were deployed, for example `nga-automation-dns-sync`.
+In the Azure China portal, open **Automation Accounts** and select the Automation Account where the runbooks were deployed, for example `aa-dns-sync-cn-prod`.
 
 ![Select the Azure Automation Account](Images/1.png)
 
@@ -93,7 +90,7 @@ Under **Process Automation**, select **Runbooks**, and then select the published
 | Runbook | Use it for |
 | --- | --- |
 | `Repair-AksPrivateDnsLinks` | Repairing AKS private DNS virtual network links. |
-| `Sync-PrivateEndpointPrivateDns` | Handling other supported Azure China PaaS private endpoint DNS zones, including PostgreSQL. |
+| `Sync-PrivateEndpointPrivateDns` | Handling other supported Azure China PaaS private endpoint DNS zones. |
 
 ![Select the AKS repair or private endpoint DNS sync runbook](Images/2.png)
 
@@ -139,15 +136,7 @@ Register-AzAutomationScheduledRunbook `
 
 `Sync-PrivateEndpointPrivateDns` processes all supported Azure China private DNS zones.
 
-Before processing A records, the runbook finds source private DNS zones matching
-`nga-*.privatelink.postgres.database.cchinacloudapi.cn` and ensures each zone has
-a registration-disabled link to the PostgreSQL HA target VNet. These zones are
-excluded from destination-zone creation, private endpoint zone-group changes,
-direct A/TXT record sync, source-record deletion, and stale destination-record
-cleanup. Azure therefore remains responsible for updating their records after a
-PostgreSQL HA failover.
-
-For every other supported source DNS A record:
+For every supported source DNS A record:
 
 1. If a matching source private endpoint exists, the runbook links that private endpoint to the destination private DNS zone.
 2. If no matching private endpoint exists, the runbook directly syncs the destination A record.

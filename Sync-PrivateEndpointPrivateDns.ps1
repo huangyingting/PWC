@@ -18,13 +18,6 @@ subscription. Only supported Azure China private DNS zones from the built-in
 allow-list are scanned; custom private DNS zones are ignored even if their names
 start with "privatelink.".
 
-PostgreSQL zones matching
-nga-*.privatelink.postgres.database.cchinacloudapi.cn are handled separately.
-Their Azure-managed records aren't copied because a PostgreSQL high-availability
-failover can change the active server IP. Instead, each matching source zone is
-linked to PostgresHaTargetVirtualNetworkResourceId so clients always resolve the
-current record maintained by Azure.
-
 By default, the script scans supported Azure China private DNS zones and links
 matching source private endpoints to destination private DNS zones by updating
 privateDnsZoneGroups. Azure then manages the destination A records. If no source
@@ -93,8 +86,6 @@ Required permissions:
 - Destination subscription: Private DNS Zone Contributor on private DNS zones.
 - Default private endpoint linking: Network Contributor on source private
     endpoints, plus read access to destination private DNS zones.
-- PostgreSQL HA zone linking: Private DNS Zone Contributor on matching source
-    zones and virtual network join permission on the target virtual network.
 - Azure Automation: enable the Automation Account managed identity, assign the
     required RBAC permissions to that identity, and run this script with
     -UseManagedIdentity. For a user-assigned managed identity, also pass
@@ -161,9 +152,6 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$DestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205',
 
-    [ValidateNotNullOrEmpty()]
-    [string]$PostgresHaTargetVirtualNetworkResourceId = '/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005',
-
     [string]$SourceTenantId,
 
     [string]$DestinationTenantId,
@@ -199,14 +187,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $PrivateDnsApiVersion = '2018-09-01'
-$PrivateDnsVirtualNetworkLinkApiVersion = '2020-06-01'
 $NetworkApiVersion = '2023-09-01'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
 $ProvenanceTxtManagedBy = 'Sync-PrivateEndpointPrivateDns.ps1'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
-$PostgresHaPrivateDnsZoneNameRegex = '^nga-[a-z0-9-]+\.privatelink\.postgres\.database\.cchinacloudapi\.cn$'
 $UseTtlOverride = $PSBoundParameters.ContainsKey('Ttl')
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
@@ -345,7 +331,7 @@ if (-not $CanUpdatePrivateEndpointZoneGroups) {
 }
 
 Write-TraceLog -Message "Starting Sync-PrivateEndpointPrivateDns.ps1. SourceSubscriptionId='$SourceSubscriptionId'; DestinationSubscriptionId='$DestinationSubscriptionId'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
-Write-TraceLog -Message "Mode: PostgreSQL HA zone-to-VNet linking plus private endpoint zone-group linking with direct DNS A record fallback. CanUpdatePrivateEndpointZoneGroups='$CanUpdatePrivateEndpointZoneGroups'."
+Write-TraceLog -Message "Mode: private endpoint zone-group linking with direct DNS A record fallback. CanUpdatePrivateEndpointZoneGroups='$CanUpdatePrivateEndpointZoneGroups'."
 
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
     # Keep this list aligned with the official China table:
@@ -355,7 +341,7 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
     '^privatelink\.afs\.azure\.cn$',
     '^privatelink\.database\.chinacloudapi\.cn$',
-    '^privatelink\.(mysql|postgres|mariadb)\.database\.chinacloudapi\.cn$',
+    '^privatelink\.(mysql|mariadb)\.database\.chinacloudapi\.cn$',
     '^privatelink\.documents\.azure\.cn$',
     '^privatelink\.(mongo|cassandra|gremlin|table)\.cosmos\.azure\.cn$',
     '^privatelink\.vaultcore\.azure\.cn$',
@@ -548,94 +534,6 @@ function New-PrivateDnsZoneResourceId {
     return "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Network/privateDnsZones/$CurrentZoneName"
 }
 
-function Normalize-ResourceId {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$ResourceId
-    )
-
-    return $ResourceId.Trim().TrimEnd('/').ToLowerInvariant()
-}
-
-function Get-VirtualNetworkNameFromResourceId {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$ResourceId
-    )
-
-    $normalizedResourceId = $ResourceId.Trim().TrimEnd('/')
-    if ($normalizedResourceId -notmatch '/virtualNetworks/([^/]+)$') {
-        throw "Could not read virtual network name from resource ID: $ResourceId"
-    }
-
-    return [System.Uri]::UnescapeDataString($Matches[1])
-}
-
-function New-PrivateDnsVirtualNetworkLinkPath {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$SubscriptionId,
-
-        [Parameter(Mandatory = $true)]
-        [string]$ResourceGroupName,
-
-        [Parameter(Mandatory = $true)]
-        [string]$CurrentZoneName,
-
-        [string]$LinkName
-    )
-
-    $zoneSegment = ConvertTo-ArmPathSegment -Value $CurrentZoneName
-    $path = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroupName/providers/Microsoft.Network/privateDnsZones/$zoneSegment/virtualNetworkLinks"
-
-    if ($LinkName) {
-        $linkSegment = ConvertTo-ArmPathSegment -Value $LinkName
-        $path = "$path/$linkSegment"
-    }
-
-    return "${path}?api-version=$PrivateDnsVirtualNetworkLinkApiVersion"
-}
-
-function Get-PrivateDnsVirtualNetworkLinkName {
-    param(
-        [Parameter(Mandatory = $true)]
-        [object]$Link
-    )
-
-    $linkId = [string](Get-ObjectPropertyValue -InputObject $Link -Name 'id')
-    if ($linkId -match '/virtualNetworkLinks/([^/?]+)') {
-        return [System.Uri]::UnescapeDataString($Matches[1])
-    }
-
-    $name = [string](Get-ObjectPropertyValue -InputObject $Link -Name 'name')
-    if ($name -match '/') {
-        return ($name -split '/')[-1]
-    }
-
-    return $name
-}
-
-function New-DefaultVirtualNetworkLinkName {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$VirtualNetworkResourceId
-    )
-
-    $virtualNetworkName = Get-VirtualNetworkNameFromResourceId -ResourceId $VirtualNetworkResourceId
-    $linkName = "$($virtualNetworkName.ToLowerInvariant())-link" -replace '[^a-z0-9-]', '-'
-    $linkName = $linkName.Trim('-')
-
-    if ([string]::IsNullOrWhiteSpace($linkName)) {
-        throw "Could not generate a virtual network link name from resource ID: $VirtualNetworkResourceId"
-    }
-
-    if ($linkName.Length -gt 80) {
-        $linkName = $linkName.Substring(0, 80).Trim('-')
-    }
-
-    return $linkName
-}
-
 function Invoke-ArmJson {
     param(
         [Parameter(Mandatory = $true)]
@@ -775,15 +673,6 @@ function Test-AzurePaaSPrivateDnsZoneName {
     return $false
 }
 
-function Test-PostgresHaPrivateDnsZoneName {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Name
-    )
-
-    return $Name.Trim() -match $PostgresHaPrivateDnsZoneNameRegex
-}
-
 function Select-ZonesForSync {
     param(
         [Parameter(Mandatory = $true)]
@@ -803,96 +692,6 @@ function Select-ZonesForSync {
     }
 
     return $selectedZones
-}
-
-function Ensure-PostgresHaPrivateDnsVirtualNetworkLink {
-    param(
-        [Parameter(Mandatory = $true)]
-        [object]$Zone,
-
-        [Parameter(Mandatory = $true)]
-        [string]$ZoneSubscriptionId,
-
-        [Parameter(Mandatory = $true)]
-        [string]$TargetVirtualNetworkResourceId,
-
-        [Parameter(Mandatory = $true)]
-        [string]$LinkName
-    )
-
-    $zoneName = [string]$Zone.Name
-    $resourceGroupName = [string]$Zone.ResourceGroupName
-    $normalizedTargetVirtualNetworkId = Normalize-ResourceId -ResourceId $TargetVirtualNetworkResourceId
-    $effectiveLinkName = $LinkName
-    $operation = 'PostgresHaVNetLinkCreate'
-    $changed = $true
-    $targetAlreadyLinked = $false
-    $linksPath = New-PrivateDnsVirtualNetworkLinkPath `
-        -SubscriptionId $ZoneSubscriptionId `
-        -ResourceGroupName $resourceGroupName `
-        -CurrentZoneName $zoneName
-    $existingLinks = @(Get-ArmPagedValues -Path $linksPath)
-
-    foreach ($existingLink in $existingLinks) {
-        $properties = Get-ObjectPropertyValue -InputObject $existingLink -Name 'properties'
-        $virtualNetwork = Get-ObjectPropertyValue -InputObject $properties -Name 'virtualNetwork'
-        $existingVirtualNetworkId = [string](Get-ObjectPropertyValue -InputObject $virtualNetwork -Name 'id')
-        $existingLinkName = Get-PrivateDnsVirtualNetworkLinkName -Link $existingLink
-
-        if (-not [string]::IsNullOrWhiteSpace($existingVirtualNetworkId) -and
-            (Normalize-ResourceId -ResourceId $existingVirtualNetworkId) -eq $normalizedTargetVirtualNetworkId) {
-            $effectiveLinkName = $existingLinkName
-            $operation = 'PostgresHaVNetLinkNoChange'
-            $changed = $false
-            $targetAlreadyLinked = $true
-            break
-        }
-
-        if ($existingLinkName -ieq $LinkName) {
-            throw "Private DNS zone '$zoneName' already has virtual network link '$LinkName' to '$existingVirtualNetworkId'. Rename or remove the conflicting link before retrying."
-        }
-    }
-
-    if (-not $targetAlreadyLinked) {
-        $path = New-PrivateDnsVirtualNetworkLinkPath `
-            -SubscriptionId $ZoneSubscriptionId `
-            -ResourceGroupName $resourceGroupName `
-            -CurrentZoneName $zoneName `
-            -LinkName $LinkName
-        $body = @{
-            location   = 'global'
-            properties = @{
-                registrationEnabled = $false
-                virtualNetwork      = @{ id = $TargetVirtualNetworkResourceId }
-            }
-        }
-        $target = "$zoneName/$LinkName -> $TargetVirtualNetworkResourceId"
-
-        if ($ScriptCommand.ShouldProcess($target, 'Create PostgreSQL HA private DNS virtual network link')) {
-            Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201, 202) | Out-Null
-        }
-    }
-
-    return [pscustomobject]@{
-        ZoneName                         = $zoneName
-        RecordName                       = ''
-        DestinationZoneResourceGroupName = ''
-        Operation                        = $operation
-        IPv4Addresses                    = ''
-        TTL                              = $null
-        Changed                          = $changed
-        SourcePrivateEndpointNames       = ''
-        SourcePrivateEndpointIds         = ''
-        SourcePrivateEndpointMatchTypes  = ''
-        PrivateDnsZoneGroupOperations    = ''
-        PrivateDnsZoneGroupChanged       = $false
-        ProvenanceTxtRecordOperation     = 'TxtNotApplicablePostgresHaVNetLink'
-        ProvenanceTxtRecordChanged       = $false
-        ProvenanceTxtRecordValues        = ''
-        SourceZoneResourceGroupName      = $resourceGroupName
-        VirtualNetworkLinkName           = $effectiveLinkName
-        TargetVirtualNetworkResourceId   = $TargetVirtualNetworkResourceId
-    }
 }
 
 function Confirm-ResourceGroupExists {
@@ -2705,26 +2504,10 @@ if (-not [string]::IsNullOrWhiteSpace($SourcePrivateDnsZoneResourceGroupName)) {
     Write-TraceLog -Message "Source zones after resource group filter '$SourcePrivateDnsZoneResourceGroupName'='$($sourceZonesInScope.Count)'."
 }
 
-$postgresHaZonesToLink = @($sourceZonesInScope | Where-Object { Test-PostgresHaPrivateDnsZoneName -Name ([string]$_.Name) })
 $sourceZonesToSync = @(Select-ZonesForSync -Zones $sourceZonesInScope)
-Write-TraceLog -Message "PostgreSQL HA zones selected for VNet linking='$($postgresHaZonesToLink.Count)'; zones selected for record sync='$($sourceZonesToSync.Count)'."
+Write-TraceLog -Message "Zones selected for record sync='$($sourceZonesToSync.Count)'."
 
-$postgresHaVirtualNetworkLinkResults = @()
-if ($postgresHaZonesToLink.Count -gt 0) {
-    $postgresHaLinkName = New-DefaultVirtualNetworkLinkName -VirtualNetworkResourceId $PostgresHaTargetVirtualNetworkResourceId
-    Write-TraceLog -Message "Ensuring PostgreSQL HA private DNS zones are linked to '$PostgresHaTargetVirtualNetworkResourceId' with link name '$postgresHaLinkName'."
-    $postgresHaVirtualNetworkLinkResults = @(
-        foreach ($postgresHaZone in $postgresHaZonesToLink) {
-            Ensure-PostgresHaPrivateDnsVirtualNetworkLink `
-                -Zone $postgresHaZone `
-                -ZoneSubscriptionId $SourceSubscriptionId `
-                -TargetVirtualNetworkResourceId $PostgresHaTargetVirtualNetworkResourceId `
-                -LinkName $postgresHaLinkName
-        }
-    )
-}
-
-if ($sourceZonesToSync.Count -eq 0 -and $postgresHaZonesToLink.Count -eq 0) {
+if ($sourceZonesToSync.Count -eq 0) {
     Write-TraceLog -Level WARN -Message 'No supported source Azure China private DNS zones matched the scan criteria. Continuing destination cleanup based on destination zones and provenance TXT metadata.'
 }
 
@@ -2792,9 +2575,6 @@ Write-TraceLog -Message "Destination zones available for sync='$($destinationZon
 $destinationZoneLookup = New-ZoneLookup -Zones $destinationZonesToSync
 
 $results = New-Object System.Collections.Generic.List[object]
-foreach ($postgresHaVirtualNetworkLinkResult in $postgresHaVirtualNetworkLinkResults) {
-    $results.Add($postgresHaVirtualNetworkLinkResult)
-}
 $skippedZones = New-Object System.Collections.Generic.List[string]
 $recordGroups = $validatedRows | Group-Object ZoneName, RecordName
 Write-TraceLog -Message "Processing DNS record sets='$(@($recordGroups).Count)'."
