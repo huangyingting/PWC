@@ -16,7 +16,8 @@ The script is scoped to Azure China. Private DNS zone names are discovered from
 the source subscription and matched by exact zone name in the destination
 subscription. Only supported Azure China private DNS zones from the built-in
 allow-list are scanned; custom private DNS zones are ignored even if their names
-start with "privatelink.".
+start with "privatelink.". PostgreSQL private DNS zones and private endpoints
+are excluded from synchronization.
 
 By default, the script scans supported Azure China private DNS zones and links
 matching source private endpoints to destination private DNS zones by updating
@@ -1210,6 +1211,36 @@ function New-PrivateDnsRecordFqdn {
     return "$normalizedRecordName.$normalizedZoneName"
 }
 
+function Test-PrivateEndpointIsExcluded {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$PrivateEndpoint
+    )
+
+    $properties = Get-ObjectPropertyValue -InputObject $PrivateEndpoint -Name 'properties'
+    foreach ($connectionCollectionName in @('privateLinkServiceConnections', 'manualPrivateLinkServiceConnections')) {
+        foreach ($connection in @(Get-ObjectPropertyValue -InputObject $properties -Name $connectionCollectionName)) {
+            if ($null -eq $connection) {
+                continue
+            }
+
+            $connectionProperties = Get-ObjectPropertyValue -InputObject $connection -Name 'properties'
+            $privateLinkServiceId = [string](Get-ObjectPropertyValue -InputObject $connectionProperties -Name 'privateLinkServiceId')
+            if ($privateLinkServiceId -imatch '/providers/Microsoft\.DBforPostgreSQL/') {
+                return $true
+            }
+
+            foreach ($groupId in @(Get-ObjectPropertyValue -InputObject $connectionProperties -Name 'groupIds')) {
+                if ([string]$groupId -ieq 'postgresqlServer') {
+                    return $true
+                }
+            }
+        }
+    }
+
+    return $false
+}
+
 function Get-PrivateEndpointDnsDetails {
     param(
         [Parameter(Mandatory = $true)]
@@ -1340,6 +1371,11 @@ function Get-PrivateEndpointDnsDetailsInSubscription {
     $results = New-Object System.Collections.Generic.List[object]
 
     foreach ($privateEndpoint in @($privateEndpoints)) {
+        if (Test-PrivateEndpointIsExcluded -PrivateEndpoint $privateEndpoint) {
+            Write-TraceLog -Message "Skipping excluded source private endpoint '$([string]$privateEndpoint.name)'."
+            continue
+        }
+
         $privateEndpointDnsDetails = Get-PrivateEndpointDnsDetails -PrivateEndpoint $privateEndpoint
         if (@($privateEndpointDnsDetails.PrivateIpAddresses).Count -eq 0) {
             Write-Warning "Skipped source private endpoint '$($privateEndpointDnsDetails.Name)' because it has no private IP address. Private endpoint ID: $($privateEndpointDnsDetails.Id)"

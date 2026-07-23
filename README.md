@@ -135,6 +135,7 @@ Register-AzAutomationScheduledRunbook `
 ## What the sync runbook does
 
 `Sync-PrivateEndpointPrivateDns` processes all supported Azure China private DNS zones.
+PostgreSQL private DNS zones and private endpoints are excluded.
 
 For every supported source DNS A record:
 
