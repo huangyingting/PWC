@@ -354,6 +354,7 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink\.adf\.azure\.cn$',
     '^privatelink\.azure-automation\.cn$',
     '^privatelink\.signalr\.azure\.cn$',
+    '^privatelink\.eventgrid\.azure\.cn$',
     '^privatelink\.azure-devices\.cn$',
     '^privatelink\.azure-devices-provisioning\.cn$',
     '^privatelink\.azurehdinsight\.cn$',

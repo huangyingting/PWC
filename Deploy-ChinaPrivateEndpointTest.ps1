@@ -3,11 +3,12 @@
 Deploys multiple Azure China private endpoints for testing.
 
 .DESCRIPTION
-Creates a small Azure China test environment with three different private
+Creates a small Azure China test environment with four different private
 endpoint group IDs and private DNS zones:
 - Storage blob: privatelink.blob.core.chinacloudapi.cn
 - Storage file: privatelink.file.core.chinacloudapi.cn
 - Key Vault vault: privatelink.vaultcore.azure.cn
+- Event Grid topic: privatelink.eventgrid.azure.cn
 
 Use PrivateDnsZoneGroupName to deploy a non-default group name and validate
 that synchronization adopts the endpoint's existing group.
@@ -146,6 +147,11 @@ if ($keyVaultName.Length -gt 24) {
 	$keyVaultName = $keyVaultName.Substring(0, 24)
 }
 
+$eventGridTopicName = "egpecn$NameSuffix"
+if ($eventGridTopicName.Length -gt 50) {
+	$eventGridTopicName = $eventGridTopicName.Substring(0, 50)
+}
+
 $context = Select-AzureChinaSubscription -SubscriptionId $SubscriptionId -TenantId $TenantId
 if ([string]::IsNullOrWhiteSpace($TenantId)) {
 	$TenantId = $context.Tenant.Id
@@ -158,24 +164,29 @@ $template = @{
 		location           = @{ type = 'string' }
 		storageAccountName = @{ type = 'string' }
 		keyVaultName       = @{ type = 'string' }
+		eventGridTopicName = @{ type = 'string' }
 		tenantId           = @{ type = 'string' }
 	}
 	variables      = @{
-		vnetName                 = 'vnet-pe-cn-test'
-		subnetName               = 'snet-private-endpoints'
-		blobPrivateEndpointName  = 'pe-storage-blob-test'
-		filePrivateEndpointName  = 'pe-storage-file-test'
-		vaultPrivateEndpointName = 'pe-keyvault-test'
-		privateDnsZoneGroupName  = $PrivateDnsZoneGroupName
-		blobDnsZoneName          = 'privatelink.blob.core.chinacloudapi.cn'
-		fileDnsZoneName          = 'privatelink.file.core.chinacloudapi.cn'
-		vaultDnsZoneName         = 'privatelink.vaultcore.azure.cn'
-		subnetId                 = "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetName'))]"
-		storageAccountId         = "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-		keyVaultId               = "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
-		blobDnsZoneId            = "[resourceId('Microsoft.Network/privateDnsZones', variables('blobDnsZoneName'))]"
-		fileDnsZoneId            = "[resourceId('Microsoft.Network/privateDnsZones', variables('fileDnsZoneName'))]"
-		vaultDnsZoneId           = "[resourceId('Microsoft.Network/privateDnsZones', variables('vaultDnsZoneName'))]"
+		vnetName                    = 'vnet-pe-cn-test'
+		subnetName                  = 'snet-private-endpoints'
+		blobPrivateEndpointName     = 'pe-storage-blob-test'
+		filePrivateEndpointName     = 'pe-storage-file-test'
+		vaultPrivateEndpointName    = 'pe-keyvault-test'
+		eventGridPrivateEndpointName = 'pe-eventgrid-topic-test'
+		privateDnsZoneGroupName     = $PrivateDnsZoneGroupName
+		blobDnsZoneName             = 'privatelink.blob.core.chinacloudapi.cn'
+		fileDnsZoneName             = 'privatelink.file.core.chinacloudapi.cn'
+		vaultDnsZoneName            = 'privatelink.vaultcore.azure.cn'
+		eventGridDnsZoneName        = 'privatelink.eventgrid.azure.cn'
+		subnetId                    = "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetName'))]"
+		storageAccountId            = "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+		keyVaultId                  = "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+		eventGridTopicId            = "[resourceId('Microsoft.EventGrid/topics', parameters('eventGridTopicName'))]"
+		blobDnsZoneId               = "[resourceId('Microsoft.Network/privateDnsZones', variables('blobDnsZoneName'))]"
+		fileDnsZoneId               = "[resourceId('Microsoft.Network/privateDnsZones', variables('fileDnsZoneName'))]"
+		vaultDnsZoneId              = "[resourceId('Microsoft.Network/privateDnsZones', variables('vaultDnsZoneName'))]"
+		eventGridDnsZoneId          = "[resourceId('Microsoft.Network/privateDnsZones', variables('eventGridDnsZoneName'))]"
 	}
 	resources      = @(
 		@{
@@ -232,6 +243,16 @@ $template = @{
 			}
 		}
 		@{
+			type       = 'Microsoft.EventGrid/topics'
+			apiVersion = '2022-06-15'
+			name       = "[parameters('eventGridTopicName')]"
+			location   = "[parameters('location')]"
+			properties = @{
+				inputSchema         = 'EventGridSchema'
+				publicNetworkAccess = 'Disabled'
+			}
+		}
+		@{
 			type       = 'Microsoft.Network/privateDnsZones'
 			apiVersion = '2020-06-01'
 			name       = "[variables('blobDnsZoneName')]"
@@ -247,6 +268,12 @@ $template = @{
 			type       = 'Microsoft.Network/privateDnsZones'
 			apiVersion = '2020-06-01'
 			name       = "[variables('vaultDnsZoneName')]"
+			location   = 'global'
+		}
+		@{
+			type       = 'Microsoft.Network/privateDnsZones'
+			apiVersion = '2020-06-01'
+			name       = "[variables('eventGridDnsZoneName')]"
 			location   = 'global'
 		}
 		@{
@@ -284,6 +311,20 @@ $template = @{
 			location   = 'global'
 			dependsOn  = @(
 				"[resourceId('Microsoft.Network/privateDnsZones', variables('vaultDnsZoneName'))]"
+				"[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+			)
+			properties = @{
+				registrationEnabled = $false
+				virtualNetwork      = @{ id = "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]" }
+			}
+		}
+		@{
+			type       = 'Microsoft.Network/privateDnsZones/virtualNetworkLinks'
+			apiVersion = '2020-06-01'
+			name       = "[format('{0}/{1}', variables('eventGridDnsZoneName'), 'vnet-pe-cn-test-link')]"
+			location   = 'global'
+			dependsOn  = @(
+				"[resourceId('Microsoft.Network/privateDnsZones', variables('eventGridDnsZoneName'))]"
 				"[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
 			)
 			properties = @{
@@ -340,6 +381,22 @@ $template = @{
 			}
 		}
 		@{
+			type       = 'Microsoft.Network/privateEndpoints'
+			apiVersion = '2023-09-01'
+			name       = "[variables('eventGridPrivateEndpointName')]"
+			location   = "[parameters('location')]"
+			dependsOn  = @(
+				"[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+				"[resourceId('Microsoft.EventGrid/topics', parameters('eventGridTopicName'))]"
+			)
+			properties = @{
+				subnet = @{ id = "[variables('subnetId')]" }
+				privateLinkServiceConnections = @(
+					@{ name = 'topic'; properties = @{ privateLinkServiceId = "[variables('eventGridTopicId')]"; groupIds = @('topic') } }
+				)
+			}
+		}
+		@{
 			type       = 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups'
 			apiVersion = '2023-09-01'
 			name       = "[format('{0}/{1}', variables('blobPrivateEndpointName'), variables('privateDnsZoneGroupName'))]"
@@ -369,6 +426,16 @@ $template = @{
 			)
 			properties = @{ privateDnsZoneConfigs = @(@{ name = 'vault'; properties = @{ privateDnsZoneId = "[variables('vaultDnsZoneId')]" } }) }
 		}
+		@{
+			type       = 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups'
+			apiVersion = '2023-09-01'
+			name       = "[format('{0}/{1}', variables('eventGridPrivateEndpointName'), variables('privateDnsZoneGroupName'))]"
+			dependsOn  = @(
+				"[resourceId('Microsoft.Network/privateEndpoints', variables('eventGridPrivateEndpointName'))]"
+				"[resourceId('Microsoft.Network/privateDnsZones', variables('eventGridDnsZoneName'))]"
+			)
+			properties = @{ privateDnsZoneConfigs = @(@{ name = 'eventgrid'; properties = @{ privateDnsZoneId = "[variables('eventGridDnsZoneId')]" } }) }
+		}
 	)
 }
 
@@ -383,6 +450,7 @@ New-AzResourceGroupDeployment `
 	-location $Location `
 	-storageAccountName $storageAccountName `
 	-keyVaultName $keyVaultName `
+	-eventGridTopicName $eventGridTopicName `
 	-tenantId $TenantId `
 	-Verbose | Out-Null
 
@@ -390,6 +458,7 @@ $privateEndpointDefinitions = @(
 	@{ Name = 'pe-storage-blob-test'; GroupId = 'blob'; PrivateDnsZone = 'privatelink.blob.core.chinacloudapi.cn' }
 	@{ Name = 'pe-storage-file-test'; GroupId = 'file'; PrivateDnsZone = 'privatelink.file.core.chinacloudapi.cn' }
 	@{ Name = 'pe-keyvault-test'; GroupId = 'vault'; PrivateDnsZone = 'privatelink.vaultcore.azure.cn' }
+	@{ Name = 'pe-eventgrid-topic-test'; GroupId = 'topic'; PrivateDnsZone = 'privatelink.eventgrid.azure.cn' }
 )
 
 $privateEndpoints = foreach ($definition in $privateEndpointDefinitions) {
@@ -409,6 +478,7 @@ $result = [ordered]@{
 	Location           = $Location
 	StorageAccountName = $storageAccountName
 	KeyVaultName       = $keyVaultName
+	EventGridTopicName = $eventGridTopicName
 	VNetName           = 'vnet-pe-cn-test'
 	SubnetName         = 'snet-private-endpoints'
 	PrivateDnsZoneGroupName = $PrivateDnsZoneGroupName
