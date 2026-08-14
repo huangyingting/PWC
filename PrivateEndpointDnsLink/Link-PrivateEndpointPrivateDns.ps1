@@ -102,6 +102,7 @@ $DestinationZoneResourceGroupAutomationVariableName = 'LinkPrivateEndpointPrivat
 $ManagedIdentityAccountIdAutomationVariableName = 'LinkPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
+$script:AzContextAutosaveDisabled = $false
 $RunStartedAt = Get-Date
 
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
@@ -180,11 +181,11 @@ $AzureChinaResourceGroupToPrivateDnsZones = @{
     'microsoft.desktopvirtualization/workspaces|connection'      = @('privatelink.wvd.azure.cn')
     'microsoft.desktopvirtualization/hostpools|connection'       = @('privatelink.wvd.azure.cn')
     'microsoft.sql/servers|sqlserver'                            = @('privatelink.database.chinacloudapi.cn')
-    'microsoft.azurecosmosdb/databaseaccounts|sql'               = @('privatelink.documents.azure.cn')
-    'microsoft.azurecosmosdb/databaseaccounts|mongodb'           = @('privatelink.mongo.cosmos.azure.cn')
-    'microsoft.azurecosmosdb/databaseaccounts|cassandra'         = @('privatelink.cassandra.cosmos.azure.cn')
-    'microsoft.azurecosmosdb/databaseaccounts|gremlin'           = @('privatelink.gremlin.cosmos.azure.cn')
-    'microsoft.azurecosmosdb/databaseaccounts|table'             = @('privatelink.table.cosmos.azure.cn')
+    'microsoft.documentdb/databaseaccounts|sql'                  = @('privatelink.documents.azure.cn')
+    'microsoft.documentdb/databaseaccounts|mongodb'              = @('privatelink.mongo.cosmos.azure.cn')
+    'microsoft.documentdb/databaseaccounts|cassandra'            = @('privatelink.cassandra.cosmos.azure.cn')
+    'microsoft.documentdb/databaseaccounts|gremlin'              = @('privatelink.gremlin.cosmos.azure.cn')
+    'microsoft.documentdb/databaseaccounts|table'                = @('privatelink.table.cosmos.azure.cn')
     'microsoft.dbformysql/servers|mysqlserver'                   = @('privatelink.mysql.database.chinacloudapi.cn')
     'microsoft.dbformysql/flexibleservers|mysqlserver'           = @('privatelink.mysql.database.chinacloudapi.cn')
     'microsoft.dbformariadb/servers|mariadbserver'               = @('privatelink.mariadb.database.chinacloudapi.cn')
@@ -325,6 +326,11 @@ function Select-AzureChinaSubscription {
     )
 
     Import-RequiredAzModules
+    if ($UseManagedIdentityLogin -and -not $script:AzContextAutosaveDisabled) {
+        Disable-AzContextAutosave -Scope Process -ErrorAction Stop | Out-Null
+        $script:AzContextAutosaveDisabled = $true
+    }
+
     $connectParameters = @{
         Environment = 'AzureChinaCloud'
         ErrorAction = 'Stop'
@@ -973,6 +979,48 @@ function Confirm-ResourceGroupExists {
     }
 }
 
+function Wait-PrivateDnsZoneReady {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ZoneName,
+
+        [ValidateRange(1, 3600)]
+        [int]$TimeoutSeconds = 300,
+
+        [ValidateRange(1, 60)]
+        [int]$PollIntervalSeconds = 2
+    )
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    while ($true) {
+        $zone = Invoke-ArmJson `
+            -Method GET `
+            -Path $Path `
+            -ExpectedStatusCode @(200) `
+            -AllowNotFound
+        if ($null -ne $zone) {
+            $properties = Get-ObjectPropertyValue -InputObject $zone -Name 'properties'
+            $provisioningState = [string](Get-ObjectPropertyValue -InputObject $properties -Name 'provisioningState')
+            if ($provisioningState -ieq 'Succeeded') {
+                return
+            }
+
+            if ($provisioningState -iin @('Failed', 'Canceled')) {
+                throw "Private DNS zone '$ZoneName' finished provisioning with state '$provisioningState'."
+            }
+        }
+
+        if ([DateTime]::UtcNow -ge $deadline) {
+            throw "Timed out after '$TimeoutSeconds' seconds waiting for Private DNS zone '$ZoneName' to finish provisioning."
+        }
+
+        Start-Sleep -Seconds $PollIntervalSeconds
+    }
+}
+
 function Resolve-DestinationPrivateDnsZones {
     param(
         [Parameter(Mandatory = $true)]
@@ -1033,6 +1081,7 @@ function Resolve-DestinationPrivateDnsZones {
                 -Path $zonePath `
                 -Body @{ location = 'global'; properties = @{} } `
                 -ExpectedStatusCode @(200, 201, 202) | Out-Null
+            Wait-PrivateDnsZoneReady -Path $zonePath -ZoneName $zoneName
         }
 
         $results.Add([pscustomobject]@{

@@ -1,22 +1,46 @@
 # Targeted Private Endpoint DNS Link
 
-Deploys one Azure Automation runbook for linking a supplied Azure China Private Endpoint to its inferred Private DNS zone or zones.
+Azure China Automation runbook that infers the required Private DNS zone and links it to one Private Endpoint.
 
-## Files
+## Quick start: existing configured account
 
-- `Link-PrivateEndpointPrivateDns.ps1` — targeted Automation runbook.
-- `Deploy-Link-PrivateEndpointPrivateDnsAutomation.ps1` — dedicated Azure China deployment script.
-- `Test-Link-PrivateEndpointPrivateDns.ps1` — offline inference and zone-group test harness.
+You do **not** need a new Automation Account or the deployment script when the existing account already has:
 
-## Prerequisites
+- a system-assigned managed identity;
+- `Az.Accounts` and `Az.Resources` in the runbook runtime;
+- **Reader** and **Network Contributor** on the Private Endpoint subscription; and
+- **Private DNS Zone Contributor** on the destination subscription or Private DNS resource group.
 
-- PowerShell modules `Az.Accounts`, `Az.Resources`, and `Az.Automation` installed locally.
-- Access to all three subscriptions in the same Microsoft Entra tenant.
-- Permission to create the Automation resource group/account and, unless skipped, assign roles.
+To install or update the runbook:
 
-## Deploy
+1. In the Azure China portal, open the existing Automation Account.
+2. Create or open a PowerShell runbook named `Link-PrivateEndpointPrivateDns`.
+3. Paste the complete contents of `Link-PrivateEndpointPrivateDns.ps1`.
+4. Select **Save**, then **Publish**.
+5. Select **Start** and enter `PrivateEndpointResourceId`.
 
-Run from this folder:
+Example:
+
+```text
+/subscriptions/<source-subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Network/privateEndpoints/<private-endpoint-name>
+```
+
+For the destination, use either runbook inputs or these unencrypted String Automation variables:
+
+| Runbook input | Automation variable | Required |
+|---|---|---|
+| `DestinationSubscriptionId` | `LinkPrivateEndpointPrivateDnsDestinationSubscriptionId` | Yes |
+| `DestinationPrivateDnsZoneResourceGroupName` | `LinkPrivateEndpointPrivateDnsDestinationZoneResourceGroupName` | No |
+
+If the variables already exist, enter only `PrivateEndpointResourceId` and leave the other inputs empty.
+
+> The Automation Account must be in Azure China, and all involved subscriptions must be in the same Microsoft Entra tenant.
+
+## Automated setup or repair
+
+Use the deployer only if the account is new, is missing configuration, or should be configured automatically.
+
+Local requirements: `Az.Accounts`, `Az.Resources`, and `Az.Automation`, plus permission to update the account and assign roles.
 
 ```powershell
 .\Deploy-Link-PrivateEndpointPrivateDnsAutomation.ps1 `
@@ -27,34 +51,27 @@ Run from this folder:
     -DestinationSubscriptionId "<private-dns-subscription-id>"
 ```
 
-The deployer uses a system-assigned managed identity, publishes only `Link-PrivateEndpointPrivateDns`, saves the destination subscription, and assigns the recommended roles.
+The deployer reuses an account with that exact subscription, resource group, and name; otherwise, it creates one. It configures the identity, modules, runbook, variables, and missing role assignments.
 
-The runbook scans all Private DNS zones in the destination subscription and selects one exact zone-name match. The deployer therefore assigns `Private DNS Zone Contributor` at destination-subscription scope. If the same zone name exists in multiple resource groups, rerun the deployment with `-DestinationPrivateDnsZoneResourceGroupName "<private-dns-resource-group>"` to restrict both the search and role assignment to that resource group. When this optional filter is used, that resource group must already exist.
+It does not remove unrelated account resources, but it overwrites the `Link-PrivateEndpointPrivateDns` runbook and its dedicated variables. Add `-DestinationPrivateDnsZoneResourceGroupName "<private-dns-resource-group>"` to limit zone lookup and destination RBAC to one existing resource group.
 
-If no matching zone exists, the runbook stops safely. To allow it to create a missing zone, configure `DestinationPrivateDnsZoneResourceGroupName`. Use `-SkipModuleImport`, `-SkipRunbookPublish`, or `-SkipRoleAssignments` only when those steps are managed separately.
+## Behavior and verification
 
-## Run in the Azure portal
+- The runbook derives the source subscription from `PrivateEndpointResourceId`.
+- It finds one exact inferred zone-name match in the destination scope.
+- Without a destination resource group, a missing or duplicate zone causes a safe failure.
+- With a destination resource group, a missing zone can be created there.
+- It updates the Private Endpoint DNS zone group; it does not create VNet links.
 
-1. In the Azure China portal, open the Automation Account.
-2. Open **Runbooks** > **Link-PrivateEndpointPrivateDns** > **Start**.
-3. Enter only the full Private Endpoint resource ID in `PrivateEndpointResourceId`.
-4. Leave the remaining inputs empty and start the job.
+After the job completes, check its output and the Private Endpoint's **DNS configuration**. `ZoneGroupNoChange` means it was already linked correctly.
 
-Example resource ID:
+## Files
 
-```text
-/subscriptions/<source-subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Network/privateEndpoints/<private-endpoint-name>
-```
+- `Link-PrivateEndpointPrivateDns.ps1` — Automation runbook.
+- `Deploy-Link-PrivateEndpointPrivateDnsAutomation.ps1` — optional setup deployer.
+- `Test-Link-PrivateEndpointPrivateDns.ps1` — offline tests.
 
-## Output and verification
-
-The job outputs one row per inferred zone, including `ZoneName`, `DestinationPrivateDnsZoneId`, `Operation`, and `Changed`. `ZoneGroupNoChange` means the endpoint was already linked correctly.
-
-Verify the completed job output, then open the Private Endpoint's **DNS configuration** and confirm its DNS zone group references the destination zone. Azure should manage the endpoint A record in that zone.
-
-## Local test
-
-No Azure sign-in is required:
+Run the tests without Azure sign-in:
 
 ```powershell
 .\Test-Link-PrivateEndpointPrivateDns.ps1

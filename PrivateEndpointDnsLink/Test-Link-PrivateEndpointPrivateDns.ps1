@@ -48,12 +48,16 @@ foreach ($variableName in $requiredVariableNames) {
 
 $requiredFunctionNames = @(
     'Get-ObjectPropertyValue'
+    'Import-RequiredAzModules'
+    'Select-AzureChinaSubscription'
     'ConvertTo-NormalizedFqdn'
     'Test-AzureChinaPaaSPrivateDnsZoneName'
     'Get-PrivateDnsZoneGroupZoneIds'
     'Add-ZoneInference'
     'Get-InferredPrivateDnsZones'
     'Resolve-DestinationPrivateDnsZones'
+    'Confirm-ResourceGroupExists'
+    'Wait-PrivateDnsZoneReady'
     'ConvertTo-ArmPathSegment'
     'Get-PrivateDnsZoneGroupName'
     'New-PrivateDnsZoneGroupPath'
@@ -176,6 +180,15 @@ Invoke-InferenceCase `
     -ExpectedZones @('privatelink.mysql.database.chinacloudapi.cn')
 
 Invoke-InferenceCase `
+    -Name 'CosmosSqlUsesDocumentDbResourceProvider' `
+    -Connections @([pscustomobject]@{
+        ResourceType         = 'microsoft.documentdb/databaseaccounts'
+        GroupId              = 'Sql'
+        PrivateLinkServiceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.DocumentDB/databaseAccounts/account'
+    }) `
+    -ExpectedZones @('privatelink.documents.azure.cn')
+
+Invoke-InferenceCase `
     -Name 'AmlInfersBothZonesWithoutFqdn' `
     -Connections @([pscustomobject]@{
         ResourceType         = 'microsoft.machinelearningservices/workspaces'
@@ -198,6 +211,74 @@ Invoke-InferenceCase `
         'privatelink.azure-devices.cn'
         'privatelink.servicebus.chinacloudapi.cn'
     )
+
+$script:ConnectedWithManagedIdentity = $false
+$script:AzContextAutosaveDisabled = $false
+$script:MockContextAutosaveDisableCount = 0
+$script:MockConnectCount = 0
+$script:MockSetContextCount = 0
+$script:MockSelectedSubscriptionId = $null
+
+function Import-RequiredAzModules {
+}
+
+function Disable-AzContextAutosave {
+    [CmdletBinding()]
+    param(
+        [string]$Scope
+    )
+
+    $script:MockContextAutosaveDisableCount++
+}
+
+function Connect-AzAccount {
+    [CmdletBinding()]
+    param(
+        [string]$Environment,
+        [switch]$Identity,
+        [string]$AccountId,
+        [string]$Tenant
+    )
+
+    $script:MockConnectCount++
+}
+
+function Set-AzContext {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [string]$SubscriptionId,
+        [string]$Tenant
+    )
+
+    $script:MockSetContextCount++
+    $script:MockSelectedSubscriptionId = $SubscriptionId
+}
+
+function Get-AzContext {
+    [CmdletBinding()]
+    param()
+
+    return [pscustomobject]@{
+        Environment  = [pscustomobject]@{ Name = 'AzureChinaCloud' }
+        Subscription = [pscustomobject]@{ Id = $script:MockSelectedSubscriptionId }
+        Tenant       = [pscustomobject]@{ Id = '00000000-0000-0000-0000-000000000000' }
+    }
+}
+
+$managedIdentitySubscriptionId = '11111111-1111-1111-1111-111111111111'
+Select-AzureChinaSubscription `
+    -SubscriptionId $managedIdentitySubscriptionId `
+    -UseManagedIdentityLogin $true | Out-Null
+Select-AzureChinaSubscription `
+    -SubscriptionId $managedIdentitySubscriptionId `
+    -UseManagedIdentityLogin $true | Out-Null
+Add-Assertion `
+    -Name 'ManagedIdentityDisablesContextAutosaveOnce' `
+    -Passed ($script:MockContextAutosaveDisableCount -eq 1 -and
+        $script:MockConnectCount -eq 1 -and
+        $script:MockSetContextCount -eq 2 -and
+        $script:MockSelectedSubscriptionId -eq $managedIdentitySubscriptionId) `
+    -Details "DisableCount='$($script:MockContextAutosaveDisableCount)'; ConnectCount='$($script:MockConnectCount)'; SetContextCount='$($script:MockSetContextCount)'."
 
 $existingZoneGroup = [pscustomobject]@{
     properties = [pscustomobject]@{
@@ -296,9 +377,12 @@ Add-Assertion `
     -Details 'A missing zone fails safely when no creation resource group is configured.'
 
 $NetworkApiVersion = '2023-09-01'
+$PrivateDnsApiVersion = '2018-09-01'
+$ResourceGroupApiVersion = '2021-04-01'
 $ScriptCommand = $PSCmdlet
 $script:MockZoneGroups = @()
 $script:MockPutCalls = New-Object System.Collections.Generic.List[object]
+$script:MockPrivateDnsZoneProvisioningState = $null
 
 function Get-ArmPagedValues {
     param(
@@ -328,7 +412,44 @@ function Invoke-ArmJson {
         Path   = $Path
         Body   = $Body
     })
+
+    if ($Method -eq 'GET' -and $Path -match '/resourceGroups/[^/?]+\?api-version=2021-04-01$') {
+        return [pscustomobject]@{ id = ($Path -replace '\?api-version=.+$') }
+    }
+
+    if ($Method -eq 'GET' -and
+        $Path -match '/providers/Microsoft\.Network/privateDnsZones/[^/?]+\?api-version=' -and
+        -not [string]::IsNullOrWhiteSpace($script:MockPrivateDnsZoneProvisioningState)) {
+        return [pscustomobject]@{
+            properties = [pscustomobject]@{
+                provisioningState = $script:MockPrivateDnsZoneProvisioningState
+            }
+        }
+    }
 }
+
+$script:MockPrivateDnsZoneProvisioningState = 'Succeeded'
+$createdZone = @(Resolve-DestinationPrivateDnsZones `
+    -SubscriptionId '22222222-2222-2222-2222-222222222222' `
+    -InferredZones @($inferredBlobZone) `
+    -ExistingZones @() `
+    -ResourceGroupName 'target-dns' `
+    -ResourceGroupLocation 'chinaeast2')
+$zoneCreateCalls = @($script:MockPutCalls.ToArray() | Where-Object {
+    $_.Method -eq 'PUT' -and $_.Path -match '/privateDnsZones/'
+})
+$zoneReadyCalls = @($script:MockPutCalls.ToArray() | Where-Object {
+    $_.Method -eq 'GET' -and $_.Path -match '/privateDnsZones/'
+})
+Add-Assertion `
+    -Name 'CreatedPrivateDnsZoneIsReadyBeforeUse' `
+    -Passed ($createdZone.Count -eq 1 -and
+        $zoneCreateCalls.Count -eq 1 -and
+        $zoneReadyCalls.Count -eq 1 -and
+        $createdZone[0].Id -eq '/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/target-dns/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.chinacloudapi.cn') `
+    -Details "CreateCalls='$($zoneCreateCalls.Count)'; ReadyCalls='$($zoneReadyCalls.Count)'; ResolvedId='$([string]$createdZone[0].Id)'."
+$script:MockPrivateDnsZoneProvisioningState = $null
+$script:MockPutCalls.Clear()
 
 $privateEndpoint = [pscustomobject]@{
     id   = '/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/app/providers/Microsoft.Network/privateEndpoints/pe-blob'
