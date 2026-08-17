@@ -546,12 +546,13 @@ function Ensure-PrivateDnsZoneVirtualNetworkLink {
 
         if (-not [string]::IsNullOrWhiteSpace($existingVirtualNetworkId) -and (Normalize-ResourceId -ResourceId $existingVirtualNetworkId) -eq $normalizedTargetVirtualNetworkId) {
             return [pscustomobject]@{
-                ZoneType                       = $ZoneType
-                ZoneName                       = $zoneName
-                ZoneResourceGroupName          = $resourceGroupName
-                LinkName                       = $existingLinkName
-                TargetVirtualNetworkResourceId = $TargetVirtualNetworkId
-                Action                         = 'AlreadyLinked'
+                ZoneType                        = $ZoneType
+                ZoneName                        = $zoneName
+                ZoneResourceGroupName           = $resourceGroupName
+                LinkName                        = $existingLinkName
+                TargetVirtualNetworkResourceId  = $TargetVirtualNetworkId
+                ExistingVirtualNetworkResourceId = $existingVirtualNetworkId
+                Action                          = 'AlreadyLinked'
             }
         }
 
@@ -583,12 +584,13 @@ function Ensure-PrivateDnsZoneVirtualNetworkLink {
     }
 
     return [pscustomobject]@{
-        ZoneType                       = $ZoneType
-        ZoneName                       = $zoneName
-        ZoneResourceGroupName          = $resourceGroupName
-        LinkName                       = $TargetLinkName
-        TargetVirtualNetworkResourceId = $TargetVirtualNetworkId
-        Action                         = $action
+        ZoneType                        = $ZoneType
+        ZoneName                        = $zoneName
+        ZoneResourceGroupName           = $resourceGroupName
+        LinkName                        = $TargetLinkName
+        TargetVirtualNetworkResourceId  = $TargetVirtualNetworkId
+        ExistingVirtualNetworkResourceId = $null
+        Action                          = $action
     }
 }
 
@@ -680,4 +682,13 @@ foreach ($actionGroup in @($results | Group-Object Action | Sort-Object Name)) {
 
 Write-TraceLog -Message "Completed Repair-AksPrivateDnsLinks.ps1 in $(Format-TraceDuration -StartTime $RunStartedAt)."
 
-$results | Sort-Object ZoneType, ZoneName | Format-Table -AutoSize
+foreach ($result in @($results | Sort-Object ZoneType, ZoneName)) {
+    Write-Output '---'
+    Write-Output "ZoneType: $($result.ZoneType)"
+    Write-Output "ZoneName: $($result.ZoneName)"
+    Write-Output "ZoneResourceGroupName: $($result.ZoneResourceGroupName)"
+    Write-Output "LinkName: $($result.LinkName)"
+    Write-Output "TargetVirtualNetworkResourceId: $($result.TargetVirtualNetworkResourceId)"
+    Write-Output "ExistingVirtualNetworkResourceId: $($result.ExistingVirtualNetworkResourceId)"
+    Write-Output "Action: $($result.Action)"
+}
