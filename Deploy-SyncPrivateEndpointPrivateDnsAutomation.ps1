@@ -1,13 +1,17 @@
 <#
 .SYNOPSIS
-Deploys the private endpoint private DNS sync and AKS DNS repair scripts as Azure Automation runbooks.
+Deploys the Private Endpoint DNS sync/link and AKS DNS repair scripts as Azure Automation runbooks.
 
 .DESCRIPTION
 Creates or updates an Azure China Automation Account with a user-assigned
-managed identity by default, imports Sync-PrivateEndpointPrivateDns.ps1 and
-Repair-AksPrivateDnsLinks.ps1 as PowerShell runbooks, publishes them, and can
-optionally assign recommended RBAC permissions to the Automation Account managed
-identity.
+managed identity by default, imports Sync-PrivateEndpointPrivateDns.ps1,
+Link-PrivateEndpointPrivateDns.ps1, and Repair-AksPrivateDnsLinks.ps1 as
+PowerShell runbooks, publishes them, and can optionally assign recommended RBAC
+permissions to the Automation Account managed identity.
+
+This is the single deployment entry point for all three runbooks. Shared
+Automation variables provide their tenant, destination subscription, and
+managed identity client ID so those settings cannot drift between runbooks.
 
 The deployment saves source subscription, destination subscription, and managed
 identity client ID defaults as Automation variables so the runbook can start
@@ -26,8 +30,8 @@ Az.Accounts and Az.Resources from PowerShell Gallery.
         -Location "chinaeast2" `
         -SourceSubscriptionId "22222222-2222-2222-2222-222222222222"
 
-    Create or update the Automation Account, publish the runbook, and save the
-    runbook default source subscription and default destination subscription.
+    Create or update the Automation Account, publish all three runbooks, and
+    save their default source and destination subscriptions.
 
 .EXAMPLE
     .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
@@ -40,10 +44,10 @@ Az.Accounts and Az.Resources from PowerShell Gallery.
         -GrantSourceNetworkContributor `
         -GrantDestinationContributor
 
-Deploy the runbook and assign Reader plus Network Contributor on the source
-    subscription, Private DNS Zone Contributor on the destination subscription, and
-    Contributor on the destination subscription so the runbook can create missing
-    destination resource groups when needed.
+    Deploy the runbooks and assign Reader plus Network Contributor on the source
+    subscription, Private DNS Zone Contributor on the destination subscription,
+    and Contributor on the destination subscription so the runbooks can create
+    missing destination resource groups when needed.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]
@@ -87,6 +91,12 @@ param(
     [string]$AksRepairRunbookPath = (Join-Path $PSScriptRoot 'Repair-AksPrivateDnsLinks.ps1'),
 
     [ValidateNotNullOrEmpty()]
+    [string]$PrivateEndpointDnsLinkRunbookName = 'Link-PrivateEndpointPrivateDns',
+
+    [ValidateNotNullOrEmpty()]
+    [string]$PrivateEndpointDnsLinkRunbookPath = (Join-Path $PSScriptRoot 'Link-PrivateEndpointPrivateDns.ps1'),
+
+    [ValidateNotNullOrEmpty()]
     [string]$AksTargetVirtualNetworkResourceId = '/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005',
 
     [ValidateSet('PowerShell', 'PowerShell72')]
@@ -119,10 +129,17 @@ $ErrorActionPreference = 'Stop'
 
 $AutomationApiVersion = '2023-11-01'
 $ManagedIdentityApiVersion = '2023-01-31'
+$DefaultTenantIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsTenantId'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName = 'RepairAksPrivateDnsLinksTargetVirtualNetworkResourceId'
+$DefaultLinkDestinationZoneResourceGroupAutomationVariableName = 'LinkPrivateEndpointPrivateDnsDestinationZoneResourceGroupName'
+$LegacyLinkAutomationVariableNames = @(
+    'LinkPrivateEndpointPrivateDnsTenantId'
+    'LinkPrivateEndpointPrivateDnsDestinationSubscriptionId'
+    'LinkPrivateEndpointPrivateDnsManagedIdentityAccountId'
+)
 $DefaultDestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205'
 $RequiredAutomationModules = @('Az.Accounts', 'Az.Resources')
 
@@ -682,6 +699,14 @@ elseif (-not [string]::IsNullOrWhiteSpace($UserAssignedManagedIdentityResourceId
 }
 
 Select-AzureChinaSubscription -TargetSubscriptionId $SubscriptionId -TargetTenantId $TenantId
+if ([string]::IsNullOrWhiteSpace($TenantId)) {
+    $TenantId = [string](Get-AzContext -ErrorAction Stop).Tenant.Id
+}
+
+if ([string]::IsNullOrWhiteSpace($TenantId)) {
+    throw "Could not determine the Microsoft Entra tenant ID for Automation subscription '$SubscriptionId'. Supply -TenantId explicitly."
+}
+
 Confirm-ResourceGroup -Name $ResourceGroupName -TargetLocation $Location
 
 $managedIdentity = $null
@@ -736,13 +761,28 @@ if (-not $SkipModuleImport) {
 
 Import-AutomationRunbookFile -Name $RunbookName -Path $RunbookPath
 Import-AutomationRunbookFile -Name $AksRepairRunbookName -Path $AksRepairRunbookPath
+Import-AutomationRunbookFile -Name $PrivateEndpointDnsLinkRunbookName -Path $PrivateEndpointDnsLinkRunbookPath
 
 if (-not [string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
     Set-AutomationPlainVariable -Name $DefaultSourceSubscriptionIdAutomationVariableName -Value $SourceSubscriptionId
 }
 
+Set-AutomationPlainVariable -Name $DefaultTenantIdAutomationVariableName -Value $TenantId
 Set-AutomationPlainVariable -Name $DefaultDestinationSubscriptionIdAutomationVariableName -Value $DestinationSubscriptionId
 Set-AutomationPlainVariable -Name $DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName -Value $AksTargetVirtualNetworkResourceId
+
+foreach ($legacyVariableName in $LegacyLinkAutomationVariableNames) {
+    Remove-AutomationPlainVariable -Name $legacyVariableName
+}
+
+if ([string]::IsNullOrWhiteSpace($DestinationPrivateDnsZoneResourceGroupName)) {
+    Remove-AutomationPlainVariable -Name $DefaultLinkDestinationZoneResourceGroupAutomationVariableName
+}
+else {
+    Set-AutomationPlainVariable `
+        -Name $DefaultLinkDestinationZoneResourceGroupAutomationVariableName `
+        -Value $DestinationPrivateDnsZoneResourceGroupName
+}
 
 if ($ManagedIdentityType -eq 'UserAssigned') {
     Set-AutomationPlainVariable -Name $DefaultManagedIdentityAccountIdAutomationVariableName -Value $managedIdentityClientId
@@ -764,6 +804,7 @@ if ($AssignRecommendedRoles) {
     ManagedIdentityObjectId = $principalId
     ManagedIdentityClientId = $managedIdentityClientId
     ManagedIdentityResourceId = $managedIdentityResourceId
+    DefaultTenantIdVariable = $DefaultTenantIdAutomationVariableName
     DefaultSourceSubscriptionIdVariable = $DefaultSourceSubscriptionIdAutomationVariableName
     DefaultDestinationSubscriptionIdVariable = $DefaultDestinationSubscriptionIdAutomationVariableName
     DefaultAksTargetVirtualNetworkResourceIdVariable = $DefaultAksTargetVirtualNetworkResourceIdAutomationVariableName
@@ -772,6 +813,12 @@ if ($AssignRecommendedRoles) {
     SyncRunbookPath        = (Resolve-Path -Path $RunbookPath).Path
     AksRepairRunbookName   = $AksRepairRunbookName
     AksRepairRunbookPath   = (Resolve-Path -Path $AksRepairRunbookPath).Path
+    PrivateEndpointDnsLinkRunbookName = $PrivateEndpointDnsLinkRunbookName
+    PrivateEndpointDnsLinkRunbookPath = (Resolve-Path -Path $PrivateEndpointDnsLinkRunbookPath).Path
+    LinkTenantIdVariable = $DefaultTenantIdAutomationVariableName
+    LinkDestinationSubscriptionIdVariable = $DefaultDestinationSubscriptionIdAutomationVariableName
+    LinkDestinationZoneResourceGroupVariable = $DefaultLinkDestinationZoneResourceGroupAutomationVariableName
+    LinkManagedIdentityAccountIdVariable = $DefaultManagedIdentityAccountIdAutomationVariableName
     RunbookType            = $RunbookType
     ModuleImportStarted    = -not $SkipModuleImport
     RunbooksPublished      = -not $SkipRunbookPublish

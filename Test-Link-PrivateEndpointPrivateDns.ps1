@@ -47,6 +47,8 @@ foreach ($variableName in $requiredVariableNames) {
 }
 
 $requiredFunctionNames = @(
+    'Get-AutomationVariableString'
+    'Get-FirstAutomationVariableString'
     'Get-ObjectPropertyValue'
     'Import-RequiredAzModules'
     'Select-AzureChinaSubscription'
@@ -131,6 +133,43 @@ function Test-StringSetEqual {
 
     return $true
 }
+
+$script:MockAutomationVariables = @{
+    SyncPrivateEndpointPrivateDnsDestinationSubscriptionId = '22222222-2222-2222-2222-222222222222'
+}
+
+function Get-AutomationVariable {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    if ($script:MockAutomationVariables.ContainsKey($Name)) {
+        return $script:MockAutomationVariables[$Name]
+    }
+
+    throw "Automation variable '$Name' was not found."
+}
+
+$sharedDestinationSubscriptionId = Get-FirstAutomationVariableString -Names @(
+    'LinkPrivateEndpointPrivateDnsDestinationSubscriptionId'
+    'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
+)
+Add-Assertion `
+    -Name 'SharedAutomationVariableIsUsedWhenDedicatedVariableIsMissing' `
+    -Passed ($sharedDestinationSubscriptionId -eq '22222222-2222-2222-2222-222222222222') `
+    -Details "ResolvedDestinationSubscriptionId='$sharedDestinationSubscriptionId'."
+
+$script:MockAutomationVariables['LinkPrivateEndpointPrivateDnsDestinationSubscriptionId'] = '33333333-3333-3333-3333-333333333333'
+$dedicatedDestinationSubscriptionId = Get-FirstAutomationVariableString -Names @(
+    'LinkPrivateEndpointPrivateDnsDestinationSubscriptionId'
+    'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
+)
+Add-Assertion `
+    -Name 'DedicatedAutomationVariableOverridesSharedFallback' `
+    -Passed ($dedicatedDestinationSubscriptionId -eq '33333333-3333-3333-3333-333333333333') `
+    -Details "ResolvedDestinationSubscriptionId='$dedicatedDestinationSubscriptionId'."
 
 function Invoke-InferenceCase {
     param(
@@ -218,6 +257,11 @@ $script:MockContextAutosaveDisableCount = 0
 $script:MockConnectCount = 0
 $script:MockSetContextCount = 0
 $script:MockSelectedSubscriptionId = $null
+$script:MockConnectSubscriptionId = $null
+$script:MockConnectTenantId = $null
+$script:MockConnectAccountId = $null
+$script:MockConnectScope = $null
+$script:MockSkippedContextPopulation = $false
 
 function Import-RequiredAzModules {
 }
@@ -232,22 +276,31 @@ function Disable-AzContextAutosave {
 }
 
 function Connect-AzAccount {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [string]$Environment,
         [switch]$Identity,
         [string]$AccountId,
-        [string]$Tenant
+        [string]$Tenant,
+        [string]$Subscription,
+        [switch]$SkipContextPopulation,
+        [string]$Scope
     )
 
     $script:MockConnectCount++
+    $script:MockConnectSubscriptionId = $Subscription
+    $script:MockConnectTenantId = $Tenant
+    $script:MockConnectAccountId = $AccountId
+    $script:MockConnectScope = $Scope
+    $script:MockSkippedContextPopulation = [bool]$SkipContextPopulation
 }
 
 function Set-AzContext {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [string]$SubscriptionId,
-        [string]$Tenant
+        [string]$Tenant,
+        [string]$Scope
     )
 
     $script:MockSetContextCount++
@@ -266,19 +319,30 @@ function Get-AzContext {
 }
 
 $managedIdentitySubscriptionId = '11111111-1111-1111-1111-111111111111'
+$managedIdentityTenantId = '00000000-0000-0000-0000-000000000000'
+$managedIdentityClientId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 Select-AzureChinaSubscription `
     -SubscriptionId $managedIdentitySubscriptionId `
-    -UseManagedIdentityLogin $true | Out-Null
+    -TenantId $managedIdentityTenantId `
+    -UseManagedIdentityLogin $true `
+    -IdentityAccountId $managedIdentityClientId | Out-Null
 Select-AzureChinaSubscription `
     -SubscriptionId $managedIdentitySubscriptionId `
-    -UseManagedIdentityLogin $true | Out-Null
+    -TenantId $managedIdentityTenantId `
+    -UseManagedIdentityLogin $true `
+    -IdentityAccountId $managedIdentityClientId | Out-Null
 Add-Assertion `
-    -Name 'ManagedIdentityDisablesContextAutosaveOnce' `
+    -Name 'ManagedIdentityLoginIsProcessScopedAndDeterministic' `
     -Passed ($script:MockContextAutosaveDisableCount -eq 1 -and
         $script:MockConnectCount -eq 1 -and
         $script:MockSetContextCount -eq 2 -and
-        $script:MockSelectedSubscriptionId -eq $managedIdentitySubscriptionId) `
-    -Details "DisableCount='$($script:MockContextAutosaveDisableCount)'; ConnectCount='$($script:MockConnectCount)'; SetContextCount='$($script:MockSetContextCount)'."
+        $script:MockSelectedSubscriptionId -eq $managedIdentitySubscriptionId -and
+        $script:MockConnectSubscriptionId -eq $managedIdentitySubscriptionId -and
+        $script:MockConnectTenantId -eq $managedIdentityTenantId -and
+        $script:MockConnectAccountId -eq $managedIdentityClientId -and
+        $script:MockConnectScope -eq 'Process' -and
+        $script:MockSkippedContextPopulation) `
+    -Details "DisableCount='$($script:MockContextAutosaveDisableCount)'; ConnectCount='$($script:MockConnectCount)'; SetContextCount='$($script:MockSetContextCount)'; Subscription='$($script:MockConnectSubscriptionId)'; Tenant='$($script:MockConnectTenantId)'; AccountId='$($script:MockConnectAccountId)'; Scope='$($script:MockConnectScope)'; SkipContextPopulation='$($script:MockSkippedContextPopulation)'."
 
 $existingZoneGroup = [pscustomobject]@{
     properties = [pscustomobject]@{

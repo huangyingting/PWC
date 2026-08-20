@@ -31,10 +31,11 @@ required zone is missing, it can be created only when that resource group is
 supplied. Duplicate subscription-wide matches fail safely rather than guessing.
 Use SkipCreateMissingDestinationZones to require all zones to exist already.
 
-In Azure Automation, destination subscription, destination DNS resource group,
-and an optional user-assigned managed identity client ID can be read from the
-dedicated Automation variables created by
-Deploy-Link-PrivateEndpointPrivateDnsAutomation.ps1.
+In Azure Automation, tenant, destination subscription, destination DNS resource
+group, and an optional user-assigned managed identity client ID can be read from
+dedicated Automation variables. When this runbook shares the Automation Account
+deployed by Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1, it falls back to
+that deployment's shared tenant, destination, and managed identity variables.
 
 Required permissions:
 - Reader and Network Contributor on the private endpoint and its network
@@ -97,9 +98,13 @@ $ErrorActionPreference = 'Stop'
 $NetworkApiVersion = '2023-09-01'
 $PrivateDnsApiVersion = '2018-09-01'
 $ResourceGroupApiVersion = '2021-04-01'
+$TenantIdAutomationVariableName = 'LinkPrivateEndpointPrivateDnsTenantId'
 $DestinationSubscriptionIdAutomationVariableName = 'LinkPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DestinationZoneResourceGroupAutomationVariableName = 'LinkPrivateEndpointPrivateDnsDestinationZoneResourceGroupName'
 $ManagedIdentityAccountIdAutomationVariableName = 'LinkPrivateEndpointPrivateDnsManagedIdentityAccountId'
+$SharedTenantIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsTenantId'
+$SharedDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
+$SharedManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
 $ScriptCommand = $PSCmdlet
 $script:ConnectedWithManagedIdentity = $false
 $script:AzContextAutosaveDisabled = $false
@@ -279,6 +284,27 @@ function Get-AutomationVariableString {
     return $null
 }
 
+function Get-FirstAutomationVariableString {
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$Names
+    )
+
+    foreach ($name in $Names) {
+        if ([string]::IsNullOrWhiteSpace($name)) {
+            continue
+        }
+
+        $value = Get-AutomationVariableString -Name $name
+        if (-not [string]::IsNullOrWhiteSpace($value)) {
+            return $value
+        }
+    }
+
+    return $null
+}
+
 function Get-ObjectPropertyValue {
     param(
         [object]$InputObject,
@@ -332,11 +358,16 @@ function Select-AzureChinaSubscription {
     }
 
     $connectParameters = @{
-        Environment = 'AzureChinaCloud'
-        ErrorAction = 'Stop'
+        Environment           = 'AzureChinaCloud'
+        Subscription          = $SubscriptionId
+        SkipContextPopulation = $true
+        Scope                 = 'Process'
+        ErrorAction           = 'Stop'
+        WhatIf                = $false
     }
     $contextParameters = @{
         SubscriptionId = $SubscriptionId
+        Scope          = 'Process'
         ErrorAction    = 'Stop'
         WhatIf         = $false
     }
@@ -353,16 +384,42 @@ function Select-AzureChinaSubscription {
         $contextParameters['Tenant'] = $TenantId
     }
 
+    $connectAccount = {
+        try {
+            Connect-AzAccount @connectParameters | Out-Null
+        }
+        catch {
+            if (-not $UseManagedIdentityLogin) {
+                throw
+            }
+
+            $identityDescription = if ([string]::IsNullOrWhiteSpace($IdentityAccountId)) {
+                'the Automation Account system-assigned managed identity'
+            }
+            else {
+                "user-assigned managed identity client ID '$IdentityAccountId'"
+            }
+            $tenantDescription = if ([string]::IsNullOrWhiteSpace($TenantId)) {
+                'without an explicit tenant ID'
+            }
+            else {
+                "in tenant '$TenantId'"
+            }
+
+            throw "Azure China sign-in failed using $identityDescription for subscription '$SubscriptionId' $tenantDescription. Confirm that the identity is enabled on the Automation Account. For a user-assigned identity, use its client ID (not its object/principal ID) and confirm that it is attached to the Automation Account. Original error: $($_.Exception.Message)"
+        }
+    }
+
     if ($UseManagedIdentityLogin) {
         if (-not $script:ConnectedWithManagedIdentity) {
-            Connect-AzAccount @connectParameters | Out-Null
+            & $connectAccount
             $script:ConnectedWithManagedIdentity = $true
         }
     }
     else {
         $currentContext = Get-AzContext -ErrorAction SilentlyContinue
         if (-not $currentContext -or $currentContext.Environment.Name -ne 'AzureChinaCloud') {
-            Connect-AzAccount @connectParameters | Out-Null
+            & $connectAccount
         }
     }
 
@@ -370,7 +427,7 @@ function Select-AzureChinaSubscription {
         Set-AzContext @contextParameters | Out-Null
     }
     catch {
-        Connect-AzAccount @connectParameters | Out-Null
+        & $connectAccount
         if ($UseManagedIdentityLogin) {
             $script:ConnectedWithManagedIdentity = $true
         }
@@ -378,7 +435,18 @@ function Select-AzureChinaSubscription {
         Set-AzContext @contextParameters | Out-Null
     }
 
-    return Get-AzContext -ErrorAction Stop
+    $selectedContext = Get-AzContext -ErrorAction Stop
+    if ($selectedContext.Environment.Name -ne 'AzureChinaCloud' -or
+        [string]$selectedContext.Subscription.Id -ine $SubscriptionId) {
+        throw "Azure context validation failed. Expected AzureChinaCloud subscription '$SubscriptionId'; selected environment='$($selectedContext.Environment.Name)', subscription='$([string]$selectedContext.Subscription.Id)'."
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($TenantId) -and
+        [string]$selectedContext.Tenant.Id -ine $TenantId) {
+        throw "Azure context validation failed. Subscription '$SubscriptionId' selected tenant '$([string]$selectedContext.Tenant.Id)' instead of required tenant '$TenantId'."
+    }
+
+    return $selectedContext
 }
 
 function Invoke-ArmJson {
@@ -1435,11 +1503,14 @@ if ($psPrivateMetadataVariable -and $psPrivateMetadataVariable.Value) {
 }
 
 if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
-    $DestinationSubscriptionId = Get-AutomationVariableString -Name $DestinationSubscriptionIdAutomationVariableName
+    $DestinationSubscriptionId = Get-FirstAutomationVariableString -Names @(
+        $DestinationSubscriptionIdAutomationVariableName
+        $SharedDestinationSubscriptionIdAutomationVariableName
+    )
 }
 
 if ([string]::IsNullOrWhiteSpace($DestinationSubscriptionId)) {
-    throw "DestinationSubscriptionId is required. Supply -DestinationSubscriptionId or create the dedicated Automation variable '$DestinationSubscriptionIdAutomationVariableName'."
+    throw "DestinationSubscriptionId is required. Supply -DestinationSubscriptionId or create Automation variable '$DestinationSubscriptionIdAutomationVariableName' or '$SharedDestinationSubscriptionIdAutomationVariableName'."
 }
 
 if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($DestinationPrivateDnsZoneResourceGroupName)) {
@@ -1447,7 +1518,37 @@ if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($DestinationPriv
 }
 
 if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
-    $ManagedIdentityAccountId = Get-AutomationVariableString -Name $ManagedIdentityAccountIdAutomationVariableName
+    $ManagedIdentityAccountId = Get-FirstAutomationVariableString -Names @(
+        $ManagedIdentityAccountIdAutomationVariableName
+        $SharedManagedIdentityAccountIdAutomationVariableName
+    )
+}
+
+$automationTenantId = $null
+if ($IsAzureAutomationRunbook -and
+    ([string]::IsNullOrWhiteSpace($SourceTenantId) -or [string]::IsNullOrWhiteSpace($DestinationTenantId))) {
+    $automationTenantId = Get-FirstAutomationVariableString -Names @(
+        $TenantIdAutomationVariableName
+        $SharedTenantIdAutomationVariableName
+    )
+}
+
+if ([string]::IsNullOrWhiteSpace($SourceTenantId)) {
+    $SourceTenantId = if (-not [string]::IsNullOrWhiteSpace($DestinationTenantId)) {
+        $DestinationTenantId
+    }
+    else {
+        $automationTenantId
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($DestinationTenantId)) {
+    $DestinationTenantId = if (-not [string]::IsNullOrWhiteSpace($SourceTenantId)) {
+        $SourceTenantId
+    }
+    else {
+        $automationTenantId
+    }
 }
 
 $PrivateEndpointResourceId = $PrivateEndpointResourceId.Trim().TrimEnd('/')
@@ -1468,7 +1569,16 @@ if (-not [guid]::TryParse($DestinationSubscriptionId, [ref]$parsedDestinationSub
 }
 
 $UseManagedIdentityLogin = [bool]($UseManagedIdentity -or $IsAzureAutomationRunbook -or -not [string]::IsNullOrWhiteSpace($ManagedIdentityAccountId))
-Write-TraceLog -Message "Starting Link-PrivateEndpointPrivateDns.ps1. PrivateEndpointResourceId='$PrivateEndpointResourceId'; DestinationSubscriptionId='$DestinationSubscriptionId'; DestinationPrivateDnsZoneResourceGroupName='$DestinationPrivateDnsZoneResourceGroupName'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
+$authenticationMode = if (-not $UseManagedIdentityLogin) {
+    'CurrentUser'
+}
+elseif ([string]::IsNullOrWhiteSpace($ManagedIdentityAccountId)) {
+    'SystemAssignedManagedIdentity'
+}
+else {
+    "UserAssignedManagedIdentity:$ManagedIdentityAccountId"
+}
+Write-TraceLog -Message "Starting Link-PrivateEndpointPrivateDns.ps1. PrivateEndpointResourceId='$PrivateEndpointResourceId'; DestinationSubscriptionId='$DestinationSubscriptionId'; DestinationPrivateDnsZoneResourceGroupName='$DestinationPrivateDnsZoneResourceGroupName'; SourceTenantId='$SourceTenantId'; DestinationTenantId='$DestinationTenantId'; WhatIf='$WhatIfPreference'; AuthenticationMode='$authenticationMode'."
 
 Write-TraceLog -Message "Selecting private endpoint subscription '$SourceSubscriptionId'."
 $sourceContext = Select-AzureChinaSubscription `

@@ -191,6 +191,7 @@ $PrivateDnsApiVersion = '2018-09-01'
 $NetworkApiVersion = '2023-09-01'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
 $ProvenanceTxtManagedBy = 'Sync-PrivateEndpointPrivateDns.ps1'
+$DefaultTenantIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsTenantId'
 $DefaultSourceSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsSourceSubscriptionId'
 $DefaultDestinationSubscriptionIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsDestinationSubscriptionId'
 $DefaultManagedIdentityAccountIdAutomationVariableName = 'SyncPrivateEndpointPrivateDnsManagedIdentityAccountId'
@@ -311,6 +312,20 @@ if ($IsAzureAutomationRunbook -and [string]::IsNullOrWhiteSpace($ManagedIdentity
     $ManagedIdentityAccountId = Get-AutomationVariableString -Name $DefaultManagedIdentityAccountIdAutomationVariableName
 }
 
+if ($IsAzureAutomationRunbook -and
+    ([string]::IsNullOrWhiteSpace($SourceTenantId) -or [string]::IsNullOrWhiteSpace($DestinationTenantId))) {
+    $automationTenantId = Get-AutomationVariableString -Name $DefaultTenantIdAutomationVariableName
+    if (-not [string]::IsNullOrWhiteSpace($automationTenantId)) {
+        if ([string]::IsNullOrWhiteSpace($SourceTenantId)) {
+            $SourceTenantId = $automationTenantId
+        }
+
+        if ([string]::IsNullOrWhiteSpace($DestinationTenantId)) {
+            $DestinationTenantId = $automationTenantId
+        }
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SourceSubscriptionId)) {
     throw "SourceSubscriptionId is required. In Azure Automation, pass SourceSubscriptionId or set the '$DefaultSourceSubscriptionIdAutomationVariableName' Automation variable."
 }
@@ -331,7 +346,7 @@ if (-not $CanUpdatePrivateEndpointZoneGroups) {
     Write-TraceLog -Level WARN -Message 'SourceTenantId and DestinationTenantId differ. Private endpoint DNS zone group linking requires a single tenant, so this run will use direct DNS record sync only.'
 }
 
-Write-TraceLog -Message "Starting Sync-PrivateEndpointPrivateDns.ps1. SourceSubscriptionId='$SourceSubscriptionId'; DestinationSubscriptionId='$DestinationSubscriptionId'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
+Write-TraceLog -Message "Starting Sync-PrivateEndpointPrivateDns.ps1. SourceSubscriptionId='$SourceSubscriptionId'; DestinationSubscriptionId='$DestinationSubscriptionId'; SourceTenantId='$SourceTenantId'; DestinationTenantId='$DestinationTenantId'; WhatIf='$WhatIfPreference'; UseManagedIdentity='$UseManagedIdentityLogin'."
 Write-TraceLog -Message "Mode: private endpoint zone-group linking with direct DNS A record fallback. CanUpdatePrivateEndpointZoneGroups='$CanUpdatePrivateEndpointZoneGroups'."
 
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
