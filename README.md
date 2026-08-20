@@ -23,12 +23,12 @@ Override these only when needed.
 
 ## Deploy
 
-`Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1` is the single deployment
+`Deploy-AzureChinaPrivateDnsAutomation.ps1` is the single deployment
 entry point. It creates or updates one Automation Account and publishes all
 three runbooks with the same managed identity and shared settings.
 
 ```powershell
-.\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
+.\Deploy-AzureChinaPrivateDnsAutomation.ps1 `
 	-SubscriptionId "<automation-subscription-id>" `
 	-ResourceGroupName "<automation-resource-group>" `
 	-AutomationAccountName "<automation-account-name>" `
@@ -118,11 +118,19 @@ The targeted Link tests require no Azure sign-in:
 
 ## Files
 
-- `Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1` — consolidated Automation Account deployer.
+Production Automation runbooks keep their published names:
+
 - `Sync-PrivateEndpointPrivateDns.ps1` — subscription-wide synchronization runbook.
 - `Link-PrivateEndpointPrivateDns.ps1` — targeted Private Endpoint DNS link runbook.
 - `Repair-AksPrivateDnsLinks.ps1` — AKS Private DNS VNet-link repair runbook.
+
+Deployment and test helpers use role-based prefixes:
+
+- `Deploy-AzureChinaPrivateDnsAutomation.ps1` — consolidated Automation Account deployer.
+- `Deploy-ChinaPrivateEndpointTest.ps1` — deploys reusable Azure China Private Endpoint test resources.
 - `Test-Link-PrivateEndpointPrivateDns.ps1` — offline targeted-link tests.
+- `Test-AmlPrivateEndpointSync.ps1` — Azure Machine Learning end-to-end synchronization test.
+- `Test-RedisPrivateEndpointSync.ps1` — Redis end-to-end synchronization test.
 
 ## Troubleshooting
 

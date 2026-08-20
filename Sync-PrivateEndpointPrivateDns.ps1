@@ -7,7 +7,7 @@ Scans a source subscription for private DNS zones, reads the A records from
 Private Link zones, and writes those records to matching private DNS zones in a
 destination subscription. When running in Azure Automation, SourceSubscriptionId,
 DestinationSubscriptionId, and ManagedIdentityAccountId can be read from
-Automation variables created by Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1.
+Automation variables created by Deploy-AzureChinaPrivateDnsAutomation.ps1.
 DestinationSubscriptionId defaults to 65a9c0da-4f85-47ba-ac0f-7401cbe43205,
 the same subscription used by Repair-AksPrivateDnsLinks.ps1's default target
 virtual network.

@@ -23,7 +23,7 @@ Account modules are not already present, this script can start imports for
 Az.Accounts and Az.Resources from PowerShell Gallery.
 
 .EXAMPLE
-    .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
+    .\Deploy-AzureChinaPrivateDnsAutomation.ps1 `
         -SubscriptionId "11111111-1111-1111-1111-111111111111" `
         -ResourceGroupName "rg-dns-sync-automation" `
         -AutomationAccountName "aa-dns-sync-cn-prod" `
@@ -34,7 +34,7 @@ Az.Accounts and Az.Resources from PowerShell Gallery.
     save their default source and destination subscriptions.
 
 .EXAMPLE
-    .\Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1 `
+    .\Deploy-AzureChinaPrivateDnsAutomation.ps1 `
         -SubscriptionId "11111111-1111-1111-1111-111111111111" `
         -ResourceGroupName "rg-dns-sync-automation" `
         -AutomationAccountName "aa-dns-sync-cn-prod" `

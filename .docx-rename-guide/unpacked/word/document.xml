@@ -1,0 +1,4821 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cei="http://schemas.microsoft.com/office/word/2026/wordml/cei" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+  <w:body>
+    <w:p w14:paraId="2D50B9D9" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="18" w:space="10" w:color="D04A02" />
+        </w:pBdr>
+        <w:spacing w:before="100" w:after="160" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+          <w:sz w:val="40" />
+          <w:szCs w:val="40" />
+        </w:rPr>
+        <w:t>PWC Azure China Private DNS Automation</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="0CF68CA2" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="260" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="5F6368" />
+          <w:sz w:val="22" />
+          <w:szCs w:val="22" />
+        </w:rPr>
+        <w:t>Deployment, operation, and troubleshooting guide</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="697DCB50" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Automates Private DNS operations for PWC on Azure China:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="19ED9933" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>PrivateEndpointPrivateDns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> syncs supported Private Endpoint DNS zones from a source subscription to the default destination subscription.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="4B1B0AE6" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Repair-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>AksPrivateDnsLinks</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> links AKS private DNS zones to the default FCS </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>VNet</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="677DFD6F" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">All three runbooks are deployed by </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Deploy-AzureChinaPrivateDnsAutomation.ps1</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="67706A08" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Defaults</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="9638" w:type="dxa" />
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto" />
+        </w:tblBorders>
+        <w:tblCellMar>
+          <w:left w:w="10" w:type="dxa" />
+          <w:right w:w="10" w:type="dxa" />
+        </w:tblCellMar>
+        <w:tblLook w:val="0000" w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" />
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="2900" />
+        <w:gridCol w:w="6738" />
+      </w:tblGrid>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="5A666299" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+          <w:tblHeader />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2900" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="E6E7E8" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="5EA0A586" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+                <w:b />
+                <w:bCs />
+              </w:rPr>
+              <w:t>Setting</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6738" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="E6E7E8" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="53FADFBE" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+                <w:b />
+                <w:bCs />
+              </w:rPr>
+              <w:t>Default</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="5F15D363" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2900" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="24E17AF9" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>Destination subscription</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6738" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="793771CE" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>65a9c0da-4f85-47ba-ac0f-7401cbe43205</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="75BA68DD" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2900" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FAFAFA" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="635B5800" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t xml:space="preserve">AKS target </w:t>
+            </w:r>
+            <w:proofErr w:type="spellStart" />
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>VNet</w:t>
+            </w:r>
+            <w:proofErr w:type="spellEnd" />
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6738" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FAFAFA" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="424BEC70" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>/subscriptions/65a9c0da-4f85-47ba-ac0f-7401cbe43205/resourceGroups/RGP-P0001-CN-AZ-FCS-0005/providers/Microsoft.Network/virtualNetworks/vNet-P0001-CN-AZ-FCS-0005</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="4112C838" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="2900" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="0B55E0DF" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>AKS private DNS suffix</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6738" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="78A084C7" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:proofErr w:type="gramStart" />
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>.cx.prod.service.azk8s.cn</w:t>
+            </w:r>
+            <w:proofErr w:type="gramEnd" />
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p w14:paraId="0897E4FD" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="007A5050">
+      <w:pPr>
+        <w:spacing w:after="80" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="46386CD1" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Override these only when needed.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7DB35C86" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>1. Install local modules</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="64F16F46" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">Install-Module </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Az.Accounts</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> -Scope </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>CurrentUser</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">Install-Module </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Az.Resources</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> -Scope </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>CurrentUser</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">Install-Module </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Az.Automation</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> -Scope </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>CurrentUser</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+    </w:p>
+    <w:p w14:paraId="1D46AE2B" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">If </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Az.Automation</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> requires </w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>a newer</w:t>
+      </w:r>
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Az.Accounts</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>, update the modules and start a new PowerShell session.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3B946404" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>2. Deploy both Automation runbooks</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="46CDB05D" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>.\Deploy-AzureChinaPrivateDnsAutomation.ps1 `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;automation-account-subscription-id&gt;" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ResourceGroupName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>rg</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-automation" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AutomationAccountName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "aa-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>cn</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-prod" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -Location "chinaeast2" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;default-source-subscription-id&gt;" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>UserAssignedManagedIdentityResourceId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "/subscriptions/&lt;identity-subscription-id&gt;/resourceGroups/&lt;identity-resource-group&gt;/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identity-name&gt;"</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5BF3C17E" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>This publishes:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3152D338" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>PrivateEndpointPrivateDns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+    </w:p>
+    <w:p w14:paraId="517DDA05" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Repair-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>AksPrivateDnsLinks</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+    </w:p>
+    <w:p w14:paraId="6421C104" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">The deploy script also saves Automation variables for the default source subscription, destination subscription, managed identity client ID, and AKS target </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>VNet</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="143002F1" w14:textId="77777777" w:rsidR="00F83757" w:rsidRPr="00432731" w:rsidRDefault="00F83757">
+      <w:pPr>
+        <w:pStyle w:val="Heading2" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:lastRenderedPageBreak />
+        <w:t>Automation Account considerations</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="691812CF" w14:textId="77777777" w:rsidR="00F83757" w:rsidRPr="00432731" w:rsidRDefault="00F83757">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Runbooks should execute under the configured managed identity in Azure China. Before production execution or scheduling, verify that the Automation Account imports the required Az modules and that the managed identity has the required RBAC on both source and destination subscriptions.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="069D7FC0" w14:textId="77777777" w:rsidR="00F83757" w:rsidRPr="00432731" w:rsidRDefault="00F83757">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">When run locally, use the preview commands with </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>WhatIf</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> first. When running in Automation Account, review job Output, Warning, Error, and Verbose streams after each run.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7DF69010" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading2" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Optional deployment overrides</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7701BF4E" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>DestinationSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;destination-subscription-id&gt;"</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AksTargetVirtualNetworkResourceId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "/subscriptions/&lt;subscription-id&gt;/resourceGroups/&lt;resource-group&gt;/providers/Microsoft.Network/virtualNetworks/&lt;vnet-name&gt;"</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="1914F92B" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>3. Optional: assign recommended RBAC</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="54A79467" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Run this only if the managed identity does not already have the required permissions.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3BF50C95" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>.\Deploy-AzureChinaPrivateDnsAutomation.ps1 `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;automation-account-subscription-id&gt;" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ResourceGroupName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>rg</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-automation" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AutomationAccountName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "aa-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>cn</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-prod" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -Location "chinaeast2" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;default-source-subscription-id&gt;" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>UserAssignedManagedIdentityResourceId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "/subscriptions/&lt;identity-subscription-id&gt;/resourceGroups/&lt;identity-resource-group&gt;/providers/Microsoft.ManagedIdentity/userAssignedIdentities/&lt;identity-name&gt;" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AssignRecommendedRoles</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>GrantSourceNetworkContributor</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>GrantDestinationContributor</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+    </w:p>
+    <w:p w14:paraId="42F08FD0" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Recommended roles:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="21C9F6AE" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">Source subscription: </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Reader</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">; optional </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Network Contributor</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> for private endpoint zone-group linking.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5C093C10" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">Destination subscription: </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Private DNS Zone Contributor</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">; optional </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Contributor</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> if the runbook may create missing resource groups.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="69521D42" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>4. Run from Azure Portal</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="0E3958F4" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading2" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Step 1: Open the Automation Account</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="4916324D" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">In the Azure China portal, open </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Automation Accounts</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> and select the Automation Account where the runbooks were deployed, for example </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>nga</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>-automation-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>-sync</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="73948D82" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:keepNext />
+        <w:spacing w:before="80" w:after="70" />
+        <w:jc w:val="center" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:noProof />
+        </w:rPr>
+        <w:drawing>
+          <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="52B57667" wp14:editId="168C30A0">
+            <wp:extent cx="6000750" cy="1962150" />
+            <wp:effectExtent l="0" t="0" r="0" b="0" />
+            <wp:docPr id="1" name="1.png" descr="Select the Azure Automation Account" title="Select the Azure Automation Account" />
+            <wp:cNvGraphicFramePr>
+              <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1" />
+            </wp:cNvGraphicFramePr>
+            <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+              <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                  <pic:nvPicPr>
+                    <pic:cNvPr id="0" name="" />
+                    <pic:cNvPicPr>
+                      <a:picLocks noChangeAspect="1" noChangeArrowheads="1" />
+                    </pic:cNvPicPr>
+                  </pic:nvPicPr>
+                  <pic:blipFill>
+                    <a:blip r:embed="rId7" />
+                    <a:srcRect />
+                    <a:stretch>
+                      <a:fillRect />
+                    </a:stretch>
+                  </pic:blipFill>
+                  <pic:spPr bwMode="auto">
+                    <a:xfrm>
+                      <a:off x="0" y="0" />
+                      <a:ext cx="6000750" cy="1962150" />
+                    </a:xfrm>
+                    <a:prstGeom prst="rect">
+                      <a:avLst />
+                    </a:prstGeom>
+                  </pic:spPr>
+                </pic:pic>
+              </a:graphicData>
+            </a:graphic>
+          </wp:inline>
+        </w:drawing>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="2505B6C1" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="180" />
+        <w:jc w:val="center" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:i />
+          <w:iCs />
+          <w:color w:val="5F6368" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Select the Azure Automation Account</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="6740CDC5" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading2" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:lastRenderedPageBreak />
+        <w:t>Step 2: Select the runbook</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3C22FF98" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">Under </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Process Automation</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, select </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Runbooks</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>, and then select the published runbook for the required operation:</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="9638" w:type="dxa" />
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto" />
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto" />
+        </w:tblBorders>
+        <w:tblCellMar>
+          <w:left w:w="10" w:type="dxa" />
+          <w:right w:w="10" w:type="dxa" />
+        </w:tblCellMar>
+        <w:tblLook w:val="0000" w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" />
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="3300" />
+        <w:gridCol w:w="6338" />
+      </w:tblGrid>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="368C8FAE" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+          <w:tblHeader />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="3300" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="E6E7E8" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="25B43BD1" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+                <w:b />
+                <w:bCs />
+              </w:rPr>
+              <w:t>Runbook</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6338" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="E6E7E8" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="0E67935A" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+                <w:b />
+                <w:bCs />
+              </w:rPr>
+              <w:t>Use it for</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="1C7B3B2F" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="3300" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="4970D197" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>Repair-</w:t>
+            </w:r>
+            <w:proofErr w:type="spellStart" />
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>AksPrivateDnsLinks</w:t>
+            </w:r>
+            <w:proofErr w:type="spellEnd" />
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6338" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="08255D5C" w14:textId="761DAAA4" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000" w:rsidP="00906F71">
+            <w:pPr>
+              <w:spacing w:line="268" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>Repairing AKS private DNS virtual network links</w:t>
+            </w:r>
+            <w:r w:rsidR="00906F71" w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t xml:space="preserve"> for standard Azure China AKS private DNS suffixes. AKS private API server DNS scenarios require additional validation and may need separate handling</w:t>
+            </w:r>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>.</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr w:rsidR="007A5050" w:rsidRPr="00432731" w14:paraId="40227C19" w14:textId="77777777">
+        <w:tblPrEx>
+          <w:tblCellMar>
+            <w:top w:w="0" w:type="dxa" />
+            <w:bottom w:w="0" w:type="dxa" />
+          </w:tblCellMar>
+        </w:tblPrEx>
+        <w:trPr>
+          <w:cantSplit />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="3300" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FAFAFA" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="3E9A4CB8" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+            <w:pPr>
+              <w:spacing w:line="270" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>Sync-</w:t>
+            </w:r>
+            <w:proofErr w:type="spellStart" />
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+                <w:color w:val="7A3000" />
+                <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+              </w:rPr>
+              <w:t>PrivateEndpointPrivateDns</w:t>
+            </w:r>
+            <w:proofErr w:type="spellEnd" />
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="6338" w:type="dxa" />
+            <w:tcBorders>
+              <w:top w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:left w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:bottom w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+              <w:right w:val="single" w:sz="1" w:space="0" w:color="C7C9CC" />
+            </w:tcBorders>
+            <w:shd w:val="clear" w:color="auto" w:fill="FAFAFA" />
+            <w:tcMar>
+              <w:top w:w="100" w:type="dxa" />
+              <w:left w:w="130" w:type="dxa" />
+              <w:bottom w:w="100" w:type="dxa" />
+              <w:right w:w="130" w:type="dxa" />
+            </w:tcMar>
+            <w:vAlign w:val="center" />
+          </w:tcPr>
+          <w:p w14:paraId="407E1618" w14:textId="48DAF43E" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000" w:rsidP="00E3545A">
+            <w:pPr>
+              <w:spacing w:line="268" w:lineRule="auto" />
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+            </w:pPr>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t xml:space="preserve">Handling </w:t>
+            </w:r>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>supported Azure China PaaS private endpoint DNS zones</w:t>
+            </w:r>
+            <w:r w:rsidR="00E3545A" w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>.</w:t>
+            </w:r>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t xml:space="preserve"> PostgreSQL</w:t>
+            </w:r>
+            <w:r w:rsidR="00E3545A" w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t xml:space="preserve"> Flexible Server and MySQL Flexible Server are excluded because they use </w:t>
+            </w:r>
+            <w:proofErr w:type="spellStart" />
+            <w:r w:rsidR="00E3545A" w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>VNet</w:t>
+            </w:r>
+            <w:proofErr w:type="spellEnd" />
+            <w:r w:rsidR="00E3545A" w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t xml:space="preserve"> integration and deployment-time private DNS zone configuration rather than the standard private endpoint DNS synchronization workflow</w:t>
+            </w:r>
+            <w:r w:rsidRPr="00432731">
+              <w:rPr>
+                <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+              </w:rPr>
+              <w:t>.</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p w14:paraId="05FF9BB5" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="007A5050">
+      <w:pPr>
+        <w:spacing w:after="80" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="3A053350" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:keepNext />
+        <w:spacing w:before="80" w:after="70" />
+        <w:jc w:val="center" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:noProof />
+        </w:rPr>
+        <w:drawing>
+          <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="1B32307C" wp14:editId="6F7ACE06">
+            <wp:extent cx="6000750" cy="2676525" />
+            <wp:effectExtent l="0" t="0" r="0" b="0" />
+            <wp:docPr id="279646088" name="2.png" descr="Select the AKS repair or private endpoint DNS sync runbook" title="Select the AKS repair or private endpoint DNS sync runbook" />
+            <wp:cNvGraphicFramePr>
+              <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1" />
+            </wp:cNvGraphicFramePr>
+            <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+              <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                  <pic:nvPicPr>
+                    <pic:cNvPr id="0" name="" />
+                    <pic:cNvPicPr>
+                      <a:picLocks noChangeAspect="1" noChangeArrowheads="1" />
+                    </pic:cNvPicPr>
+                  </pic:nvPicPr>
+                  <pic:blipFill>
+                    <a:blip r:embed="rId8" />
+                    <a:srcRect />
+                    <a:stretch>
+                      <a:fillRect />
+                    </a:stretch>
+                  </pic:blipFill>
+                  <pic:spPr bwMode="auto">
+                    <a:xfrm>
+                      <a:off x="0" y="0" />
+                      <a:ext cx="6000750" cy="2676525" />
+                    </a:xfrm>
+                    <a:prstGeom prst="rect">
+                      <a:avLst />
+                    </a:prstGeom>
+                  </pic:spPr>
+                </pic:pic>
+              </a:graphicData>
+            </a:graphic>
+          </wp:inline>
+        </w:drawing>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="748E659E" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="180" />
+        <w:jc w:val="center" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:i />
+          <w:iCs />
+          <w:color w:val="5F6368" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Select the AKS repair or private endpoint DNS sync runbook</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="15DD4B46" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading2" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Step 3: Enter the source subscription and start</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="659D6D0E" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">Select </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Start</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, enter the source workload subscription ID in </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, and then select </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Start</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> at the bottom of the parameters pane. This is the subscription containing the private endpoints, private DNS zones, or AKS resources that the runbook must process.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="636DADDE" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:keepNext />
+        <w:spacing w:before="80" w:after="70" />
+        <w:jc w:val="center" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:noProof />
+        </w:rPr>
+        <w:lastRenderedPageBreak />
+        <w:drawing>
+          <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="553EB93C" wp14:editId="625512C7">
+            <wp:extent cx="6000750" cy="2800350" />
+            <wp:effectExtent l="0" t="0" r="0" b="0" />
+            <wp:docPr id="1120066739" name="3.png" descr="Enter SourceSubscriptionId and start the runbook" title="Enter SourceSubscriptionId and start the runbook" />
+            <wp:cNvGraphicFramePr>
+              <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1" />
+            </wp:cNvGraphicFramePr>
+            <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+              <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                  <pic:nvPicPr>
+                    <pic:cNvPr id="0" name="" />
+                    <pic:cNvPicPr>
+                      <a:picLocks noChangeAspect="1" noChangeArrowheads="1" />
+                    </pic:cNvPicPr>
+                  </pic:nvPicPr>
+                  <pic:blipFill>
+                    <a:blip r:embed="rId9" />
+                    <a:srcRect />
+                    <a:stretch>
+                      <a:fillRect />
+                    </a:stretch>
+                  </pic:blipFill>
+                  <pic:spPr bwMode="auto">
+                    <a:xfrm>
+                      <a:off x="0" y="0" />
+                      <a:ext cx="6000750" cy="2800350" />
+                    </a:xfrm>
+                    <a:prstGeom prst="rect">
+                      <a:avLst />
+                    </a:prstGeom>
+                  </pic:spPr>
+                </pic:pic>
+              </a:graphicData>
+            </a:graphic>
+          </wp:inline>
+        </w:drawing>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="01B3FA30" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="180" />
+        <w:jc w:val="center" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:i />
+          <w:iCs />
+          <w:color w:val="5F6368" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">Enter </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:i />
+          <w:iCs />
+          <w:color w:val="5F6368" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:i />
+          <w:iCs />
+          <w:color w:val="5F6368" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> and start the runbook</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7091C36C" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">After the job starts, open the job details to review its </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Output</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Warning</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Error</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, and </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Verbose</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> streams. The deployment script enables verbose logging for the published runbooks so that stage counts, operation summaries, and completion duration are retained.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="23030B16" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>For multiple source subscriptions, start the relevant runbook once per source subscription.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="382B02AC" w14:textId="77777777" w:rsidR="00906F71" w:rsidRPr="00432731" w:rsidRDefault="00906F71">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="36" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Supported scope and exclusions</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="4DC02253" w14:textId="77777777" w:rsidR="00906F71" w:rsidRPr="00432731" w:rsidRDefault="00906F71">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Supported by standard sync:</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> Azure China private endpoint DNS zones that can be matched to private endpoints or safely synchronized as DNS records.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="641319E6" w14:textId="77777777" w:rsidR="00906F71" w:rsidRPr="00432731" w:rsidRDefault="00906F71">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:b />
+          <w:bCs />
+        </w:rPr>
+        <w:t>Not currently automated:</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> PostgreSQL Flexible Server private DNS, MySQL Flexible Server private DNS, and AKS private API server DNS special-case configurations.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="597E5400" w14:textId="77777777" w:rsidR="00906F71" w:rsidRPr="00432731" w:rsidRDefault="00906F71">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">PostgreSQL and MySQL Flexible Server commonly rely on </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>VNet</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> integration and require a private DNS zone to be specified during deployment, so they should not be treated as normal private endpoint DNS zone synchronization targets.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="18AA1118" w14:textId="77777777" w:rsidR="00906F71" w:rsidRPr="00432731" w:rsidRDefault="00906F71">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>AKS private API server DNS requires validation of the target AKS deployment model and DNS configuration before relying on automation.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="46CD1758" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>5. Schedule the sync runbook</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="45056854" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>New-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AzAutomationSchedule</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ResourceGroupName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>rg</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-automation" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AutomationAccountName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "aa-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>cn</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-prod" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -Name "daily-private-endpoint-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>StartTime</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> (Get-Date</w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>).</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AddHours</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>(1) `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>DayInterval</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> 1</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Register-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AzAutomationScheduledRunbook</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ResourceGroupName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>rg</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-automation" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AutomationAccountName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "aa-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>cn</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-prod" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -RunbookName "Sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>PrivateEndpointPrivateDns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ScheduleName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "daily-private-endpoint-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync"</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7B8044CA" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>For multiple source subscriptions, register one scheduled run per source:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="02DBF744" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>Register-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AzAutomationScheduledRunbook</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ResourceGroupName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>rg</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-automation" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>AutomationAccountName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "</w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>aa</w:t>
+      </w:r>
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>cn</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-prod" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:lastRenderedPageBreak />
+        <w:t xml:space="preserve">    -RunbookName "Sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>PrivateEndpointPrivateDns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>ScheduleName</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "daily-private-endpoint-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>dns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>-sync" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -Parameters </w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">@{ </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> = "&lt;source-subscription-id&gt;</w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>" }</w:t>
+      </w:r>
+      <w:proofErr w:type="gramEnd" />
+    </w:p>
+    <w:p w14:paraId="4BA9A52C" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>What the sync runbook does</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5205B96C" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Sync-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>PrivateEndpointPrivateDns</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> processes </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>supported Azure China private DNS zones</w:t>
+      </w:r>
+      <w:r w:rsidR="00E8216F" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>, excluding PostgreSQL Flexible Server, MySQL Flexible Server, and AKS private API server DNS special-case configurations</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="17DAAC40" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>For each source DNS A record:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3B0ED004" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="3" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>If a matching source private endpoint exists, the runbook links that private endpoint to the destination private DNS zone.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="424F0F35" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="3" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>If no matching private endpoint exists, the runbook directly syncs the destination A record.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="6E07315A" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="3" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>For directly synced records, it writes a provenance TXT record.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3EBA1B12" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000" w:rsidP="0097708F">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="3" />
+        </w:numPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">If the source record or source zone later disappears, stale destination records/IPs </w:t>
+      </w:r>
+      <w:r w:rsidR="0097708F" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">are detected for </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">previously managed </w:t>
+      </w:r>
+      <w:r w:rsidR="0097708F" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>records. Automatic deletion should remain disabled unless explicitly enabled and validated for the current</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> script </w:t>
+      </w:r>
+      <w:r w:rsidR="0097708F" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>version</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5252CAF2" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">Cleanup is </w:t>
+      </w:r>
+      <w:r w:rsidR="00947200" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>conservative</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> by design: </w:t>
+      </w:r>
+      <w:r w:rsidR="00947200" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>stale</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> records </w:t>
+      </w:r>
+      <w:r w:rsidR="00947200" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>should only be acted on when they carry</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> this script's provenance TXT marker and </w:t>
+      </w:r>
+      <w:r w:rsidR="00947200" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>match</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, source zone, and source record metadata. Unmanaged IPs </w:t>
+      </w:r>
+      <w:r w:rsidR="00947200" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>must be</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> preserved.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="41EEEF99" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>If source and destination tenants differ, the runbook automatically uses direct DNS record sync because private endpoint zone-group linking requires a single tenant.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="066AA391" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">What </w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>the</w:t>
+      </w:r>
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> AKS repair runbook does</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="6BF89C6D" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Repair-</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>AksPrivateDnsLinks</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> scans AKS private DNS zones ending </w:t>
+      </w:r>
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">with </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>cx.prod.service.azk8s.cn</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> in the source subscription and ensures </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">matching </w:t>
+      </w:r>
+      <w:r w:rsidR="00F83757" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>zones are</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> linked to the target </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>VNet</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidR="00F83757" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> when the AKS DNS model matches the supported pattern</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="001CBB51" w14:textId="77777777" w:rsidR="00F83757" w:rsidRPr="00432731" w:rsidRDefault="00F83757">
+      <w:pPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:kern w:val="2" />
+          <w14:ligatures w14:val="standardContextual" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>AKS private API server DNS scenarios can be cluster-specific and may require separate validation or remediation. Confirm the AKS deployment mode, private DNS zone naming, and required API server records before treating the repair runbook as complete remediation.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="73ABFE54" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Local preview:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="2848D873" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>.\Repair-AksPrivateDnsLinks.ps1 -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>WhatIf</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+    </w:p>
+    <w:p w14:paraId="0DA4780A" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Override source subscription locally:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="799DDD50" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>.\Repair-AksPrivateDnsLinks.ps1 `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;source-subscription-id&gt;"</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3840436B" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Local sync preview</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="1467355E" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pBdr>
+          <w:bottom w:val="single" w:sz="10" w:space="6" w:color="D04A02" />
+        </w:pBdr>
+        <w:shd w:val="clear" w:color="auto" w:fill="F3F4F6" />
+        <w:spacing w:before="80" w:after="180" w:line="250" w:lineRule="auto" />
+        <w:ind w:left="220" w:right="220" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>.\Sync-PrivateEndpointPrivateDns.ps1 `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>SourceSubscriptionId</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve"> "&lt;source-subscription-id&gt;" `</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:br />
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t xml:space="preserve">    -</w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsia="Consolas" w:hAnsiTheme="minorHAnsi" w:cs="Consolas" />
+          <w:color w:val="202124" />
+          <w:sz w:val="18" />
+          <w:szCs w:val="18" />
+        </w:rPr>
+        <w:t>WhatIf</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+    </w:p>
+    <w:p w14:paraId="5677144A" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="Heading1" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Troubleshooting</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="31523D1D" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>Both runbooks emit timestamped tracing logs for:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="3AFF6065" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:lastRenderedPageBreak />
+        <w:t>subscription selection</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7221DAE1" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>zone and record counts</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="17D6E1ED" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>private endpoint matching</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="11507E30" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00981F0E" w:rsidP="00981F0E">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>stale-record detection and cleanup eligibility checks</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="76A5E251" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00486523" w:rsidP="00486523">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>candidate stale destination record names and IPs, including any deleted or pruned items when deletion is enabled</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="70E18F9C" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>operation summaries</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="184F3EF9" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>duration</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="332F8E21" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph" />
+        <w:numPr>
+          <w:ilvl w:val="0" />
+          <w:numId w:val="2" />
+        </w:numPr>
+        <w:spacing w:after="70" w:line="290" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>unhandled error details</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="02881227" w14:textId="77777777" w:rsidR="007A5050" w:rsidRPr="00432731" w:rsidRDefault="00000000">
+      <w:pPr>
+        <w:spacing w:after="130" w:line="300" w:lineRule="auto" />
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">Import or verify </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Az.Accounts</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidR="00432731" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>,</w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Az.Resources</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidR="00432731" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve">, and </w:t>
+      </w:r>
+      <w:proofErr w:type="spellStart" />
+      <w:proofErr w:type="gramStart" />
+      <w:r w:rsidR="00432731" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+          <w:color w:val="7A3000" />
+          <w:shd w:val="clear" w:color="auto" w:fill="FCEDE5" />
+        </w:rPr>
+        <w:t>Az.Automation</w:t>
+      </w:r>
+      <w:proofErr w:type="spellEnd" />
+      <w:proofErr w:type="gramEnd" />
+      <w:r w:rsidR="00432731" w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t xml:space="preserve"> </w:t>
+      </w:r>
+      <w:r w:rsidRPr="00432731">
+        <w:rPr>
+          <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+        </w:rPr>
+        <w:t>in the Automation Account before running the runbooks.</w:t>
+      </w:r>
+    </w:p>
+    <w:sectPr w:rsidR="007A5050" w:rsidRPr="00432731">
+      <w:headerReference w:type="even" r:id="rId10" />
+      <w:headerReference w:type="default" r:id="rId11" />
+      <w:footerReference w:type="even" r:id="rId12" />
+      <w:footerReference w:type="default" r:id="rId13" />
+      <w:headerReference w:type="first" r:id="rId14" />
+      <w:footerReference w:type="first" r:id="rId15" />
+      <w:pgSz w:w="11906" w:h="16838" />
+      <w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="560" w:footer="560" w:gutter="0" />
+      <w:cols w:space="720" />
+      <w:docGrid w:linePitch="360" />
+    </w:sectPr>
+  </w:body>
+</w:document>

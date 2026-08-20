@@ -1,34 +1,39 @@
 <#
 .SYNOPSIS
-Deploys Redis with a private endpoint and tests private DNS synchronization.
+Deploys Azure Machine Learning with a private endpoint and tests private DNS synchronization.
 
 .DESCRIPTION
 Creates an isolated Azure China test environment in a source subscription with
-either classic Azure Cache for Redis or Azure Managed Redis, a virtual network,
-a private endpoint, and the corresponding Redis private DNS zone. It then runs
-Sync-PrivateEndpointPrivateDns.ps1 against an
-isolated destination resource group and verifies that:
-- the Redis private endpoint is approved and has private IP addresses;
-- the source Redis private DNS A record is created;
-- the sync script matches the Redis private endpoint;
-- the private endpoint DNS zone group is moved to the destination zone;
-- Azure creates matching A records in the destination zone; and
-- no direct-sync provenance TXT record is created for the zone-group path.
+an Azure Machine Learning workspace, its required dependent resources, a virtual
+network, a private endpoint, and both Azure Machine Learning private DNS zones.
+It then runs Sync-PrivateEndpointPrivateDns.ps1 against an isolated destination
+resource group and verifies that:
+- the workspace and private endpoint provision successfully;
+- Azure creates source A records in both Machine Learning private DNS zones;
+- the sync script matches the private endpoint for both zones;
+- both private DNS zone group configs move to the destination subscription;
+- Azure creates matching destination A records for both zones; and
+- zone-group-managed records do not receive direct-sync provenance TXT records.
 
-The source and destination subscriptions must be in the same Microsoft Entra
-tenant because private endpoint DNS zone groups cannot reference a private DNS
-zone in another tenant. Test resource groups are removed by default, including
-when the test fails. Use -KeepResources to retain them for investigation.
+When synchronization is enabled, the source and destination subscriptions must
+be in the same Microsoft Entra tenant. Test resource groups are removed by
+default, including when the test fails. Use -KeepResources to retain them for
+investigation.
+
+Use -SkipSync to deploy and validate only the source Azure Machine Learning
+workspace, private endpoint, and private DNS resources. This mode does not
+access the destination subscription or invoke the sync script, and it retains
+the successfully deployed source resource group.
 
 .EXAMPLE
-    .\Deploy-TestRedisPrivateEndpointSync.ps1 `
+    .\Test-AmlPrivateEndpointSync.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
         -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222"
 
-Deploy, test, write the JSON report, and remove the test resource groups.
+Deploy, test, write the JSON report, and remove both test resource groups.
 
 .EXAMPLE
-    .\Deploy-TestRedisPrivateEndpointSync.ps1 `
+    .\Test-AmlPrivateEndpointSync.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
         -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
         -KeepResources
@@ -36,13 +41,12 @@ Deploy, test, write the JSON report, and remove the test resource groups.
 Retain both resource groups after the test for troubleshooting.
 
 .EXAMPLE
-    .\Deploy-TestRedisPrivateEndpointSync.ps1 `
+    .\Test-AmlPrivateEndpointSync.ps1 `
         -SourceSubscriptionId "11111111-1111-1111-1111-111111111111" `
-        -DestinationSubscriptionId "22222222-2222-2222-2222-222222222222" `
-        -RedisServiceType Managed
+        -SkipSync
 
-Deploy Azure Managed Redis Balanced B0 in China North 3 and test its private
-endpoint DNS synchronization.
+Deploy Azure Machine Learning with a private endpoint, validate the source
+resources, retain them, and do not run private DNS synchronization.
 #>
 
 [CmdletBinding()]
@@ -56,11 +60,7 @@ param(
     [string]$DestinationSubscriptionId = '65a9c0da-4f85-47ba-ac0f-7401cbe43205',
 
     [Parameter()]
-    [ValidateSet('Classic', 'Managed')]
-    [string]$RedisServiceType = 'Classic',
-
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
+    [ValidateSet('chinaeast2', 'chinanorth3')]
     [string]$Location = 'chinaeast2',
 
     [Parameter()]
@@ -92,8 +92,14 @@ param(
     [int]$DnsRecordTimeoutSeconds = 600,
 
     [Parameter()]
+    [ValidateRange(60, 1800)]
+    [int]$ProviderRegistrationTimeoutSeconds = 600,
+
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string]$OutputPath = (Join-Path $PSScriptRoot 'redis-private-endpoint-sync-test.json'),
+    [string]$OutputPath = (Join-Path $PSScriptRoot 'aml-private-endpoint-sync-test.json'),
+
+    [switch]$SkipSync,
 
     [switch]$KeepResources
 )
@@ -103,37 +109,17 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$WorkspaceApiVersion = '2024-10-01'
 $PrivateDnsApiVersion = '2018-09-01'
 $NetworkApiVersion = '2023-09-01'
 $PrivateDnsZoneGroupName = 'default'
+$PrivateLinkGroupId = 'amlworkspace'
 $ProvenanceTxtRecordMarker = 'sync-private-endpoint-private-dns:v1'
-$script:RedisSyncTestAssertions = New-Object System.Collections.Generic.List[object]
-
-$UseAzureManagedRedis = $RedisServiceType -eq 'Managed'
-if ($UseAzureManagedRedis -and -not $PSBoundParameters.ContainsKey('Location')) {
-    $Location = 'chinanorth3'
-}
-
-if ($UseAzureManagedRedis -and $Location -ne 'chinanorth3') {
-    throw "The Azure Managed Redis preview is enabled only for 'chinanorth3' in this subscription. Location was '$Location'."
-}
-
-if ($UseAzureManagedRedis) {
-    $RedisDisplayName = 'Azure Managed Redis'
-    $RedisResourceType = 'Microsoft.Cache/redisEnterprise'
-    $RedisApiVersion = '2025-07-01'
-    $RedisSkuName = 'Balanced_B0'
-    $RedisPrivateLinkGroupId = 'redisEnterprise'
-    $RedisPrivateDnsZoneName = 'privatelink.redis.chinacloudapi.cn'
-}
-else {
-    $RedisDisplayName = 'Azure Cache for Redis'
-    $RedisResourceType = 'Microsoft.Cache/Redis'
-    $RedisApiVersion = '2023-08-01'
-    $RedisSkuName = 'Basic C0'
-    $RedisPrivateLinkGroupId = 'redisCache'
-    $RedisPrivateDnsZoneName = 'privatelink.redis.cache.chinacloudapi.cn'
-}
+$AmlPrivateDnsZoneNames = @(
+    'privatelink.api.ml.azure.cn'
+    'privatelink.notebooks.chinacloudapi.cn'
+)
+$script:AmlSyncTestAssertions = New-Object System.Collections.Generic.List[object]
 
 function Import-RequiredAzModules {
     foreach ($moduleName in @('Az.Accounts', 'Az.Resources')) {
@@ -256,6 +242,56 @@ function Invoke-ArmGet {
     return $response.Content | ConvertFrom-Json
 }
 
+function Confirm-ResourceProviderRegistered {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ProviderNamespace,
+
+        [Parameter(Mandatory = $true)]
+        [int]$TimeoutSeconds
+    )
+
+    $providerSegment = ConvertTo-ArmPathSegment -Value $ProviderNamespace
+    $providerPath = "/subscriptions/$SubscriptionId/providers/${providerSegment}?api-version=2021-04-01"
+    $providerResponse = Invoke-AzRestMethod -Method GET -Path $providerPath -ErrorAction Stop
+    if ([int]$providerResponse.StatusCode -ne 200) {
+        throw "Could not query resource provider '$ProviderNamespace': HTTP $($providerResponse.StatusCode) $($providerResponse.Content)"
+    }
+
+    $provider = $providerResponse.Content | ConvertFrom-Json
+    if ([string]$provider.registrationState -eq 'Registered') {
+        return [string]$provider.registrationState
+    }
+
+    Write-Host "Registering resource provider '$ProviderNamespace'..."
+    $registrationPath = "/subscriptions/$SubscriptionId/providers/${providerSegment}/register?api-version=2021-04-01"
+    $registrationResponse = Invoke-AzRestMethod -Method POST -Path $registrationPath -Payload '{}' -ErrorAction Stop
+    if ([int]$registrationResponse.StatusCode -notin @(200, 201, 202)) {
+        throw "Resource provider registration failed for '$ProviderNamespace': HTTP $($registrationResponse.StatusCode) $($registrationResponse.Content)"
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $providerResponse = Invoke-AzRestMethod -Method GET -Path $providerPath -ErrorAction Stop
+        $provider = $providerResponse.Content | ConvertFrom-Json
+        $registrationState = [string]$provider.registrationState
+        if ($registrationState -eq 'Registered') {
+            return $registrationState
+        }
+
+        if ((Get-Date) -ge $deadline) {
+            break
+        }
+
+        Start-Sleep -Seconds 10
+    } while ($true)
+
+    throw "Timed out after $TimeoutSeconds seconds waiting for resource provider '$ProviderNamespace' to register. Last state: '$registrationState'."
+}
+
 function New-PrivateDnsRecordPath {
     param(
         [Parameter(Mandatory = $true)]
@@ -315,6 +351,7 @@ function Get-PrivateDnsARecordRows {
         }
 
         $rows.Add([pscustomobject]@{
+            ZoneName      = $ZoneName
             RecordName    = [string]$recordSet.name
             IPv4Addresses = @($ipAddresses)
             TTL           = [int](Get-ObjectPropertyValue -InputObject $properties -Name 'ttl')
@@ -322,6 +359,49 @@ function Get-PrivateDnsARecordRows {
     }
 
     return $rows
+}
+
+function Wait-PrivateDnsARecordsByAnyIp {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SubscriptionId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ZoneName,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$CandidateIpAddresses,
+
+        [Parameter(Mandatory = $true)]
+        [int]$TimeoutSeconds
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $rows = @(Get-PrivateDnsARecordRows `
+            -SubscriptionId $SubscriptionId `
+            -ResourceGroupName $ResourceGroupName `
+            -ZoneName $ZoneName)
+        $matchingRows = @($rows | Where-Object {
+            $rowIpAddresses = @($_.IPv4Addresses)
+            @($CandidateIpAddresses | Where-Object { $rowIpAddresses -contains $_ }).Count -gt 0
+        })
+
+        if ($matchingRows.Count -gt 0) {
+            return $matchingRows
+        }
+
+        if ((Get-Date) -ge $deadline) {
+            break
+        }
+
+        Start-Sleep -Seconds 10
+    } while ($true)
+
+    throw "Timed out after $TimeoutSeconds seconds waiting for a private DNS A record in '$ResourceGroupName/$ZoneName' with one of these IP addresses: $($CandidateIpAddresses -join ', ')."
 }
 
 function Wait-PrivateDnsARecordsByIp {
@@ -365,7 +445,7 @@ function Wait-PrivateDnsARecordsByIp {
         Start-Sleep -Seconds 10
     } while ($true)
 
-    throw "Timed out after $TimeoutSeconds seconds waiting for private DNS A record(s) in '$ResourceGroupName/$ZoneName' with IP address(es): $($ExpectedIpAddresses -join ', ')."
+    throw "Timed out after $TimeoutSeconds seconds waiting for private DNS A records in '$ResourceGroupName/$ZoneName' with IP addresses: $($ExpectedIpAddresses -join ', ')."
 }
 
 function Get-PrivateEndpointIpAddresses {
@@ -522,7 +602,7 @@ function Add-TestAssertion {
         [string]$Details
     )
 
-    $script:RedisSyncTestAssertions.Add([pscustomobject]@{
+    $script:AmlSyncTestAssertions.Add([pscustomobject]@{
         Name    = $Name
         Passed  = $Passed
         Details = $Details
@@ -552,7 +632,9 @@ function Test-StringCollectionContainsAll {
 
 Import-RequiredAzModules
 
-$SyncScriptPath = (Resolve-Path -LiteralPath $SyncScriptPath -ErrorAction Stop).ProviderPath
+if (-not $SkipSync) {
+    $SyncScriptPath = (Resolve-Path -LiteralPath $SyncScriptPath -ErrorAction Stop).ProviderPath
+}
 $OutputPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
 $outputDirectory = Split-Path -Parent $OutputPath
 if (-not [string]::IsNullOrWhiteSpace($outputDirectory) -and -not (Test-Path -LiteralPath $outputDirectory)) {
@@ -570,30 +652,37 @@ if ($NameSuffix.Length -lt 3 -or $NameSuffix.Length -gt 20) {
 }
 
 if ([string]::IsNullOrWhiteSpace($SourceResourceGroupName)) {
-    $SourceResourceGroupName = "rg-redis-pe-src-$NameSuffix"
+    $SourceResourceGroupName = "rg-aml-pe-src-$NameSuffix"
 }
 
 if ([string]::IsNullOrWhiteSpace($DestinationResourceGroupName)) {
-    $DestinationResourceGroupName = "rg-redis-pe-dst-$NameSuffix"
+    $DestinationResourceGroupName = "rg-aml-pe-dst-$NameSuffix"
 }
 
 if ($SourceResourceGroupName -ieq $DestinationResourceGroupName -and $SourceSubscriptionId -eq $DestinationSubscriptionId) {
     throw 'SourceResourceGroupName and DestinationResourceGroupName must be different when both subscriptions are the same.'
 }
 
-$redisCacheName = if ($UseAzureManagedRedis) { "amrcnpe$NameSuffix" } else { "rediscnpe$NameSuffix" }
-$virtualNetworkName = 'vnet-redis-pe-test'
+$workspaceName = "amlcnpe$NameSuffix"
+$storageAccountName = "stml$NameSuffix"
+$keyVaultName = "kvml$NameSuffix"
+$appInsightsName = "appi-aml-$NameSuffix"
+$virtualNetworkName = 'vnet-aml-pe-test'
 $subnetName = 'snet-private-endpoints'
-$privateEndpointName = 'pe-redis-sync-test'
-$sourcePrivateDnsZoneId = "/subscriptions/$SourceSubscriptionId/resourceGroups/$SourceResourceGroupName/providers/Microsoft.Network/privateDnsZones/$RedisPrivateDnsZoneName"
-$destinationPrivateDnsZoneId = "/subscriptions/$DestinationSubscriptionId/resourceGroups/$DestinationResourceGroupName/providers/Microsoft.Network/privateDnsZones/$RedisPrivateDnsZoneName"
+$privateEndpointName = 'pe-aml-sync-test'
 $privateEndpointResourceId = "/subscriptions/$SourceSubscriptionId/resourceGroups/$SourceResourceGroupName/providers/Microsoft.Network/privateEndpoints/$privateEndpointName"
+$sourcePrivateDnsZoneIds = @($AmlPrivateDnsZoneNames | ForEach-Object {
+    "/subscriptions/$SourceSubscriptionId/resourceGroups/$SourceResourceGroupName/providers/Microsoft.Network/privateDnsZones/$_"
+})
+$destinationPrivateDnsZoneIds = @($AmlPrivateDnsZoneNames | ForEach-Object {
+    "/subscriptions/$DestinationSubscriptionId/resourceGroups/$DestinationResourceGroupName/providers/Microsoft.Network/privateDnsZones/$_"
+})
 
 $sourceContext = $null
 $destinationContext = $null
 $sourceResourceGroupOwned = $false
 $destinationResourceGroupOwned = $false
-$preflightComplete = $false
+$providerRegistrationStates = @{}
 $testError = $null
 $cleanupErrors = New-Object System.Collections.Generic.List[string]
 $cleanupActions = New-Object System.Collections.Generic.List[string]
@@ -607,111 +696,67 @@ $testCompletedAt = $null
 $report = $null
 
 try {
-    Write-Host 'Validating Azure China contexts and isolated resource-group names...'
+    Write-Host 'Validating Azure China contexts, providers, and isolated resource-group names...'
     $sourceContext = Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId
     $SourceTenantId = [string]$sourceContext.Tenant.Id
     if (Get-AzResourceGroup -Name $SourceResourceGroupName -ErrorAction SilentlyContinue) {
         throw "Source test resource group '$SourceResourceGroupName' already exists. Choose another NameSuffix or SourceResourceGroupName."
     }
 
-    $destinationContext = Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId
-    $DestinationTenantId = [string]$destinationContext.Tenant.Id
-    if (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue) {
-        throw "Destination test resource group '$DestinationResourceGroupName' already exists. Choose another NameSuffix or DestinationResourceGroupName."
-    }
+    if (-not $SkipSync) {
+        $destinationContext = Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId
+        $DestinationTenantId = [string]$destinationContext.Tenant.Id
+        if (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue) {
+            throw "Destination test resource group '$DestinationResourceGroupName' already exists. Choose another NameSuffix or DestinationResourceGroupName."
+        }
 
-    if ($SourceTenantId -ne $DestinationTenantId) {
-        throw "Source tenant '$SourceTenantId' and destination tenant '$DestinationTenantId' differ. This test validates private endpoint DNS zone-group linking, which requires both subscriptions to be in the same tenant."
-    }
-
-    if ($UseAzureManagedRedis) {
-        Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
-        $managedRedisCollectionPath = "/subscriptions/$SourceSubscriptionId/providers/Microsoft.Cache/redisEnterprise?api-version=$RedisApiVersion"
-        $managedRedisCollectionResponse = Invoke-AzRestMethod -Method GET -Path $managedRedisCollectionPath -ErrorAction Stop
-        if ([int]$managedRedisCollectionResponse.StatusCode -ne 200) {
-            throw "Azure Managed Redis preview is not enabled for source subscription '$SourceSubscriptionId'. ARM returned HTTP $($managedRedisCollectionResponse.StatusCode): $($managedRedisCollectionResponse.Content)"
+        if ($SourceTenantId -ne $DestinationTenantId) {
+            throw "Source tenant '$SourceTenantId' and destination tenant '$DestinationTenantId' differ. This test validates private endpoint DNS zone-group linking, which requires both subscriptions to be in the same tenant."
         }
     }
 
-    $preflightComplete = $true
-    $testStatus = 'Deploying'
-
     Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
+    foreach ($providerNamespace in @('Microsoft.MachineLearningServices', 'Microsoft.Storage', 'Microsoft.KeyVault', 'Microsoft.Insights', 'Microsoft.OperationalInsights', 'Microsoft.Network')) {
+        $providerRegistrationStates[$providerNamespace] = Confirm-ResourceProviderRegistered `
+            -SubscriptionId $SourceSubscriptionId `
+            -ProviderNamespace $providerNamespace `
+            -TimeoutSeconds $ProviderRegistrationTimeoutSeconds
+    }
+
+    $workspaceCollectionPath = "/subscriptions/$SourceSubscriptionId/providers/Microsoft.MachineLearningServices/workspaces?api-version=$WorkspaceApiVersion"
+    $workspaceCollectionResponse = Invoke-AzRestMethod -Method GET -Path $workspaceCollectionPath -ErrorAction Stop
+    if ([int]$workspaceCollectionResponse.StatusCode -ne 200) {
+        throw "Azure Machine Learning workspaces API '$WorkspaceApiVersion' is unavailable in source subscription '$SourceSubscriptionId'. ARM returned HTTP $($workspaceCollectionResponse.StatusCode): $($workspaceCollectionResponse.Content)"
+    }
+
+    $testStatus = 'Deploying'
     Write-Host "Creating source resource group '$SourceResourceGroupName' in '$Location'..."
     New-AzResourceGroup -Name $SourceResourceGroupName -Location $Location -Force | Out-Null
     $sourceResourceGroupOwned = $true
-
-    if ($UseAzureManagedRedis) {
-        $redisResource = @{
-            type       = $RedisResourceType
-            apiVersion = $RedisApiVersion
-            name       = "[parameters('redisCacheName')]"
-            location   = "[parameters('location')]"
-            sku        = @{ name = $RedisSkuName }
-            properties = @{
-                encryption          = @{}
-                highAvailability    = 'Disabled'
-                minimumTlsVersion   = '1.2'
-                publicNetworkAccess = 'Disabled'
-            }
-        }
-        $redisDatabaseResource = @{
-            type       = 'Microsoft.Cache/redisEnterprise/databases'
-            apiVersion = $RedisApiVersion
-            name       = "[format('{0}/default', parameters('redisCacheName'))]"
-            dependsOn  = @(
-                "[resourceId('Microsoft.Cache/redisEnterprise', parameters('redisCacheName'))]"
-            )
-            properties = @{
-                accessKeysAuthentication = 'Enabled'
-                clientProtocol            = 'Encrypted'
-                clusteringPolicy          = 'OSSCluster'
-                evictionPolicy            = 'VolatileLRU'
-                modules                   = @()
-                port                      = 10000
-            }
-        }
-        $redisPrivateEndpointDependency = "[resourceId('Microsoft.Cache/redisEnterprise/databases', parameters('redisCacheName'), 'default')]"
-    }
-    else {
-        $redisResource = @{
-            type       = $RedisResourceType
-            apiVersion = $RedisApiVersion
-            name       = "[parameters('redisCacheName')]"
-            location   = "[parameters('location')]"
-            properties = @{
-                sku = @{
-                    name     = 'Basic'
-                    family   = 'C'
-                    capacity = 0
-                }
-                enableNonSslPort    = $false
-                minimumTlsVersion   = '1.2'
-                publicNetworkAccess = 'Disabled'
-                redisVersion        = '6'
-            }
-        }
-        $redisDatabaseResource = $null
-        $redisPrivateEndpointDependency = "[resourceId('Microsoft.Cache/Redis', parameters('redisCacheName'))]"
-    }
 
     $template = @{
         '$schema'      = 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
         contentVersion = '1.0.0.0'
         parameters     = @{
-            location       = @{ type = 'string' }
-            redisCacheName = @{ type = 'string' }
+            location           = @{ type = 'string' }
+            workspaceName      = @{ type = 'string' }
+            storageAccountName = @{ type = 'string' }
+            keyVaultName       = @{ type = 'string' }
+            appInsightsName    = @{ type = 'string' }
         }
         variables      = @{
-            virtualNetworkName        = $virtualNetworkName
-            subnetName                = $subnetName
-            privateEndpointName       = $privateEndpointName
-            privateDnsZoneName        = $RedisPrivateDnsZoneName
-            privateDnsZoneGroupName   = $PrivateDnsZoneGroupName
-            virtualNetworkLinkName    = 'redis-pe-test-link'
-            subnetId                  = "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
-            redisCacheId              = "[resourceId('$RedisResourceType', parameters('redisCacheName'))]"
-            privateDnsZoneId          = "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+            virtualNetworkName      = $virtualNetworkName
+            subnetName              = $subnetName
+            privateEndpointName     = $privateEndpointName
+            privateDnsZoneGroupName = $PrivateDnsZoneGroupName
+            apiPrivateDnsZoneName   = $AmlPrivateDnsZoneNames[0]
+            notebookPrivateDnsZoneName = $AmlPrivateDnsZoneNames[1]
+            apiVirtualNetworkLinkName = 'aml-api-pe-test-link'
+            notebookVirtualNetworkLinkName = 'aml-notebooks-pe-test-link'
+            subnetId                = "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
+            workspaceId             = "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('workspaceName'))]"
+            apiPrivateDnsZoneId     = "[resourceId('Microsoft.Network/privateDnsZones', variables('apiPrivateDnsZoneName'))]"
+            notebookPrivateDnsZoneId = "[resourceId('Microsoft.Network/privateDnsZones', variables('notebookPrivateDnsZoneName'))]"
         }
         resources      = @(
             @{
@@ -720,12 +765,12 @@ try {
                 name       = "[variables('virtualNetworkName')]"
                 location   = "[parameters('location')]"
                 properties = @{
-                    addressSpace = @{ addressPrefixes = @('10.84.0.0/16') }
+                    addressSpace = @{ addressPrefixes = @('10.85.0.0/16') }
                     subnets      = @(
                         @{
                             name       = "[variables('subnetName')]"
                             properties = @{
-                                addressPrefix                     = '10.84.1.0/24'
+                                addressPrefix                     = '10.85.1.0/24'
                                 privateEndpointNetworkPolicies    = 'Disabled'
                                 privateLinkServiceNetworkPolicies = 'Enabled'
                             }
@@ -733,20 +778,99 @@ try {
                     )
                 }
             }
-            $redisResource
+            @{
+                type       = 'Microsoft.Storage/storageAccounts'
+                apiVersion = '2023-05-01'
+                name       = "[parameters('storageAccountName')]"
+                location   = "[parameters('location')]"
+                sku        = @{ name = 'Standard_LRS' }
+                kind       = 'StorageV2'
+                properties = @{
+                    allowBlobPublicAccess = $false
+                    minimumTlsVersion     = 'TLS1_2'
+                    supportsHttpsTrafficOnly = $true
+                }
+            }
+            @{
+                type       = 'Microsoft.KeyVault/vaults'
+                apiVersion = '2023-07-01'
+                name       = "[parameters('keyVaultName')]"
+                location   = "[parameters('location')]"
+                properties = @{
+                    tenantId = "[subscription().tenantId]"
+                    sku      = @{ family = 'A'; name = 'standard' }
+                    accessPolicies = @()
+                    enableRbacAuthorization = $true
+                    enableSoftDelete = $true
+                    softDeleteRetentionInDays = 7
+                }
+            }
+            @{
+                type       = 'Microsoft.Insights/components'
+                apiVersion = '2020-02-02'
+                name       = "[parameters('appInsightsName')]"
+                location   = "[parameters('location')]"
+                kind       = 'web'
+                properties = @{
+                    Application_Type = 'web'
+                    Flow_Type        = 'Bluefield'
+                    Request_Source   = 'rest'
+                }
+            }
+            @{
+                type       = 'Microsoft.MachineLearningServices/workspaces'
+                apiVersion = $WorkspaceApiVersion
+                name       = "[parameters('workspaceName')]"
+                location   = "[parameters('location')]"
+                identity   = @{ type = 'SystemAssigned' }
+                dependsOn  = @(
+                    "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+                    "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                    "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+                )
+                properties = @{
+                    friendlyName        = "[parameters('workspaceName')]"
+                    description         = 'Isolated private endpoint DNS sync integration test.'
+                    storageAccount      = "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+                    keyVault            = "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                    applicationInsights = "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+                    publicNetworkAccess = 'Disabled'
+                    v1LegacyMode        = $false
+                }
+            }
             @{
                 type       = 'Microsoft.Network/privateDnsZones'
                 apiVersion = '2020-06-01'
-                name       = "[variables('privateDnsZoneName')]"
+                name       = "[variables('apiPrivateDnsZoneName')]"
+                location   = 'global'
+            }
+            @{
+                type       = 'Microsoft.Network/privateDnsZones'
+                apiVersion = '2020-06-01'
+                name       = "[variables('notebookPrivateDnsZoneName')]"
                 location   = 'global'
             }
             @{
                 type       = 'Microsoft.Network/privateDnsZones/virtualNetworkLinks'
                 apiVersion = '2020-06-01'
-                name       = "[format('{0}/{1}', variables('privateDnsZoneName'), variables('virtualNetworkLinkName'))]"
+                name       = "[format('{0}/{1}', variables('apiPrivateDnsZoneName'), variables('apiVirtualNetworkLinkName'))]"
                 location   = 'global'
                 dependsOn  = @(
-                    "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+                    "[resourceId('Microsoft.Network/privateDnsZones', variables('apiPrivateDnsZoneName'))]"
+                    "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
+                )
+                properties = @{
+                    registrationEnabled = $false
+                    virtualNetwork      = @{ id = "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]" }
+                }
+            }
+            @{
+                type       = 'Microsoft.Network/privateDnsZones/virtualNetworkLinks'
+                apiVersion = '2020-06-01'
+                name       = "[format('{0}/{1}', variables('notebookPrivateDnsZoneName'), variables('notebookVirtualNetworkLinkName'))]"
+                location   = 'global'
+                dependsOn  = @(
+                    "[resourceId('Microsoft.Network/privateDnsZones', variables('notebookPrivateDnsZoneName'))]"
                     "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
                 )
                 properties = @{
@@ -761,16 +885,17 @@ try {
                 location   = "[parameters('location')]"
                 dependsOn  = @(
                     "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
-                    $redisPrivateEndpointDependency
+                    "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('workspaceName'))]"
                 )
                 properties = @{
                     subnet = @{ id = "[variables('subnetId')]" }
                     privateLinkServiceConnections = @(
                         @{
-                            name       = $RedisPrivateLinkGroupId
+                            name       = $PrivateLinkGroupId
                             properties = @{
-                                privateLinkServiceId = "[variables('redisCacheId')]"
-                                groupIds              = @($RedisPrivateLinkGroupId)
+                                privateLinkServiceId = "[variables('workspaceId')]"
+                                groupIds              = @($PrivateLinkGroupId)
+                                requestMessage        = 'Azure Machine Learning private DNS sync integration test.'
                             }
                         }
                     )
@@ -782,13 +907,18 @@ try {
                 name       = "[format('{0}/{1}', variables('privateEndpointName'), variables('privateDnsZoneGroupName'))]"
                 dependsOn  = @(
                     "[resourceId('Microsoft.Network/privateEndpoints', variables('privateEndpointName'))]"
-                    "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+                    "[resourceId('Microsoft.Network/privateDnsZones', variables('apiPrivateDnsZoneName'))]"
+                    "[resourceId('Microsoft.Network/privateDnsZones', variables('notebookPrivateDnsZoneName'))]"
                 )
                 properties = @{
                     privateDnsZoneConfigs = @(
                         @{
-                            name       = 'redis'
-                            properties = @{ privateDnsZoneId = "[variables('privateDnsZoneId')]" }
+                            name       = 'aml-api'
+                            properties = @{ privateDnsZoneId = "[variables('apiPrivateDnsZoneId')]" }
+                        }
+                        @{
+                            name       = 'aml-notebooks'
+                            properties = @{ privateDnsZoneId = "[variables('notebookPrivateDnsZoneId')]" }
                         }
                     )
                 }
@@ -796,38 +926,33 @@ try {
         )
     }
 
-    if ($redisDatabaseResource) {
-        $template.resources += $redisDatabaseResource
-    }
-
-    Write-Host "Deploying $RedisDisplayName '$redisCacheName' and its private endpoint. Redis provisioning can take several minutes..."
+    Write-Host "Deploying Azure Machine Learning workspace '$workspaceName' and its private endpoint. Provisioning can take several minutes..."
     New-AzResourceGroupDeployment `
-        -Name "redis-pe-sync-test-$NameSuffix" `
+        -Name "aml-pe-sync-test-$NameSuffix" `
         -ResourceGroupName $SourceResourceGroupName `
         -TemplateObject $template `
         -location $Location `
-        -redisCacheName $redisCacheName `
+        -workspaceName $workspaceName `
+        -storageAccountName $storageAccountName `
+        -keyVaultName $keyVaultName `
+        -appInsightsName $appInsightsName `
         -ErrorAction Stop `
         -Verbose | Out-Null
 
     $testStatus = 'ValidatingSource'
-    $redisCache = Get-AzResource `
-        -ResourceGroupName $SourceResourceGroupName `
-        -ResourceType $RedisResourceType `
-        -ResourceName $redisCacheName `
-        -ExpandProperties `
-        -ErrorAction Stop
-    $redisProperties = Get-ObjectPropertyValue -InputObject $redisCache -Name 'Properties'
-    $redisProvisioningState = [string](Get-ObjectPropertyValue -InputObject $redisProperties -Name 'provisioningState')
-    $redisPublicNetworkAccess = [string](Get-ObjectPropertyValue -InputObject $redisProperties -Name 'publicNetworkAccess')
+    $workspaceResourceId = "/subscriptions/$SourceSubscriptionId/resourceGroups/$SourceResourceGroupName/providers/Microsoft.MachineLearningServices/workspaces/$workspaceName"
+    $workspace = Invoke-ArmGet -Path "${workspaceResourceId}?api-version=$WorkspaceApiVersion"
+    $workspaceProperties = Get-ObjectPropertyValue -InputObject $workspace -Name 'properties'
+    $workspaceProvisioningState = [string](Get-ObjectPropertyValue -InputObject $workspaceProperties -Name 'provisioningState')
+    $workspacePublicNetworkAccess = [string](Get-ObjectPropertyValue -InputObject $workspaceProperties -Name 'publicNetworkAccess')
     Add-TestAssertion `
-        -Name 'RedisProvisioningSucceeded' `
-        -Passed ($redisProvisioningState -eq 'Succeeded') `
-        -Details "ProvisioningState='$redisProvisioningState'."
+        -Name 'AmlWorkspaceProvisioningSucceeded' `
+        -Passed ($workspaceProvisioningState -eq 'Succeeded') `
+        -Details "ProvisioningState='$workspaceProvisioningState'."
     Add-TestAssertion `
-        -Name 'RedisPublicNetworkDisabled' `
-        -Passed ($redisPublicNetworkAccess -eq 'Disabled') `
-        -Details "PublicNetworkAccess='$redisPublicNetworkAccess'."
+        -Name 'AmlWorkspacePublicNetworkDisabled' `
+        -Passed ($workspacePublicNetworkAccess -eq 'Disabled') `
+        -Details "PublicNetworkAccess='$workspacePublicNetworkAccess'."
 
     $privateEndpoint = Get-AzResource `
         -ResourceGroupName $SourceResourceGroupName `
@@ -842,7 +967,7 @@ try {
         [string](Get-ObjectPropertyValue -InputObject $connectionState -Name 'status')
     } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     Add-TestAssertion `
-        -Name 'RedisPrivateEndpointApproved' `
+        -Name 'AmlPrivateEndpointApproved' `
         -Passed ($connectionStatuses.Count -gt 0 -and @($connectionStatuses | Where-Object { $_ -ne 'Approved' }).Count -eq 0) `
         -Details "ConnectionStatus='$($connectionStatuses -join ',')'."
 
@@ -850,7 +975,7 @@ try {
         -ResourceGroupName $SourceResourceGroupName `
         -PrivateEndpointName $privateEndpointName)
     Add-TestAssertion `
-        -Name 'RedisPrivateEndpointHasPrivateIp' `
+        -Name 'AmlPrivateEndpointHasPrivateIp' `
         -Passed ($privateIpAddresses.Count -gt 0) `
         -Details "PrivateIpAddresses='$($privateIpAddresses -join ',')'."
 
@@ -859,25 +984,33 @@ try {
         -ZoneGroupName $PrivateDnsZoneGroupName
     $initialZoneIds = @(Get-PrivateEndpointZoneIds -ZoneGroup $initialZoneGroup)
     Add-TestAssertion `
-        -Name 'InitialZoneGroupUsesSourceRedisZone' `
-        -Passed (@($initialZoneIds | Where-Object { $_ -ieq $sourcePrivateDnsZoneId }).Count -eq 1) `
+        -Name 'InitialZoneGroupUsesBothSourceAmlZones' `
+        -Passed ((Test-StringCollectionContainsAll -Actual $initialZoneIds -Expected $sourcePrivateDnsZoneIds) -and $initialZoneIds.Count -eq $sourcePrivateDnsZoneIds.Count) `
         -Details "ZoneIds='$($initialZoneIds -join ',')'."
 
-    Write-Host 'Waiting for Azure to create the source Redis private DNS A record...'
-    $sourceDnsRecords = @(Wait-PrivateDnsARecordsByIp `
-        -SubscriptionId $SourceSubscriptionId `
-        -ResourceGroupName $SourceResourceGroupName `
-        -ZoneName $RedisPrivateDnsZoneName `
-        -ExpectedIpAddresses $privateIpAddresses `
-        -TimeoutSeconds $DnsRecordTimeoutSeconds)
-    $sourceDnsIpAddresses = @($sourceDnsRecords | ForEach-Object { $_.IPv4Addresses } | Sort-Object -Unique)
-    Add-TestAssertion `
-        -Name 'SourceRedisDnsRecordsCreated' `
-        -Passed (Test-StringCollectionContainsAll -Actual $sourceDnsIpAddresses -Expected $privateIpAddresses) `
-        -Details "RecordNames='$(@($sourceDnsRecords.RecordName) -join ',')'; IPs='$($sourceDnsIpAddresses -join ',')'."
+    foreach ($zoneName in $AmlPrivateDnsZoneNames) {
+        Write-Host "Waiting for Azure to create source Machine Learning A records in '$zoneName'..."
+        $zoneRecords = @(Wait-PrivateDnsARecordsByAnyIp `
+            -SubscriptionId $SourceSubscriptionId `
+            -ResourceGroupName $SourceResourceGroupName `
+            -ZoneName $zoneName `
+            -CandidateIpAddresses $privateIpAddresses `
+            -TimeoutSeconds $DnsRecordTimeoutSeconds)
+        $sourceDnsRecords += $zoneRecords
+        $zoneIpAddresses = @($zoneRecords | ForEach-Object { $_.IPv4Addresses } | Sort-Object -Unique)
+        Add-TestAssertion `
+            -Name "SourceAmlDnsRecordsCreated:$zoneName" `
+            -Passed (@($zoneIpAddresses | Where-Object { $privateIpAddresses -contains $_ }).Count -gt 0) `
+            -Details "RecordNames='$(@($zoneRecords.RecordName) -join ',')'; IPs='$($zoneIpAddresses -join ',')'."
+    }
 
+    if ($SkipSync) {
+        $testStatus = 'Deployed'
+        Write-Host "Azure Machine Learning workspace '$workspaceName' and private endpoint '$privateEndpointName' were deployed and source-validated. Synchronization was skipped."
+    }
+    else {
     $testStatus = 'RunningSync'
-    Write-Host "Running '$SyncScriptPath' for the isolated Redis source zone..."
+    Write-Host "Running '$SyncScriptPath' for the isolated Machine Learning source zones..."
     $syncParameters = @{
         SourceSubscriptionId                       = $SourceSubscriptionId
         DestinationSubscriptionId                  = $DestinationSubscriptionId
@@ -893,16 +1026,19 @@ try {
     $rawSyncResults = @(& $SyncScriptPath @syncParameters)
     $syncResultRows = @($rawSyncResults | Where-Object {
         $zoneNameProperty = $_.PSObject.Properties['ZoneName']
-        $zoneNameProperty -and [string]$zoneNameProperty.Value -ieq $RedisPrivateDnsZoneName
+        $zoneNameProperty -and $AmlPrivateDnsZoneNames -contains [string]$zoneNameProperty.Value
     })
-    $matchingEndpointResults = @($syncResultRows | Where-Object {
-        $endpointNames = @(([string]$_.SourcePrivateEndpointNames -split ',') | ForEach-Object { $_.Trim() })
-        $endpointNames -contains $privateEndpointName
-    })
-    Add-TestAssertion `
-        -Name 'SyncMatchedRedisPrivateEndpoint' `
-        -Passed ($matchingEndpointResults.Count -gt 0) `
-        -Details "MatchingResultCount='$($matchingEndpointResults.Count)'; Operations='$(@($matchingEndpointResults.Operation) -join ',')'."
+
+    foreach ($zoneName in $AmlPrivateDnsZoneNames) {
+        $matchingEndpointResults = @($syncResultRows | Where-Object {
+            $_.ZoneName -ieq $zoneName -and
+            @(([string]$_.SourcePrivateEndpointNames -split ',') | ForEach-Object { $_.Trim() }) -contains $privateEndpointName
+        })
+        Add-TestAssertion `
+            -Name "SyncMatchedAmlPrivateEndpoint:$zoneName" `
+            -Passed ($matchingEndpointResults.Count -gt 0) `
+            -Details "MatchingResultCount='$($matchingEndpointResults.Count)'; Operations='$(@($matchingEndpointResults.Operation) -join ',')'."
+    }
 
     $destinationResourceGroupOwned = $true
     $testStatus = 'ValidatingDestination'
@@ -912,93 +1048,106 @@ try {
         -ZoneGroupName $PrivateDnsZoneGroupName
     $updatedZoneIds = @(Get-PrivateEndpointZoneIds -ZoneGroup $updatedZoneGroup)
     Add-TestAssertion `
-        -Name 'ZoneGroupUsesDestinationRedisZone' `
-        -Passed (@($updatedZoneIds | Where-Object { $_ -ieq $destinationPrivateDnsZoneId }).Count -eq 1) `
+        -Name 'ZoneGroupUsesBothDestinationAmlZones' `
+        -Passed ((Test-StringCollectionContainsAll -Actual $updatedZoneIds -Expected $destinationPrivateDnsZoneIds) -and $updatedZoneIds.Count -eq $destinationPrivateDnsZoneIds.Count) `
         -Details "ZoneIds='$($updatedZoneIds -join ',')'."
     Add-TestAssertion `
-        -Name 'ZoneGroupNoLongerUsesSourceRedisZone' `
-        -Passed (@($updatedZoneIds | Where-Object { $_ -ieq $sourcePrivateDnsZoneId }).Count -eq 0) `
-        -Details "SourceZoneId='$sourcePrivateDnsZoneId'."
+        -Name 'ZoneGroupNoLongerUsesSourceAmlZones' `
+        -Passed (@($updatedZoneIds | Where-Object { $sourcePrivateDnsZoneIds -contains $_ }).Count -eq 0) `
+        -Details "SourceZoneIds='$($sourcePrivateDnsZoneIds -join ',')'."
 
     Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId | Out-Null
     if (-not (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue)) {
         throw "The sync script did not create destination resource group '$DestinationResourceGroupName'."
     }
 
-    $destinationZone = Get-AzResource `
-        -ResourceGroupName $DestinationResourceGroupName `
-        -ResourceType 'Microsoft.Network/privateDnsZones' `
-        -ResourceName $RedisPrivateDnsZoneName `
-        -ErrorAction Stop
-    Add-TestAssertion `
-        -Name 'DestinationRedisPrivateDnsZoneCreated' `
-        -Passed ($destinationZone.ResourceId -ieq $destinationPrivateDnsZoneId) `
-        -Details "ResourceId='$($destinationZone.ResourceId)'."
+    foreach ($zoneName in $AmlPrivateDnsZoneNames) {
+        $destinationZoneId = "/subscriptions/$DestinationSubscriptionId/resourceGroups/$DestinationResourceGroupName/providers/Microsoft.Network/privateDnsZones/$zoneName"
+        $destinationZone = Get-AzResource `
+            -ResourceGroupName $DestinationResourceGroupName `
+            -ResourceType 'Microsoft.Network/privateDnsZones' `
+            -ResourceName $zoneName `
+            -ErrorAction Stop
+        Add-TestAssertion `
+            -Name "DestinationAmlPrivateDnsZoneCreated:$zoneName" `
+            -Passed ($destinationZone.ResourceId -ieq $destinationZoneId) `
+            -Details "ResourceId='$($destinationZone.ResourceId)'."
 
-    Write-Host 'Waiting for Azure to create the destination Redis private DNS A record...'
-    $destinationDnsRecords = @(Wait-PrivateDnsARecordsByIp `
-        -SubscriptionId $DestinationSubscriptionId `
-        -ResourceGroupName $DestinationResourceGroupName `
-        -ZoneName $RedisPrivateDnsZoneName `
-        -ExpectedIpAddresses $privateIpAddresses `
-        -TimeoutSeconds $DnsRecordTimeoutSeconds)
-    $destinationDnsIpAddresses = @($destinationDnsRecords | ForEach-Object { $_.IPv4Addresses } | Sort-Object -Unique)
-    Add-TestAssertion `
-        -Name 'DestinationRedisDnsRecordsCreated' `
-        -Passed (Test-StringCollectionContainsAll -Actual $destinationDnsIpAddresses -Expected $privateIpAddresses) `
-        -Details "RecordNames='$(@($destinationDnsRecords.RecordName) -join ',')'; IPs='$($destinationDnsIpAddresses -join ',')'."
-
-    foreach ($destinationDnsRecord in $destinationDnsRecords) {
-        $txtRecordSet = Get-PrivateDnsTxtRecordSet `
+        $expectedZoneIpAddresses = @($sourceDnsRecords | Where-Object { $_.ZoneName -ieq $zoneName } | ForEach-Object { $_.IPv4Addresses } | Sort-Object -Unique)
+        Write-Host "Waiting for Azure to create destination Machine Learning A records in '$zoneName'..."
+        $zoneRecords = @(Wait-PrivateDnsARecordsByIp `
             -SubscriptionId $DestinationSubscriptionId `
             -ResourceGroupName $DestinationResourceGroupName `
-            -ZoneName $RedisPrivateDnsZoneName `
-            -RecordName $destinationDnsRecord.RecordName
+            -ZoneName $zoneName `
+            -ExpectedIpAddresses $expectedZoneIpAddresses `
+            -TimeoutSeconds $DnsRecordTimeoutSeconds)
+        $destinationDnsRecords += $zoneRecords
+        $destinationZoneIpAddresses = @($zoneRecords | ForEach-Object { $_.IPv4Addresses } | Sort-Object -Unique)
         Add-TestAssertion `
-            -Name "NoDirectSyncProvenanceTxt:$($destinationDnsRecord.RecordName)" `
-            -Passed (-not (Test-ContainsSyncProvenanceTxtRecord -TxtRecordSet $txtRecordSet)) `
-            -Details 'Zone-group-managed Redis records must not have a direct-sync provenance TXT record.'
+            -Name "DestinationAmlDnsRecordsCreated:$zoneName" `
+            -Passed (Test-StringCollectionContainsAll -Actual $destinationZoneIpAddresses -Expected $expectedZoneIpAddresses) `
+            -Details "RecordNames='$(@($zoneRecords.RecordName) -join ',')'; IPs='$($destinationZoneIpAddresses -join ',')'."
+
+        foreach ($destinationDnsRecord in $zoneRecords) {
+            $txtRecordSet = Get-PrivateDnsTxtRecordSet `
+                -SubscriptionId $DestinationSubscriptionId `
+                -ResourceGroupName $DestinationResourceGroupName `
+                -ZoneName $zoneName `
+                -RecordName $destinationDnsRecord.RecordName
+            Add-TestAssertion `
+                -Name "NoDirectSyncProvenanceTxt:$zoneName/$($destinationDnsRecord.RecordName)" `
+                -Passed (-not (Test-ContainsSyncProvenanceTxtRecord -TxtRecordSet $txtRecordSet)) `
+                -Details 'Zone-group-managed Machine Learning records must not have a direct-sync provenance TXT record.'
+        }
     }
 
-    $testStatus = 'Passed'
+        $testStatus = 'Passed'
+    }
 }
 catch {
     $testError = $_
     $testStatus = 'Failed'
-    Write-Warning "Redis private endpoint sync test failed: $($_.Exception.Message)"
+    Write-Warning "Azure Machine Learning private endpoint sync test failed: $($_.Exception.Message)"
 }
 finally {
     $testCompletedAt = Get-Date
 
-    if ($preflightComplete -and -not $KeepResources) {
-        try {
-            Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
-            if (Get-AzResourceGroup -Name $SourceResourceGroupName -ErrorAction SilentlyContinue) {
-                Write-Host "Removing source test resource group '$SourceResourceGroupName'..."
-                Remove-AzResourceGroup -Name $SourceResourceGroupName -Force -ErrorAction Stop | Out-Null
-                Wait-ResourceGroupRemoved -ResourceGroupName $SourceResourceGroupName
-                $cleanupActions.Add("Removed source resource group '$SourceResourceGroupName'.")
+    $retainResources = [bool]($KeepResources -or ($SkipSync -and $testStatus -eq 'Deployed'))
+    if (-not $retainResources) {
+        if ($sourceContext -and $sourceResourceGroupOwned) {
+            try {
+                Select-AzureChinaSubscription -SubscriptionId $SourceSubscriptionId -TenantId $SourceTenantId | Out-Null
+                if (Get-AzResourceGroup -Name $SourceResourceGroupName -ErrorAction SilentlyContinue) {
+                    Write-Host "Removing source test resource group '$SourceResourceGroupName'..."
+                    Remove-AzResourceGroup -Name $SourceResourceGroupName -Force -ErrorAction Stop | Out-Null
+                    Wait-ResourceGroupRemoved -ResourceGroupName $SourceResourceGroupName
+                    $cleanupActions.Add("Removed source resource group '$SourceResourceGroupName'.")
+                }
             }
-        }
-        catch {
-            $cleanupErrors.Add("Source cleanup failed: $($_.Exception.Message)")
+            catch {
+                $cleanupErrors.Add("Source cleanup failed: $($_.Exception.Message)")
+            }
         }
 
-        try {
-            Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId | Out-Null
-            if (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue) {
-                Write-Host "Removing destination test resource group '$DestinationResourceGroupName'..."
-                Remove-AzResourceGroup -Name $DestinationResourceGroupName -Force -ErrorAction Stop | Out-Null
-                Wait-ResourceGroupRemoved -ResourceGroupName $DestinationResourceGroupName
-                $cleanupActions.Add("Removed destination resource group '$DestinationResourceGroupName'.")
+        if ($destinationContext) {
+            try {
+                Select-AzureChinaSubscription -SubscriptionId $DestinationSubscriptionId -TenantId $DestinationTenantId | Out-Null
+                if (Get-AzResourceGroup -Name $DestinationResourceGroupName -ErrorAction SilentlyContinue) {
+                    Write-Host "Removing destination test resource group '$DestinationResourceGroupName'..."
+                    Remove-AzResourceGroup -Name $DestinationResourceGroupName -Force -ErrorAction Stop | Out-Null
+                    Wait-ResourceGroupRemoved -ResourceGroupName $DestinationResourceGroupName
+                    $cleanupActions.Add("Removed destination resource group '$DestinationResourceGroupName'.")
+                    $destinationResourceGroupOwned = $true
+                }
+            }
+            catch {
+                $cleanupErrors.Add("Destination cleanup failed: $($_.Exception.Message)")
             }
         }
-        catch {
-            $cleanupErrors.Add("Destination cleanup failed: $($_.Exception.Message)")
-        }
     }
-    elseif ($KeepResources) {
-        $cleanupActions.Add('Resources retained because KeepResources was specified.')
+    else {
+        $retainReason = if ($SkipSync -and $testStatus -eq 'Deployed') { 'SkipSync deployment completed successfully.' } else { 'KeepResources was specified.' }
+        $cleanupActions.Add("Resources retained because $retainReason")
     }
 
     if ($testStatus -eq 'Passed' -and $cleanupErrors.Count -gt 0) {
@@ -1015,33 +1164,40 @@ finally {
         DestinationSubscriptionId     = $DestinationSubscriptionId
         TenantId                      = $SourceTenantId
         Location                      = $Location
-        RedisServiceType              = $RedisServiceType
-        RedisResourceType             = $RedisResourceType
+        WorkspaceApiVersion           = $WorkspaceApiVersion
+        WorkspaceName                 = $workspaceName
+        StorageAccountName            = $storageAccountName
+        KeyVaultName                  = $keyVaultName
+        ApplicationInsightsName       = $appInsightsName
         NameSuffix                    = $NameSuffix
         SourceResourceGroupName       = $SourceResourceGroupName
         DestinationResourceGroupName  = $DestinationResourceGroupName
-        RedisCacheName                = $redisCacheName
-        RedisSku                      = $RedisSkuName
-        RedisPrivateDnsZoneName       = $RedisPrivateDnsZoneName
         PrivateEndpointName           = $privateEndpointName
+        PrivateLinkGroupId            = $PrivateLinkGroupId
+        PrivateDnsZoneNames            = @($AmlPrivateDnsZoneNames)
         PrivateIpAddresses            = @($privateIpAddresses)
+        ProviderRegistrationStates    = $providerRegistrationStates
         SourceDnsRecords              = @($sourceDnsRecords)
         DestinationDnsRecords         = @($destinationDnsRecords)
         SyncResults                   = @($syncResultRows)
-        Assertions                    = @($script:RedisSyncTestAssertions.ToArray())
+        Assertions                    = @($script:AmlSyncTestAssertions.ToArray())
+        SyncSkipped                   = [bool]$SkipSync
         KeepResources                 = [bool]$KeepResources
+        ResourcesRetained             = $retainResources
         SourceResourceGroupCreated    = $sourceResourceGroupOwned
         DestinationResourceGroupUsed = $destinationResourceGroupOwned
         CleanupActions                = @($cleanupActions.ToArray())
         CleanupErrors                 = @($cleanupErrors.ToArray())
         CleanupCommands               = @(
             "Set-AzContext -SubscriptionId '$SourceSubscriptionId'; Remove-AzResourceGroup -Name '$SourceResourceGroupName' -Force"
-            "Set-AzContext -SubscriptionId '$DestinationSubscriptionId'; Remove-AzResourceGroup -Name '$DestinationResourceGroupName' -Force"
+            if (-not $SkipSync) {
+                "Set-AzContext -SubscriptionId '$DestinationSubscriptionId'; Remove-AzResourceGroup -Name '$DestinationResourceGroupName' -Force"
+            }
         )
         Error                          = if ($testError) { [string]$testError.Exception.Message } else { $null }
     }
 
-    $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+    $report | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
     Write-Host "Test report written to '$OutputPath'."
 }
 
@@ -1050,8 +1206,13 @@ if ($testError) {
 }
 
 if ($cleanupErrors.Count -gt 0) {
-    throw "Redis private endpoint sync passed, but cleanup failed: $($cleanupErrors -join ' | ')"
+    throw "Azure Machine Learning private endpoint sync passed, but cleanup failed: $($cleanupErrors -join ' | ')"
 }
 
-Write-Host "Redis private endpoint sync test passed with '$($script:RedisSyncTestAssertions.Count)' assertion(s)." -ForegroundColor Green
+if ($SkipSync) {
+    Write-Host "Azure Machine Learning private endpoint deployment completed without synchronization. Source resource group '$SourceResourceGroupName' was retained." -ForegroundColor Green
+}
+else {
+    Write-Host "Azure Machine Learning private endpoint sync test passed with '$($script:AmlSyncTestAssertions.Count)' assertion(s)." -ForegroundColor Green
+}
 [pscustomobject]$report

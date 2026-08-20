@@ -34,7 +34,7 @@ Use SkipCreateMissingDestinationZones to require all zones to exist already.
 In Azure Automation, tenant, destination subscription, destination DNS resource
 group, and an optional user-assigned managed identity client ID can be read from
 dedicated Automation variables. When this runbook shares the Automation Account
-deployed by Deploy-SyncPrivateEndpointPrivateDnsAutomation.ps1, it falls back to
+deployed by Deploy-AzureChinaPrivateDnsAutomation.ps1, it falls back to
 that deployment's shared tenant, destination, and managed identity variables.
 
 Required permissions:
