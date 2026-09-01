@@ -113,6 +113,8 @@ $RunStartedAt = Get-Date
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink\.api\.ml\.azure\.cn$',
     '^privatelink\.notebooks\.chinacloudapi\.cn$',
+    '^privatelink\.search\.azure\.cn$',
+    '^privatelink\.cognitiveservices\.azure\.cn$',
     '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
     '^privatelink\.afs\.azure\.cn$',
     '^privatelink\.database\.chinacloudapi\.cn$',
@@ -141,6 +143,8 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
 $AzureChinaPublicDnsSuffixToPrivateDnsZones = @{
     'api.ml.azure.cn'                         = @('privatelink.api.ml.azure.cn')
     'notebooks.chinacloudapi.cn'              = @('privatelink.notebooks.chinacloudapi.cn')
+    'search.azure.cn'                         = @('privatelink.search.azure.cn')
+    'cognitiveservices.azure.cn'              = @('privatelink.cognitiveservices.azure.cn')
     'blob.core.chinacloudapi.cn'              = @('privatelink.blob.core.chinacloudapi.cn')
     'dfs.core.chinacloudapi.cn'               = @('privatelink.dfs.core.chinacloudapi.cn')
     'file.core.chinacloudapi.cn'              = @('privatelink.file.core.chinacloudapi.cn')
@@ -175,6 +179,8 @@ $AzureChinaPublicDnsSuffixToPrivateDnsZones = @{
 
 $AzureChinaResourceGroupToPrivateDnsZones = @{
     'microsoft.machinelearningservices/workspaces|amlworkspace' = @('privatelink.api.ml.azure.cn', 'privatelink.notebooks.chinacloudapi.cn')
+    'microsoft.search/searchservices|searchservice'             = @('privatelink.search.azure.cn')
+    'microsoft.cognitiveservices/accounts|account'              = @('privatelink.cognitiveservices.azure.cn')
     'microsoft.datafactory/factories|datafactory'                = @('privatelink.datafactory.azure.cn')
     'microsoft.datafactory/factories|portal'                     = @('privatelink.adf.azure.cn')
     'microsoft.hdinsight/clusters|gateway'                       = @('privatelink.azurehdinsight.cn')

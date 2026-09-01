@@ -228,6 +228,34 @@ Invoke-InferenceCase `
     -ExpectedZones @('privatelink.documents.azure.cn')
 
 Invoke-InferenceCase `
+    -Name 'AzureAiSearchFromResourceTypeAndGroupId' `
+    -Connections @([pscustomobject]@{
+        ResourceType         = 'microsoft.search/searchservices'
+        GroupId              = 'searchService'
+        PrivateLinkServiceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Search/searchServices/search'
+    }) `
+    -ExpectedZones @('privatelink.search.azure.cn')
+
+Invoke-InferenceCase `
+    -Name 'AzureAiSearchFromPublicFqdn' `
+    -Fqdns @('search.search.azure.cn') `
+    -ExpectedZones @('privatelink.search.azure.cn')
+
+Invoke-InferenceCase `
+    -Name 'CognitiveServicesFromResourceTypeAndGroupId' `
+    -Connections @([pscustomobject]@{
+        ResourceType         = 'microsoft.cognitiveservices/accounts'
+        GroupId              = 'account'
+        PrivateLinkServiceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.CognitiveServices/accounts/cognitive'
+    }) `
+    -ExpectedZones @('privatelink.cognitiveservices.azure.cn')
+
+Invoke-InferenceCase `
+    -Name 'CognitiveServicesFromPublicFqdn' `
+    -Fqdns @('cognitive.cognitiveservices.azure.cn') `
+    -ExpectedZones @('privatelink.cognitiveservices.azure.cn')
+
+Invoke-InferenceCase `
     -Name 'AmlInfersBothZonesWithoutFqdn' `
     -Connections @([pscustomobject]@{
         ResourceType         = 'microsoft.machinelearningservices/workspaces'

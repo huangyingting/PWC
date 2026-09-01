@@ -350,10 +350,13 @@ Write-TraceLog -Message "Starting Sync-PrivateEndpointPrivateDns.ps1. SourceSubs
 Write-TraceLog -Message "Mode: private endpoint zone-group linking with direct DNS A record fallback. CanUpdatePrivateEndpointZoneGroups='$CanUpdatePrivateEndpointZoneGroups'."
 
 $AzureChinaPaaSPrivateDnsZonePatterns = @(
-    # Keep this list aligned with the official China table:
+    # Keep this list aligned with the official China table and live Azure China
+    # privateLinkResources metadata:
     # https://docs.azure.cn/en-us/private-link/private-endpoint-dns
     '^privatelink\.api\.ml\.azure\.cn$',
     '^privatelink\.notebooks\.chinacloudapi\.cn$',
+    '^privatelink\.search\.azure\.cn$',
+    '^privatelink\.cognitiveservices\.azure\.cn$',
     '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
     '^privatelink\.afs\.azure\.cn$',
     '^privatelink\.database\.chinacloudapi\.cn$',

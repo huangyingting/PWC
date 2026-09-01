@@ -87,6 +87,15 @@ Set `SourceSubscriptionId` to the subscription containing the source private end
 
 Azure Event Grid custom topics and domains use `privatelink.eventgrid.azure.cn` with the `topic` or `domain` group ID. System topics do not support private endpoints.
 
+Azure AI Search and Cognitive Services Private Endpoints are supported using
+the Azure China settings verified from live ARM `privateLinkResources`
+metadata:
+
+| Service | Resource type | Group ID | Private DNS zone |
+| --- | --- | --- | --- |
+| Azure AI Search | `Microsoft.Search/searchServices` | `searchService` | `privatelink.search.azure.cn` |
+| Cognitive Services | `Microsoft.CognitiveServices/accounts` | `account` | `privatelink.cognitiveservices.azure.cn` |
+
 ## Targeted Private Endpoint link
 
 `Link-PrivateEndpointPrivateDns` derives the source subscription from
