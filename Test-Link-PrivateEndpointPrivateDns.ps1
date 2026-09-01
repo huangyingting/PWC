@@ -256,6 +256,24 @@ Invoke-InferenceCase `
     -ExpectedZones @('privatelink.cognitiveservices.azure.cn')
 
 Invoke-InferenceCase `
+    -Name 'DatabricksUiApiFromResourceTypeAndGroupId' `
+    -Connections @([pscustomobject]@{
+        ResourceType         = 'microsoft.databricks/workspaces'
+        GroupId              = 'databricks_ui_api'
+        PrivateLinkServiceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Databricks/workspaces/workspace'
+    }) `
+    -ExpectedZones @('privatelink.databricks.azure.cn')
+
+Invoke-InferenceCase `
+    -Name 'DatabricksBrowserAuthenticationFromResourceTypeAndGroupId' `
+    -Connections @([pscustomobject]@{
+        ResourceType         = 'microsoft.databricks/workspaces'
+        GroupId              = 'browser_authentication'
+        PrivateLinkServiceId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Databricks/workspaces/workspace'
+    }) `
+    -ExpectedZones @('privatelink.databricks.azure.cn')
+
+Invoke-InferenceCase `
     -Name 'AmlInfersBothZonesWithoutFqdn' `
     -Connections @([pscustomobject]@{
         ResourceType         = 'microsoft.machinelearningservices/workspaces'

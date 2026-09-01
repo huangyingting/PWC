@@ -357,6 +357,7 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink\.notebooks\.chinacloudapi\.cn$',
     '^privatelink\.search\.azure\.cn$',
     '^privatelink\.cognitiveservices\.azure\.cn$',
+    '^privatelink\.databricks\.azure\.cn$',
     '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
     '^privatelink\.afs\.azure\.cn$',
     '^privatelink\.database\.chinacloudapi\.cn$',

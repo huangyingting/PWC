@@ -115,6 +115,7 @@ $AzureChinaPaaSPrivateDnsZonePatterns = @(
     '^privatelink\.notebooks\.chinacloudapi\.cn$',
     '^privatelink\.search\.azure\.cn$',
     '^privatelink\.cognitiveservices\.azure\.cn$',
+    '^privatelink\.databricks\.azure\.cn$',
     '^privatelink\.(blob|dfs|file|queue|table|web)\.core\.chinacloudapi\.cn$',
     '^privatelink\.afs\.azure\.cn$',
     '^privatelink\.database\.chinacloudapi\.cn$',
@@ -181,6 +182,8 @@ $AzureChinaResourceGroupToPrivateDnsZones = @{
     'microsoft.machinelearningservices/workspaces|amlworkspace' = @('privatelink.api.ml.azure.cn', 'privatelink.notebooks.chinacloudapi.cn')
     'microsoft.search/searchservices|searchservice'             = @('privatelink.search.azure.cn')
     'microsoft.cognitiveservices/accounts|account'              = @('privatelink.cognitiveservices.azure.cn')
+    'microsoft.databricks/workspaces|databricks_ui_api'         = @('privatelink.databricks.azure.cn')
+    'microsoft.databricks/workspaces|browser_authentication'    = @('privatelink.databricks.azure.cn')
     'microsoft.datafactory/factories|datafactory'                = @('privatelink.datafactory.azure.cn')
     'microsoft.datafactory/factories|portal'                     = @('privatelink.adf.azure.cn')
     'microsoft.hdinsight/clusters|gateway'                       = @('privatelink.azurehdinsight.cn')

@@ -95,6 +95,13 @@ metadata:
 | --- | --- | --- | --- |
 | Azure AI Search | `Microsoft.Search/searchServices` | `searchService` | `privatelink.search.azure.cn` |
 | Cognitive Services | `Microsoft.CognitiveServices/accounts` | `account` | `privatelink.cognitiveservices.azure.cn` |
+| Azure Databricks | `Microsoft.Databricks/workspaces` | `databricks_ui_api`, `browser_authentication` | `privatelink.databricks.azure.cn` |
+
+Azure China Databricks Private Link requires a Premium, custom VNet-injected
+workspace. Standard non-VNet-injected workspaces reject Private Link with
+`NonVNetInjectedWorkspaceNotSupported`. Both Databricks subresources use the
+same private DNS zone. Databricks Private Endpoint NIC metadata can omit FQDNs,
+so the targeted Link runbook infers the zone from resource type and group ID.
 
 ## Targeted Private Endpoint link
 
