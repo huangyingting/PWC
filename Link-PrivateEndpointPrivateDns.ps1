@@ -493,25 +493,37 @@ function Invoke-ArmJson {
         $parameters['Payload'] = ($Body | ConvertTo-Json -Depth 20)
     }
 
-    try {
-        $response = Invoke-AzRestMethod @parameters
-    }
-    catch {
-        if ($AllowNotFound -and $_.Exception.Message -match '\b404\b') {
+    $target = if ($Uri) { $Uri } else { $Path }
+    $maximumAttempts = 4
+    for ($attempt = 1; $attempt -le $maximumAttempts; $attempt++) {
+        try {
+            $response = Invoke-AzRestMethod @parameters
+        }
+        catch {
+            if ($AllowNotFound -and $_.Exception.Message -match '\b404\b') {
+                return $null
+            }
+
+            throw
+        }
+
+        $statusCode = [int]$response.StatusCode
+        if ($AllowNotFound -and $statusCode -eq 404) {
             return $null
         }
 
-        throw
-    }
+        if ($ExpectedStatusCode -contains $statusCode) {
+            break
+        }
 
-    $statusCode = [int]$response.StatusCode
-    if ($AllowNotFound -and $statusCode -eq 404) {
-        return $null
-    }
+        $isTransientStatus = $statusCode -in @(408, 429, 500, 502, 503, 504)
+        if (-not $isTransientStatus -or $attempt -eq $maximumAttempts) {
+            throw "ARM $Method failed for '$target'. Status='$statusCode'. Attempt='$attempt/$maximumAttempts'. Response='$($response.Content)'."
+        }
 
-    if ($ExpectedStatusCode -notcontains $statusCode) {
-        $target = if ($Uri) { $Uri } else { $Path }
-        throw "ARM $Method failed for '$target'. Status='$statusCode'. Response='$($response.Content)'."
+        $delaySeconds = [math]::Pow(2, $attempt - 1)
+        Write-TraceLog -Level WARN -Message "ARM $Method for '$target' returned transient status '$statusCode' on attempt '$attempt/$maximumAttempts'. Retrying in '$delaySeconds' second(s)."
+        Start-Sleep -Seconds $delaySeconds
     }
 
     if ([string]::IsNullOrWhiteSpace([string]$response.Content)) {
@@ -1471,6 +1483,8 @@ function Set-PrivateEndpointPrivateDnsZoneGroup {
     }
 
     if ($ScriptCommand.ShouldProcess($target, "${operation}: link inferred destination private DNS zones")) {
+        $desiredZoneIds = @($desiredConfigs | ForEach-Object { [string]$_.properties.privateDnsZoneId })
+        Write-TraceLog -Message "Writing private DNS zone group. Endpoint='$($PrivateEndpoint.name)'; Group='$groupName'; Operation='$operation'; ZoneIds='$($desiredZoneIds -join ',')'."
         try {
             Invoke-ArmJson -Method PUT -Path $path -Body $body -ExpectedStatusCode @(200, 201) | Out-Null
         }

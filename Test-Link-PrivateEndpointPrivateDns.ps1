@@ -47,6 +47,8 @@ foreach ($variableName in $requiredVariableNames) {
 }
 
 $requiredFunctionNames = @(
+    'Write-TraceLog'
+    'Invoke-ArmJson'
     'Get-AutomationVariableString'
     'Get-FirstAutomationVariableString'
     'Get-ObjectPropertyValue'
@@ -170,6 +172,44 @@ Add-Assertion `
     -Name 'DedicatedAutomationVariableOverridesSharedFallback' `
     -Passed ($dedicatedDestinationSubscriptionId -eq '33333333-3333-3333-3333-333333333333') `
     -Details "ResolvedDestinationSubscriptionId='$dedicatedDestinationSubscriptionId'."
+
+$script:MockArmAttemptCount = 0
+$script:MockSleepDelays = New-Object System.Collections.Generic.List[int]
+function Invoke-AzRestMethod {
+    [CmdletBinding()]
+    param(
+        [string]$Method,
+        [string]$Path,
+        [string]$Uri,
+        [string]$Payload
+    )
+
+    $script:MockArmAttemptCount++
+    if ($script:MockArmAttemptCount -lt 3) {
+        return [pscustomobject]@{ StatusCode = 500; Content = '{"error":{"code":"InternalServerError"}}' }
+    }
+
+    return [pscustomobject]@{ StatusCode = 200; Content = '{"result":"ok"}' }
+}
+
+function Start-Sleep {
+    [CmdletBinding()]
+    param([int]$Seconds)
+
+    $script:MockSleepDelays.Add($Seconds)
+}
+
+$retryResult = Invoke-ArmJson -Method PUT -Path '/mock/resource' -Body @{ properties = @{} } -ExpectedStatusCode @(200)
+Add-Assertion `
+    -Name 'ArmTransientServerErrorsAreRetried' `
+    -Passed ($script:MockArmAttemptCount -eq 3 -and
+        @($script:MockSleepDelays).Count -eq 2 -and
+        $script:MockSleepDelays[0] -eq 1 -and
+        $script:MockSleepDelays[1] -eq 2 -and
+        [string]$retryResult.result -eq 'ok') `
+    -Details "Attempts='$script:MockArmAttemptCount'; Delays='$(@($script:MockSleepDelays) -join ',')'; Result='$([string]$retryResult.result)'."
+
+Remove-Item -Path Function:\Invoke-AzRestMethod, Function:\Start-Sleep
 
 function Invoke-InferenceCase {
     param(

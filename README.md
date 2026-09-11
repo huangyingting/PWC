@@ -5,6 +5,42 @@ Automates Private DNS operations for PWC on Azure China:
 - `Sync-PrivateEndpointPrivateDns` syncs supported Private Endpoint DNS zones from a source subscription to the default destination subscription.
 - `Link-PrivateEndpointPrivateDns` infers and links the required destination Private DNS zone for one Private Endpoint.
 - `Repair-AksPrivateDnsLinks` links AKS private DNS zones to the default FCS VNet.
+- `Export-AzureChinaVmSkuQuota` exports regional VM SKU availability, Compute quota, and deployed compute inventory to CSV.
+
+## Azure China VM SKU and quota report
+
+Run the report with `Reader` access to the customer subscription:
+
+```powershell
+.\Export-AzureChinaVmSkuQuota.ps1 `
+	-SubscriptionId "<customer-subscription-id>" `
+	-Location "chinaeast2" `
+	-OutputPath ".\customer-chinaeast2-vm-quota.csv"
+```
+
+The CSV contains one row per VM size available or restricted for that
+subscription and region. It includes:
+
+- VM family, vCPUs, memory, Premium SSD, accelerated networking, and SKU restrictions.
+- VM-family and total-regional vCPU usage/limit/remaining quota.
+- Estimates of additional deployable instances allowed by family quota and by the effective minimum of family and regional quota. Both estimates are zero when a location restriction makes that SKU unavailable to the subscription.
+- Deployed counts for standalone VMs, ordinary VMSS, AKS VMSS/nodes, Azure Machine Learning `AmlCompute`, and other managed VMSS.
+
+Rows are written only to the CSV by default. Add `-PassThru` when the same rows
+should also be emitted to the PowerShell pipeline.
+
+VM, VMSS, AKS nodes, and Azure Machine Learning compute created in the customer
+subscription normally consume the same `Microsoft.Compute` total-regional and
+VM-family vCPU quotas. The quota API values in the report are authoritative;
+inventory is included to explain likely consumers and can differ because of
+deallocation, autoscale, hidden managed resources, or recent changes.
+
+Other services were intentionally not mixed into this report: Azure Batch,
+Container Instances, Dedicated Hosts, and service-specific platforms can have
+additional or separate quota models. Azure Databricks and similar managed
+services can still consume customer-subscription Compute quota when they deploy
+VMs/VMSS there; visible managed scale sets are shown under
+`OtherManagedScaleSetCount` and `OtherManagedInstances`.
 
 ## Defaults
 
@@ -144,6 +180,7 @@ Deployment and test helpers use role-based prefixes:
 
 - `Deploy-AzureChinaPrivateDnsAutomation.ps1` — consolidated Automation Account deployer.
 - `Deploy-ChinaPrivateEndpointTest.ps1` — deploys reusable Azure China Private Endpoint test resources.
+- `Export-AzureChinaVmSkuQuota.ps1` — exports Azure China regional VM SKU availability, Compute quota, and deployed-capacity attribution to CSV.
 - `Test-Link-PrivateEndpointPrivateDns.ps1` — offline targeted-link tests.
 - `Test-AmlPrivateEndpointSync.ps1` — Azure Machine Learning end-to-end synchronization test.
 - `Test-RedisPrivateEndpointSync.ps1` — Redis end-to-end synchronization test.
