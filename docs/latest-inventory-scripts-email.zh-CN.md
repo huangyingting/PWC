@@ -4,9 +4,9 @@
 
 各位好，
 
-最新脚本已更新，请在 PowerShell 7 中按以下步骤运行。
+最新脚本已更新。每个功能块均为独立 PowerShell 7 脚本，无需复制或导入额外的项目模块。
 
-## 1. 导出订阅和 Resource Provider
+## 1. 导出订阅
 
 请先安装 Azure CLI，切换到 Azure 中国云并登录：
 
@@ -22,7 +22,9 @@ az login
     -OutputPath .\subscriptions.csv
 ```
 
-可以打开 `subscriptions.csv` 删除不需要查询的订阅，但请保留 `SubscriptionName` 和 `SubscriptionId` 两列。然后导出已注册的 Resource Provider：
+可以打开 `subscriptions.csv` 删除不需要处理的订阅，但请保留 `SubscriptionName` 和 `SubscriptionId` 两列。
+
+## 2. 导出已注册的 Resource Provider
 
 ```powershell
 .\Export-RegisteredResourceProviders.ps1 `
@@ -30,7 +32,22 @@ az login
     -OutputPath .\registered-resource-providers.csv
 ```
 
-## 2. 批量导出 VM SKU 与 Quota
+## 3. 注册指定的 Resource Provider
+
+注册属于写操作。账号需要在订阅范围具有 `Microsoft.Resources/subscriptions/providers/register/action` 权限。
+
+请先使用 `-WhatIf` 预览：
+
+```powershell
+.\Register-ResourceProviders.ps1 `
+    -InputPath .\subscriptions.csv `
+    -ProviderNamespace Microsoft.Compute, Microsoft.Network `
+    -WhatIf
+```
+
+确认无误后移除 `-WhatIf` 执行注册。脚本只注册通过 `-ProviderNamespace` 明确指定的 Provider，跳过已注册项目，等待注册完成，并生成审计 CSV。脚本默认逐项请求确认；已审批的无人值守操作可以添加 `-Confirm:$false`。
+
+## 4. 批量导出 VM SKU 与 Quota
 
 请确保已安装 `Az.Accounts` 和 `Az.Resources` 模块，并且当前 Az PowerShell 账号对 CSV 中的订阅具有 `Reader` 权限：
 

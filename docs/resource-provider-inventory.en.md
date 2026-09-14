@@ -2,14 +2,19 @@
 
 ## Purpose
 
-These scripts create a read-only CSV inventory of:
+These scripts create the following CSV inventories and can register an
+explicitly selected list of resource providers:
 
 1. enabled subscriptions accessible to the current Azure CLI account; and
 2. registered Azure resource providers in selected subscriptions.
 
 The scripts use the Azure CLI's **current cloud**. They work with Azure China when the current cloud is `AzureChinaCloud`, and with global Azure when it is `AzureCloud`.
 
-No script registers or unregisters a resource provider and no Azure resource is changed.
+`Export-AccessibleSubscriptions.ps1`, `Export-RegisteredResourceProviders.ps1`,
+and `Export-AzureChinaVmSkuQuota.ps1` are read-only.
+`Register-ResourceProviders.ps1` is the only script that changes subscriptions,
+and it registers only namespaces explicitly supplied through
+`ProviderNamespace`; it never unregisters a provider.
 
 ## Files
 
@@ -17,7 +22,10 @@ No script registers or unregisters a resource provider and no Azure resource is 
 | --- | --- |
 | `Export-AccessibleSubscriptions.ps1` | Refreshes and exports enabled subscriptions in the current Azure CLI cloud. |
 | `Export-RegisteredResourceProviders.ps1` | Reads a two-column subscription CSV and exports registered providers for each subscription. |
-| `ResourceProviderInventory.Common.psm1` | Shared validation, Azure CLI, path, and CSV helpers. Do not run this module directly. |
+| `Register-ResourceProviders.ps1` | Registers explicitly selected resource providers for subscriptions in a CSV and exports an audit report. |
+
+Each functional unit is a standalone script. No shared PowerShell module from
+this repository needs to be copied or imported.
 
 ## Prerequisites
 
@@ -106,11 +114,33 @@ If all CSV subscriptions belong to one tenant, `TenantId` can also be supplied.
 For a cross-tenant list, omit it and ensure the required Az PowerShell
 subscription contexts are accessible.
 
+### 5. Register selected resource providers
+
+Registration is a write operation. The caller needs
+`Microsoft.Resources/subscriptions/providers/register/action` at subscription
+scope; roles such as `Contributor` and `Owner` include this permission.
+
+Preview the requested changes first:
+
+```powershell
+.\Register-ResourceProviders.ps1 `
+    -InputPath .\subscriptions.csv `
+    -ProviderNamespace Microsoft.Compute, Microsoft.Network `
+    -WhatIf
+```
+
+Remove `-WhatIf` to perform registration. The script prompts for each change by
+default; add `-Confirm:$false` only for an approved unattended run. It processes
+only providers explicitly supplied to `ProviderNamespace`, skips providers that
+are already registered, waits for new registrations, and records initial state,
+final state, action, status, and error details in an audit CSV.
+
 ## Failure behavior
 
 - Existing output files are never overwritten. Choose a new path or remove the old output intentionally.
 - Input and output paths must be different.
 - If one or more provider queries fail, the script continues with the remaining subscriptions, saves partial results and error details, and then exits with an error.
+- If one or more registrations fail, the registration script continues with the remaining items, saves its audit report and error details, and then exits with an error.
 - A subscription with no registered providers receives one row with `QueryStatus=NoRegisteredProviders` and blank provider fields.
 - No output is created when the subscription export finds no enabled accessible subscriptions.
 

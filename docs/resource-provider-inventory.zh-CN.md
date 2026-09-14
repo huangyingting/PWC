@@ -2,14 +2,17 @@
 
 ## 用途
 
-这组脚本以只读方式生成以下 CSV 清单：
+这组脚本可以生成以下 CSV 清单，并可按明确指定的列表注册资源提供程序：
 
 1. 当前 Azure CLI 账号可访问且状态为启用的订阅；
 2. 所选订阅中已注册的 Azure 资源提供程序。
 
 脚本使用 Azure CLI 的**当前云环境**。当前云为 `AzureChinaCloud` 时查询世纪互联运营的 Azure 中国；当前云为 `AzureCloud` 时查询全球 Azure。
 
-脚本不会注册或取消注册资源提供程序，也不会修改任何 Azure 资源。
+`Export-AccessibleSubscriptions.ps1`、`Export-RegisteredResourceProviders.ps1`
+和 `Export-AzureChinaVmSkuQuota.ps1` 均为只读操作。
+`Register-ResourceProviders.ps1` 是唯一会修改订阅的脚本，并且只注册通过
+`ProviderNamespace` 参数明确指定的资源提供程序；它不会取消注册 Provider。
 
 ## 文件说明
 
@@ -17,7 +20,9 @@
 | --- | --- |
 | `Export-AccessibleSubscriptions.ps1` | 刷新并导出当前 Azure CLI 云环境中状态为启用的可访问订阅。 |
 | `Export-RegisteredResourceProviders.ps1` | 读取两列订阅 CSV，并导出每个订阅中已注册的资源提供程序。 |
-| `ResourceProviderInventory.Common.psm1` | 提供验证、Azure CLI 调用、路径和 CSV 导出等公共函数，请勿直接运行。 |
+| `Register-ResourceProviders.ps1` | 为 CSV 中的订阅注册显式指定的资源提供程序，并导出审计结果。 |
+
+每个功能块都是独立脚本，不需要复制或导入本仓库中的公共 PowerShell 模块。
 
 ## 前提条件
 
@@ -102,11 +107,32 @@ CSV 中保留的所有订阅均具有 `Reader` 权限。
 如果 CSV 中所有订阅属于同一个租户，可以另外指定 `-TenantId`；对于跨租户
 清单，请省略该参数并确保对应的 Az PowerShell 订阅上下文均可访问。
 
+### 5. 注册指定的资源提供程序
+
+注册是写操作。调用账号需要在订阅范围具有
+`Microsoft.Resources/subscriptions/providers/register/action` 权限；
+`Contributor` 和 `Owner` 等角色包含该权限。
+
+先使用 `-WhatIf` 预览：
+
+```powershell
+.\Register-ResourceProviders.ps1 `
+    -InputPath .\subscriptions.csv `
+    -ProviderNamespace Microsoft.Compute, Microsoft.Network `
+    -WhatIf
+```
+
+确认无误后移除 `-WhatIf` 执行注册。脚本默认逐项请求确认；对于已经审批的
+无人值守操作，可以添加 `-Confirm:$false`。脚本只处理通过
+`-ProviderNamespace` 明确指定的 Provider，跳过已经注册的项目，等待新注册
+完成，并将初始状态、最终状态、操作、结果和错误写入审计 CSV。
+
 ## 失败处理
 
 - 脚本不会覆盖现有输出文件。请指定新路径，或在确认后手动删除旧文件。
 - 输入路径和输出路径不能指向同一个文件。
 - 如果部分订阅查询失败，脚本会继续查询其余订阅，保存部分结果和错误详情，最后以错误状态退出。
+- 如果部分 Provider 注册失败，注册脚本会继续处理其余项目，保存审计结果和错误详情，最后以错误状态退出。
 - 如果订阅没有已注册的资源提供程序，输出中会保留一行，`QueryStatus=NoRegisteredProviders`，资源提供程序字段为空。
 - 如果没有找到状态为启用的可访问订阅，订阅导出脚本不会创建空 CSV。
 

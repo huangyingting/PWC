@@ -6,6 +6,7 @@ Automates Private DNS operations for PWC on Azure China:
 - `Link-PrivateEndpointPrivateDns` infers and links the required destination Private DNS zone for one Private Endpoint.
 - `Repair-AksPrivateDnsLinks` links AKS private DNS zones to the default FCS VNet.
 - `Export-AzureChinaVmSkuQuota` exports regional VM SKU availability, Compute quota, and deployed compute inventory to CSV.
+- `Register-ResourceProviders` registers an explicit provider list across subscriptions from a CSV and writes an audit report.
 
 ## Documentation
 
@@ -43,6 +44,30 @@ one CSV. If a subscription fails, the script continues with the remaining
 subscriptions, saves partial results, and exits with an error summary. Azure CLI
 and Az PowerShell authentication are separate; the Az PowerShell account used by
 the quota script must be able to access every subscription retained in the CSV.
+
+## Resource Provider registration
+
+Each inventory function is delivered as a standalone script; no repository
+PowerShell module needs to be copied or imported. Preview an explicit provider
+list before registration:
+
+```powershell
+.\Register-ResourceProviders.ps1 `
+	-InputPath ".\subscriptions.csv" `
+	-ProviderNamespace Microsoft.Compute, Microsoft.Network `
+	-WhatIf
+```
+
+Remove `-WhatIf` to register the providers. Registration is a write operation
+and prompts for confirmation by default. For an approved unattended run, add
+`-Confirm:$false`. The caller needs
+`Microsoft.Resources/subscriptions/providers/register/action` at subscription
+scope, which is included in roles such as `Contributor` and `Owner`.
+
+Only namespaces explicitly passed to `ProviderNamespace` are processed. The
+script skips providers already registered, waits for each new registration, and
+writes an audit CSV containing initial state, final state, action, status, and
+error details.
 
 The CSV contains one row per VM size available or restricted for that
 subscription and region. It includes:
@@ -209,7 +234,7 @@ Deployment and test helpers use role-based prefixes:
 - `Export-AzureChinaVmSkuQuota.ps1` — exports Azure China regional VM SKU availability, Compute quota, and deployed-capacity attribution to CSV.
 - `Export-AccessibleSubscriptions.ps1` — exports enabled subscriptions from the current Azure CLI cloud to CSV.
 - `Export-RegisteredResourceProviders.ps1` — exports registered resource providers for subscriptions listed in a CSV.
-- `ResourceProviderInventory.Common.psm1` — shared helper module for the subscription and provider inventory scripts.
+- `Register-ResourceProviders.ps1` — registers explicitly selected resource providers for subscriptions listed in a CSV and exports an audit report.
 - `Test-Link-PrivateEndpointPrivateDns.ps1` — offline targeted-link tests.
 - `Test-AmlPrivateEndpointSync.ps1` — Azure Machine Learning end-to-end synchronization test.
 - `Test-RedisPrivateEndpointSync.ps1` — Redis end-to-end synchronization test.
