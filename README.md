@@ -15,7 +15,8 @@ Automates Private DNS operations for PWC on Azure China:
 
 ## Azure China VM SKU and quota report
 
-Run the report with `Reader` access to the customer subscription:
+Run the report with `Reader` access to the customer subscription. For one
+subscription, use `SubscriptionId`:
 
 ```powershell
 .\Export-AzureChinaVmSkuQuota.ps1 `
@@ -23,6 +24,25 @@ Run the report with `Reader` access to the customer subscription:
 	-Location "chinaeast2" `
 	-OutputPath ".\customer-chinaeast2-vm-quota.csv"
 ```
+
+To query multiple subscriptions, first create and optionally filter the
+two-column subscription file, then pass it directly to the quota script:
+
+```powershell
+.\Export-AccessibleSubscriptions.ps1 `
+	-OutputPath ".\subscriptions.csv"
+
+.\Export-AzureChinaVmSkuQuota.ps1 `
+	-InputPath ".\subscriptions.csv" `
+	-Location "chinaeast2" `
+	-OutputPath ".\all-subscriptions-chinaeast2-vm-quota.csv"
+```
+
+The subscriptions are queried sequentially and successful rows are combined in
+one CSV. If a subscription fails, the script continues with the remaining
+subscriptions, saves partial results, and exits with an error summary. Azure CLI
+and Az PowerShell authentication are separate; the Az PowerShell account used by
+the quota script must be able to access every subscription retained in the CSV.
 
 The CSV contains one row per VM size available or restricted for that
 subscription and region. It includes:

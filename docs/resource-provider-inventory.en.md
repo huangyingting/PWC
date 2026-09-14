@@ -83,6 +83,29 @@ The script queries subscriptions sequentially and creates these columns:
 | `QueryStatus` | `Success`, `NoRegisteredProviders`, or `Failed`. |
 | `ErrorMessage` | Azure CLI error for a failed subscription; otherwise blank. |
 
+### 4. Export VM SKU and quota for multiple subscriptions
+
+The same `subscriptions.csv` can be passed directly to the VM SKU and quota
+script. This script uses an Az PowerShell login rather than the Azure CLI login;
+ensure that the current Az PowerShell account has `Reader` access to every
+subscription retained in the CSV.
+
+```powershell
+.\Export-AzureChinaVmSkuQuota.ps1 `
+    -InputPath .\subscriptions.csv `
+    -Location chinaeast2 `
+    -OutputPath .\all-subscriptions-chinaeast2-vm-quota.csv
+```
+
+Subscriptions are queried sequentially and successful results are combined in
+one CSV. If a subscription fails, the script continues, saves partial results,
+and exits with an error summary after processing the remaining subscriptions.
+The batch `InputPath` mode and single-subscription `SubscriptionId` mode are
+mutually exclusive.
+If all CSV subscriptions belong to one tenant, `TenantId` can also be supplied.
+For a cross-tenant list, omit it and ensure the required Az PowerShell
+subscription contexts are accessible.
+
 ## Failure behavior
 
 - Existing output files are never overwritten. Choose a new path or remove the old output intentionally.

@@ -83,6 +83,25 @@ az cloud show --query name --output tsv
 | `QueryStatus` | `Success`、`NoRegisteredProviders` 或 `Failed`。 |
 | `ErrorMessage` | 订阅查询失败时的 Azure CLI 错误，否则为空。 |
 
+### 4. 批量导出 VM SKU 与 Quota
+
+同一个 `subscriptions.csv` 也可以直接交给 VM SKU 与 Quota 脚本。该脚本使用
+Az PowerShell 登录，而不是 Azure CLI 登录；请确保当前 Az PowerShell 账号对
+CSV 中保留的所有订阅均具有 `Reader` 权限。
+
+```powershell
+.\Export-AzureChinaVmSkuQuota.ps1 `
+    -InputPath .\subscriptions.csv `
+    -Location chinaeast2 `
+    -OutputPath .\all-subscriptions-chinaeast2-vm-quota.csv
+```
+
+脚本会逐个遍历订阅，并将成功结果合并到一个 CSV。若某个订阅查询失败，脚本
+会继续查询其余订阅、保存部分结果，并在最后返回包含失败订阅的错误摘要。
+`-InputPath` 批量模式与 `-SubscriptionId` 单订阅模式互斥。
+如果 CSV 中所有订阅属于同一个租户，可以另外指定 `-TenantId`；对于跨租户
+清单，请省略该参数并确保对应的 Az PowerShell 订阅上下文均可访问。
+
 ## 失败处理
 
 - 脚本不会覆盖现有输出文件。请指定新路径，或在确认后手动删除旧文件。
