@@ -7,6 +7,12 @@ Automates Private DNS operations for PWC on Azure China:
 - `Repair-AksPrivateDnsLinks` links AKS private DNS zones to the default FCS VNet.
 - `Export-AzureChinaVmSkuQuota` exports regional VM SKU availability, Compute quota, and deployed compute inventory to CSV.
 
+## Documentation
+
+- [English documentation](docs/resource-provider-inventory.en.md) — subscription and registered resource provider inventory.
+- [中文文档](docs/resource-provider-inventory.zh-CN.md) — 订阅与已注册资源提供程序清单。
+- [Documentation index / 文档索引](docs/README.md)
+
 ## Azure China VM SKU and quota report
 
 Run the report with `Reader` access to the customer subscription:
@@ -181,6 +187,9 @@ Deployment and test helpers use role-based prefixes:
 - `Deploy-AzureChinaPrivateDnsAutomation.ps1` — consolidated Automation Account deployer.
 - `Deploy-ChinaPrivateEndpointTest.ps1` — deploys reusable Azure China Private Endpoint test resources.
 - `Export-AzureChinaVmSkuQuota.ps1` — exports Azure China regional VM SKU availability, Compute quota, and deployed-capacity attribution to CSV.
+- `Export-AccessibleSubscriptions.ps1` — exports enabled subscriptions from the current Azure CLI cloud to CSV.
+- `Export-RegisteredResourceProviders.ps1` — exports registered resource providers for subscriptions listed in a CSV.
+- `ResourceProviderInventory.Common.psm1` — shared helper module for the subscription and provider inventory scripts.
 - `Test-Link-PrivateEndpointPrivateDns.ps1` — offline targeted-link tests.
 - `Test-AmlPrivateEndpointSync.ps1` — Azure Machine Learning end-to-end synchronization test.
 - `Test-RedisPrivateEndpointSync.ps1` — Redis end-to-end synchronization test.
