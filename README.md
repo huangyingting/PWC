@@ -12,6 +12,8 @@ Automates Private DNS operations for PWC on Azure China:
 
 - [English documentation](docs/resource-provider-inventory.en.md) — subscription and registered resource provider inventory.
 - [中文文档](docs/resource-provider-inventory.zh-CN.md) — 订阅与已注册资源提供程序清单。
+- [AKS unused PVC guide (English)](docs/aks-unused-pvc.en.md) — finding and safely deleting unused AKS PVCs and Azure Disks.
+- [AKS 未使用 PVC 清理指南（中文）](docs/aks-unused-pvc.zh-CN.md) — 查找并安全清理 AKS 未使用 PVC 与 Azure 磁盘。
 - [Documentation index / 文档索引](docs/README.md)
 
 ## Azure China VM SKU and quota report
@@ -235,6 +237,7 @@ Deployment and test helpers use role-based prefixes:
 - `Export-AccessibleSubscriptions.ps1` — exports enabled subscriptions from the current Azure CLI cloud to CSV.
 - `Export-RegisteredResourceProviders.ps1` — exports registered resource providers for subscriptions listed in a CSV.
 - `Register-ResourceProviders.ps1` — registers explicitly selected resource providers for subscriptions listed in a CSV and exports an audit report.
+- `find-unused-pvcs.sh` — conservatively lists AKS PersistentVolumeClaims not referenced by active Pods or workload templates.
 - `Test-Link-PrivateEndpointPrivateDns.ps1` — offline targeted-link tests.
 - `Test-AmlPrivateEndpointSync.ps1` — Azure Machine Learning end-to-end synchronization test.
 - `Test-RedisPrivateEndpointSync.ps1` — Redis end-to-end synchronization test.
